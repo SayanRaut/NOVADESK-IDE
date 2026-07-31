@@ -212,52 +212,20 @@ export function initializeCommands() {
 
   // File Menu
   MenuRegistry.registerMenu('menubar/file', [
-    { id: 'file.newTextFile', type: 'command', commandId: 'file.newTextFile' },
-    { id: 'file.newFile', type: 'command', commandId: 'file.newFile' },
-    { id: 'file.newWindow', type: 'command', commandId: 'file.newWindow' },
-    { id: 'file.newWindowProfile', type: 'submenu', label: 'New Window with Profile', submenuId: 'menubar/file/newProfile' },
+    { id: 'file.newFile', type: 'command', commandId: 'file.newFile', label: 'New File' },
     { id: 'sep1', type: 'separator' },
-    { id: 'file.openFile', type: 'command', commandId: 'file.openFile' },
-    { id: 'file.openFolder', type: 'command', commandId: 'file.openFolder' },
-    { id: 'file.openWorkspaceFromFile', type: 'command', commandId: 'file.openWorkspaceFromFile' },
-    { id: 'file.openRecent', type: 'submenu', label: 'Open Recent', submenuId: 'menubar/file/openRecent' },
+    { id: 'file.openFolder', type: 'command', commandId: 'file.openFolder', label: 'Open Folder...' },
     { id: 'sep2', type: 'separator' },
-    { id: 'file.addFolderToWorkspace', type: 'command', commandId: 'file.addFolderToWorkspace' },
-    { id: 'file.saveWorkspaceAs', type: 'command', commandId: 'file.saveWorkspaceAs' },
-    { id: 'file.duplicateWorkspace', type: 'command', commandId: 'file.duplicateWorkspace' },
-    { id: 'sep3', type: 'separator' },
     { id: 'file.save', type: 'command', commandId: 'file.save' },
-    { id: 'file.saveAs', type: 'command', commandId: 'file.saveAs' },
     { id: 'file.saveAll', type: 'command', commandId: 'file.saveAll' },
+    { id: 'sep3', type: 'separator' },
+    { id: 'file.closeEditor', type: 'command', commandId: 'file.closeEditor', label: 'Close Editor' },
+    { id: 'file.closeFolder', type: 'command', commandId: 'file.closeFolder', label: 'Close Workspace' },
     { id: 'sep4', type: 'separator' },
-    { id: 'file.share', type: 'submenu', label: 'Share', submenuId: 'menubar/file/share' },
-    { id: 'sep5', type: 'separator' },
-    { id: 'file.autoSave', type: 'command', commandId: 'file.autoSave' },
-    { id: 'file.preferences', type: 'submenu', label: 'Preferences', submenuId: 'menubar/file/preferences' },
-    { id: 'sep6', type: 'separator' },
-    { id: 'file.revertFile', type: 'command', commandId: 'file.revertFile' },
-    { id: 'file.closeEditor', type: 'command', commandId: 'file.closeEditor' },
-    { id: 'file.closeFolder', type: 'command', commandId: 'file.closeFolder' },
-    { id: 'file.closeWindow', type: 'command', commandId: 'file.closeWindow' },
-    { id: 'sep7', type: 'separator' },
     { id: 'file.exit', type: 'command', commandId: 'file.exit' },
   ]);
 
-  // Register File Submenus
-  MenuRegistry.registerMenu('menubar/file/newProfile', [
-    { id: 'profile.default', type: 'command', commandId: 'stub', label: 'Default' },
-  ]);
-  MenuRegistry.registerMenu('menubar/file/openRecent', [
-    { id: 'recent.1', type: 'command', commandId: 'stub', label: 'C:\\Projects\\NovaDesk' },
-    { id: 'recent.clear', type: 'command', commandId: 'stub', label: 'Clear Recently Opened' },
-  ]);
-  MenuRegistry.registerMenu('menubar/file/share', [
-    { id: 'share.export', type: 'command', commandId: 'stub', label: 'Export...' },
-  ]);
-  MenuRegistry.registerMenu('menubar/file/preferences', [
-    { id: 'pref.settings', type: 'command', commandId: 'stub', label: 'Settings' },
-    { id: 'pref.theme', type: 'command', commandId: 'stub', label: 'Theme' },
-  ]);
+
 
   // Edit Menu
   MenuRegistry.registerMenu('menubar/edit', [
