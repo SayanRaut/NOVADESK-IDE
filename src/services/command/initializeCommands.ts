@@ -11,133 +11,47 @@ export function initializeCommands() {
 
   // File Commands
   CommandRegistry.registerCommand({
-    id: 'file.newTextFile',
-    title: 'New Text File',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:newFile'))
-  });
-
-  CommandRegistry.registerCommand({
     id: 'file.newFile',
     title: 'New File...',
     execute: () => window.dispatchEvent(new CustomEvent('ide:newFile'))
   });
 
+  // Edit Commands
   CommandRegistry.registerCommand({
-    id: 'file.newWindow',
-    title: 'New Window',
-    execute: () => {
-      if (window.electronAPI) window.electronAPI.windowControl('newWindow'); // assuming such exists, or stub
-    }
+    id: 'edit.undo',
+    title: 'Undo',
+    when: 'editorTextFocus',
+    execute: () => document.execCommand('undo')
   });
-
   CommandRegistry.registerCommand({
-    id: 'file.openFile',
-    title: 'Open File...',
-    execute: () => console.log('file.openFile executed')
+    id: 'edit.redo',
+    title: 'Redo',
+    when: 'editorTextFocus',
+    execute: () => document.execCommand('redo')
   });
-
   CommandRegistry.registerCommand({
-    id: 'file.openFolder',
-    title: 'Open Folder...',
-    execute: async () => {
-      if (window.electronAPI) {
-        const folder = await window.electronAPI.openFolder();
-        if (folder) {
-          window.dispatchEvent(new CustomEvent('ide:openWorkspace', { detail: folder }));
-        }
-      }
-    }
+    id: 'edit.cut',
+    title: 'Cut',
+    when: 'hasSelection',
+    execute: () => document.execCommand('cut')
   });
-
   CommandRegistry.registerCommand({
-    id: 'file.openWorkspaceFromFile',
-    title: 'Open Workspace from File...',
-    execute: () => console.log('file.openWorkspaceFromFile executed')
+    id: 'edit.copy',
+    title: 'Copy',
+    when: 'hasSelection',
+    execute: () => document.execCommand('copy')
   });
-
   CommandRegistry.registerCommand({
-    id: 'file.addFolderToWorkspace',
-    title: 'Add Folder to Workspace...',
-    execute: () => console.log('file.addFolderToWorkspace executed')
+    id: 'edit.paste',
+    title: 'Paste',
+    when: 'editorTextFocus',
+    execute: () => document.execCommand('paste')
   });
-
   CommandRegistry.registerCommand({
-    id: 'file.saveWorkspaceAs',
-    title: 'Save Workspace As...',
-    execute: () => console.log('file.saveWorkspaceAs executed')
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.duplicateWorkspace',
-    title: 'Duplicate Workspace',
-    execute: () => console.log('file.duplicateWorkspace executed')
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.save',
-    title: 'Save',
-    when: 'hasActiveEditor',
-    execute: () => {
-      window.dispatchEvent(new CustomEvent('ide:saveActiveFile'));
-    }
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.saveAs',
-    title: 'Save As...',
-    when: 'hasActiveEditor',
-    execute: () => console.log('file.saveAs executed')
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.saveAll',
-    title: 'Save All',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:saveAllFiles'))
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.autoSave',
-    title: 'Auto Save',
-    execute: () => console.log('file.autoSave executed')
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.revertFile',
-    title: 'Revert File',
-    when: 'hasActiveEditor',
-    execute: () => console.log('file.revertFile executed')
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.closeEditor',
-    title: 'Close Editor',
-    when: 'hasActiveEditor',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:closeActiveFile'))
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.closeFolder',
-    title: 'Close Workspace',
-    when: 'isWorkspaceOpen',
-    execute: () => {
-      window.dispatchEvent(new CustomEvent('ide:closeWorkspace'));
-    }
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.closeWindow',
-    title: 'Close Window',
-    execute: () => {
-      if (window.electronAPI) window.electronAPI.windowControl('close');
-    }
-  });
-
-  CommandRegistry.registerCommand({
-    id: 'file.exit',
-    title: 'Exit',
-    execute: () => {
-      if (window.electronAPI) window.electronAPI.windowControl('close');
-    }
+    id: 'edit.selectAll',
+    title: 'Select All',
+    when: 'editorTextFocus',
+    execute: () => document.execCommand('selectAll')
   });
 
   // Edit Commands (Monaco handles most natively, these are logical triggers)
@@ -185,24 +99,44 @@ export function initializeCommands() {
   });
 
 
+  CommandRegistry.registerCommand({
+    id: 'go.toFile',
+    title: 'Go to File',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:searchFiles'))
+  });
+
+  // Run Commands
+  CommandRegistry.registerCommand({
+    id: 'run.runCode',
+    title: 'Run Code',
+    when: 'hasActiveEditor',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:runCode'))
+  });
+
   // ==========================================
   // 2. REGISTER KEYBINDINGS
   // ==========================================
-  KeybindingManager.register({ commandId: 'file.newTextFile', key: 'Ctrl+N' });
-  KeybindingManager.register({ commandId: 'file.newFile', key: 'Ctrl+Alt+Win+N' });
-  KeybindingManager.register({ commandId: 'file.newWindow', key: 'Ctrl+Shift+N' });
-  KeybindingManager.register({ commandId: 'file.openFile', key: 'Ctrl+O' });
-  KeybindingManager.register({ commandId: 'file.openFolder', key: 'Ctrl+K Ctrl+O' });
+  // Simplified Bindings
+  KeybindingManager.register({ commandId: 'file.newFile', key: 'Ctrl+N' });
+  KeybindingManager.register({ commandId: 'file.openFolder', key: 'Ctrl+O' });
   KeybindingManager.register({ commandId: 'file.save', key: 'Ctrl+S' });
-  KeybindingManager.register({ commandId: 'file.saveAs', key: 'Ctrl+Shift+S' });
-  KeybindingManager.register({ commandId: 'file.saveAll', key: 'Ctrl+K S' });
-  KeybindingManager.register({ commandId: 'file.closeEditor', key: 'Ctrl+F4' });
+  KeybindingManager.register({ commandId: 'file.saveAll', key: 'Ctrl+Shift+S' });
+  KeybindingManager.register({ commandId: 'file.closeEditor', key: 'Ctrl+W' });
   KeybindingManager.register({ commandId: 'file.closeFolder', key: 'Ctrl+K F' });
-  KeybindingManager.register({ commandId: 'file.closeWindow', key: 'Alt+F4' });
+  KeybindingManager.register({ commandId: 'file.exit', key: 'Alt+F4' });
+  
   KeybindingManager.register({ commandId: 'edit.undo', key: 'Ctrl+Z' });
+  KeybindingManager.register({ commandId: 'edit.redo', key: 'Ctrl+Y' });
+  KeybindingManager.register({ commandId: 'edit.cut', key: 'Ctrl+X' });
   KeybindingManager.register({ commandId: 'edit.copy', key: 'Ctrl+C' });
+  KeybindingManager.register({ commandId: 'edit.paste', key: 'Ctrl+V' });
+  KeybindingManager.register({ commandId: 'edit.selectAll', key: 'Ctrl+A' });
+
   KeybindingManager.register({ commandId: 'view.toggleSidebar', key: 'Ctrl+B' });
   KeybindingManager.register({ commandId: 'view.toggleTerminal', key: 'Ctrl+`' });
+  
+  KeybindingManager.register({ commandId: 'go.toFile', key: 'Ctrl+P' });
+  
   KeybindingManager.register({ commandId: 'ai.chat.new', key: 'Ctrl+L' });
 
 
@@ -258,11 +192,19 @@ export function initializeCommands() {
   const stubItems: IMenuItem[] = [{ id: 'stub', type: 'command', commandId: 'stub', label: 'Not implemented' }];
   CommandRegistry.registerCommand({ id: 'stub', title: 'Not implemented', execute: () => {} });
 
-  MenuRegistry.registerMenu('menubar/selection', stubItems);
-  MenuRegistry.registerMenu('menubar/go', stubItems);
-  MenuRegistry.registerMenu('menubar/run', stubItems);
-  MenuRegistry.registerMenu('menubar/terminal', stubItems);
-  MenuRegistry.registerMenu('menubar/ai', stubItems);
+  MenuRegistry.registerMenu('menubar/selection', [
+    { id: 'sel.all', type: 'command', commandId: 'edit.selectAll' }
+  ]);
+  MenuRegistry.registerMenu('menubar/go', [
+    { id: 'go.file', type: 'command', commandId: 'go.toFile' }
+  ]);
+  MenuRegistry.registerMenu('menubar/run', [
+    { id: 'run.code', type: 'command', commandId: 'run.runCode' }
+  ]);
+  MenuRegistry.registerMenu('menubar/terminal', [
+    { id: 'term.toggle', type: 'command', commandId: 'view.toggleTerminal' }
+  ]);
+  
   MenuRegistry.registerMenu('menubar/git', stubItems);
   MenuRegistry.registerMenu('menubar/extensions', stubItems);
   MenuRegistry.registerMenu('menubar/window', stubItems);
