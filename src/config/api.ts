@@ -13,7 +13,7 @@ export const initApiConfig = async () => {
   if (window.electronAPI) {
     const config = await window.electronAPI.getApiConfig();
     if (config?.baseUrl) {
-      currentApiBaseUrl = config.baseUrl;
+      currentApiBaseUrl = config.baseUrl.replace(/\/+$/, '');
     }
   }
 };
@@ -27,8 +27,10 @@ export const getApiBaseUrl = () => currentApiBaseUrl;
  * Sets the API base URL for the current session and saves it securely.
  */
 export const setApiBaseUrl = async (url: string) => {
-  currentApiBaseUrl = url;
+  // Strip any trailing slashes
+  const cleanUrl = url.replace(/\/+$/, '');
+  currentApiBaseUrl = cleanUrl;
   if (window.electronAPI) {
-    await window.electronAPI.saveApiConfig({ baseUrl: url });
+    await window.electronAPI.saveApiConfig({ baseUrl: cleanUrl });
   }
 };
