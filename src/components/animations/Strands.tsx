@@ -374,5 +374,5 @@ export default function Strands({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={ctnDom} className={\`strands-container \${className}\`} style={style} />;
+  return <div ref={ctnDom} className={`strands-container ${className}`} style={style} />;
 }
