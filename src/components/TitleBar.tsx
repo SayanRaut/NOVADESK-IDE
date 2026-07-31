@@ -1,83 +1,26 @@
-import { useState } from 'react';
 import { useWindowControls } from '../contexts/WindowContext';
 import { useEditor } from '../contexts/EditorContext';
 import { Minus, Square, X } from 'lucide-react';
-import { Menu, type MenuItemProps } from './Menu';
+import { IDEMenuBar } from './menubar/MenuBar';
 import { cn } from '../utils/cn';
 
 export function TitleBar() {
   const { minimize, maximize, close } = useWindowControls();
-  const { currentPath, openWorkspace, closeWorkspace, saveActiveFile, workspaceName } = useEditor();
+  const { workspaceName } = useEditor();
 
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
-
-  const handleMenuToggle = (menuName: string) => {
-    setActiveMenu(activeMenu === menuName ? null : menuName);
-  };
-
-  const handleMenuHover = (menuName: string) => {
-    if (activeMenu && activeMenu !== menuName) {
-      setActiveMenu(menuName);
-    }
-  };
-
-  const closeMenu = () => setActiveMenu(null);
-
-  const handleOpenFolder = async () => {
-    if (window.electronAPI) {
-      const folder = await window.electronAPI.openFolder();
-      if (folder) openWorkspace(folder);
-    }
-  };
-
-  const handleCreateFile = async () => {
-    if (window.electronAPI && currentPath) {
-      // In a real app we'd prompt for name, for now just a dummy or use a dialog/input later.
-      // But we will use the sidebar for actual file creation usually. 
-      // We can just leave this unimplemented or prompt.
-    }
-  };
-
-  const handleExit = () => {
-    close();
-  };
-
-  const fileMenuItems: MenuItemProps[] = [
-    { label: 'New File', shortcut: 'Ctrl+N', disabled: !currentPath, onClick: handleCreateFile },
-    { label: 'New Folder', disabled: !currentPath },
-    { divider: true, label: '' },
-    { label: 'Open Folder...', shortcut: 'Ctrl+O', onClick: handleOpenFolder },
-    { label: 'Open Workspace...', disabled: true },
-    { divider: true, label: '' },
-    { label: 'Save', shortcut: 'Ctrl+S', onClick: saveActiveFile },
-    { label: 'Save All', disabled: true },
-    { divider: true, label: '' },
-    { label: 'Close Folder', onClick: closeWorkspace, disabled: !currentPath },
-    { divider: true, label: '' },
-    { label: 'Exit', shortcut: 'Alt+F4', onClick: handleExit },
-  ];
-
-  const editMenuItems: MenuItemProps[] = [
-    { label: 'Undo', shortcut: 'Ctrl+Z' },
-    { label: 'Redo', shortcut: 'Ctrl+Y' },
-    { divider: true, label: '' },
-    { label: 'Cut', shortcut: 'Ctrl+X' },
-    { label: 'Copy', shortcut: 'Ctrl+C' },
-    { label: 'Paste', shortcut: 'Ctrl+V' },
-  ];
-
-  const defaultMenuItems: MenuItemProps[] = [{ label: 'Not implemented' }];
-
-  const menus = [
-    { name: 'File', items: fileMenuItems },
-    { name: 'Edit', items: editMenuItems },
-    { name: 'Selection', items: defaultMenuItems },
-    { name: 'View', items: defaultMenuItems },
-    { name: 'Go', items: defaultMenuItems },
-    { name: 'Run', items: defaultMenuItems },
-    { name: 'Terminal', items: defaultMenuItems },
-    { name: 'AI', items: defaultMenuItems },
-    { name: 'Help', items: defaultMenuItems },
+  const menuIds = [
+    'menubar/file',
+    'menubar/edit',
+    'menubar/selection',
+    'menubar/view',
+    'menubar/go',
+    'menubar/run',
+    'menubar/terminal',
+    'menubar/ai',
+    'menubar/git',
+    'menubar/extensions',
+    'menubar/window',
+    'menubar/help'
   ];
 
   return (
@@ -95,17 +38,7 @@ export function TitleBar() {
         
         {/* Menus */}
         <div className="flex items-center h-full [-webkit-app-region:no-drag]">
-          {menus.map(menu => (
-            <Menu
-              key={menu.name}
-              label={menu.name}
-              items={menu.items}
-              isOpen={activeMenu === menu.name}
-              onToggle={() => handleMenuToggle(menu.name)}
-              onHover={() => handleMenuHover(menu.name)}
-              onClose={closeMenu}
-            />
-          ))}
+          <IDEMenuBar menuIds={menuIds} />
         </div>
       </div>
 

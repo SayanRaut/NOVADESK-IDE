@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, useEffect, type Dispatch, type ReactNode, type SetStateAction } from 'react';
+import { useContextKeyService } from '../services/command/ContextKeyService';
 
 export type FileTree = {
   name: string;
@@ -153,6 +154,18 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Sync state to ContextKeyService
+  useEffect(() => {
+    const { setContext } = useContextKeyService.getState();
+    setContext('isWorkspaceOpen', currentPath !== null);
+  }, [currentPath]);
+
+  useEffect(() => {
+    const { setContext } = useContextKeyService.getState();
+    const activeGroup = editorGroups.find(g => g.id === activeGroupId);
+    setContext('hasActiveEditor', activeGroup?.activeFile !== null && activeGroup?.activeFile !== undefined);
+  }, [editorGroups, activeGroupId]);
+
   // 2. Persist recent workspaces
   useEffect(() => {
     localStorage.setItem('novadesk:recentWorkspaces', JSON.stringify(recentWorkspaces));
@@ -211,6 +224,30 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     }, 1000);
     return () => clearTimeout(timer);
   }, [dirtyFiles, fileContents]);
+
+  // Command Action Listeners
+  useEffect(() => {
+    const handleSave = () => {
+      saveActiveFile();
+    };
+    const handleOpenWorkspace = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) openWorkspace(customEvent.detail);
+    };
+    const handleCloseWorkspace = () => {
+      closeWorkspace();
+    };
+
+    window.addEventListener('ide:saveActiveFile', handleSave);
+    window.addEventListener('ide:openWorkspace', handleOpenWorkspace);
+    window.addEventListener('ide:closeWorkspace', handleCloseWorkspace);
+
+    return () => {
+      window.removeEventListener('ide:saveActiveFile', handleSave);
+      window.removeEventListener('ide:openWorkspace', handleOpenWorkspace);
+      window.removeEventListener('ide:closeWorkspace', handleCloseWorkspace);
+    };
+  }, [saveActiveFile, openWorkspace, closeWorkspace]);
 
   const loadWorkspaceState = (path: string) => {
     try {

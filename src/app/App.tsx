@@ -13,6 +13,10 @@ import { ExtensionProvider } from '../contexts/ExtensionContext';
 import { DesktopLayout } from '../layouts/DesktopLayout';
 import { LoadingScreen } from '../pages/LoadingScreen';
 import { LoginPage } from '../pages/LoginPage';
+import { initializeCommands } from '../services/command/initializeCommands';
+
+// Initialize the command registry, menus, and keybindings
+initializeCommands();
 
 function AppRouter() {
   const { isInitializing, isAuthenticated } = useAuth();
