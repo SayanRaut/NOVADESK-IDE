@@ -25,6 +25,7 @@
     "highlight.js": "^11.11.1",
     "lucide-react": "^1.24.0",
     "node-pty": "^1.1.0",
+    "ogl": "^1.0.11",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-markdown": "^10.1.0",

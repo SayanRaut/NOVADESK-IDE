@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { LoaderCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { getApiBaseUrl } from '../config/api';
+import Strands from '../components/animations/Strands';
 
 export const LoginPage = () => {
   const { login, continueLocally } = useAuth();
@@ -140,8 +141,15 @@ export const LoginPage = () => {
 
   return (
     <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#0d0d0d] px-6 text-gray-200">
-      <div className="pointer-events-none absolute inset-0 opacity-30" style={{ backgroundImage: 'radial-gradient(circle at 50% 38%, #1d4ed8 0%, transparent 38%)' }} />
-      <section className="z-10 w-full max-w-md rounded-2xl border border-[#303030] bg-[#161616]/95 p-10 shadow-2xl">
+      <div className="absolute inset-0 z-0 opacity-60">
+        <Strands 
+          colors={['#1d4ed8', '#7C3AED', '#06B6D4', '#EAB308']} 
+          count={4}
+          speed={0.3}
+          amplitude={1.5}
+        />
+      </div>
+      <section className="z-10 w-full max-w-md rounded-2xl border border-[#303030] bg-[#161616]/95 p-10 shadow-2xl backdrop-blur-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 font-bold text-white">N</div>
           <h1 className="text-3xl font-semibold tracking-tight">NovaDesk IDE</h1>
