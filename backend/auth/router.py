@@ -14,6 +14,7 @@ from auth.services.user_service import get_user_by_id, format_user_payload, crea
 from auth.services.oauth_service import GoogleOAuthService
 from auth.exceptions import OAuthExchangeError, InvalidStateError, GoogleTokenError
 from fastapi.responses import RedirectResponse, HTMLResponse
+import urllib.parse
 import uuid
 from config.settings import settings
 logger = logging.getLogger(__name__)
@@ -162,22 +163,22 @@ async def google_login_callback(code: str, state: str, db: AsyncSession = Depend
             "access_token": access_token,
             "refresh_token": refresh_token
         }
-        return HTMLResponse(
-            "<html><body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#0d0d0d;color:#fff;'>"
-            "<div style='text-align:center;'><h1>Login successful!</h1><p>You can close this window and return to NovaDesk.</p></div>"
-            "<script>window.close();</script></body></html>"
-        )
+        
+        scheme = settings.DESKTOP_CALLBACK_SCHEME
+        redirect_url = f"{scheme}://auth/callback?ticket={access_token}&refresh={refresh_token}&state={state}"
+        return RedirectResponse(redirect_url)
+        
         
     except Exception as e:
         logger.error(f"Google auth callback error: {e}", exc_info=True)
         import urllib.parse
         error_msg = str(e) or "Unknown authentication error"
         _auth_states[state] = {"error": error_msg}
-        return HTMLResponse(
-            f"<html><body style='font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#0d0d0d;color:#fff;'>"
-            f"<div style='text-align:center;'><h1>Login failed</h1><p>{error_msg}</p><p>You can close this window.</p></div>"
-            "<script>window.close();</script></body></html>"
-        )
+        
+        scheme = settings.DESKTOP_CALLBACK_SCHEME
+        encoded_error = urllib.parse.quote(error_msg)
+        redirect_url = f"{scheme}://auth/callback?error={encoded_error}&state={state}"
+        return RedirectResponse(redirect_url)
 
 @router.get("/google/status")
 async def google_login_status(state: str):

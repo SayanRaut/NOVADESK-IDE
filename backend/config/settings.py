@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     # App
     APP_NAME: str = "NovaDesk API"
     DEBUG: bool = True
-    API_ORIGIN: str = "http://127.0.0.1:8000"
+    API_ORIGIN: str = "https://novadesk-ide.onrender.com"
     DESKTOP_CALLBACK_SCHEME: str = "novadesk"
     CORS_ORIGINS: str = "http://localhost:5173"
     
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # Google OAuth
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
-    GOOGLE_REDIRECT_URI: str = "http://127.0.0.1:8000/api/auth/google/callback"
+    GOOGLE_REDIRECT_URI: str = "https://novadesk-ide.onrender.com/api/auth/google/callback"
     
     # AI Providers
     OLLAMA_HOST: str = "http://localhost:11434"
