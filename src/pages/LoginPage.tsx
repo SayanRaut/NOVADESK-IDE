@@ -149,7 +149,7 @@ export const LoginPage = () => {
           amplitude={1.5}
         />
       </div>
-      <section className="z-10 w-full max-w-md rounded-2xl border border-[#303030] bg-[#161616]/95 p-10 shadow-2xl backdrop-blur-md">
+      <section className="z-10 w-full max-w-md p-10 bg-transparent">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 font-bold text-white">N</div>
           <h1 className="text-3xl font-semibold tracking-tight">NovaDesk IDE</h1>
