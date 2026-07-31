@@ -228,18 +228,6 @@ export function initializeCommands() {
     { id: 'view.toggleTerminal', type: 'command', commandId: 'view.toggleTerminal' },
   ]);
 
-  // AI Menu
-  MenuRegistry.registerMenu('menubar/ai', [
-    { id: 'ai.chat.new', type: 'command', commandId: 'ai.chat.new' },
-    { id: 'sep1', type: 'separator' },
-    { id: 'ai.explain', type: 'command', commandId: 'ai.explain' },
-    { id: 'ai.refactor', type: 'command', commandId: 'stub', label: 'Refactor Code' },
-  ]);
-
-  // Stub other menus
-  const stubItems: IMenuItem[] = [{ id: 'stub', type: 'command', commandId: 'stub', label: 'Not implemented' }];
-  CommandRegistry.registerCommand({ id: 'stub', title: 'Not implemented', execute: () => {} });
-
   MenuRegistry.registerMenu('menubar/selection', [
     { id: 'sel.all', type: 'command', commandId: 'edit.selectAll' }
   ]);
@@ -252,11 +240,6 @@ export function initializeCommands() {
   MenuRegistry.registerMenu('menubar/terminal', [
     { id: 'term.toggle', type: 'command', commandId: 'view.toggleTerminal' }
   ]);
-  
-  MenuRegistry.registerMenu('menubar/git', stubItems);
-  MenuRegistry.registerMenu('menubar/extensions', stubItems);
-  MenuRegistry.registerMenu('menubar/window', stubItems);
-  MenuRegistry.registerMenu('menubar/help', stubItems);
 
   // Start listening to keybindings
   KeybindingManager.start();

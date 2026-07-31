@@ -15,12 +15,7 @@ export function TitleBar() {
     'menubar/view',
     'menubar/go',
     'menubar/run',
-    'menubar/terminal',
-    'menubar/ai',
-    'menubar/git',
-    'menubar/extensions',
-    'menubar/window',
-    'menubar/help'
+    'menubar/terminal'
   ];
 
   return (
