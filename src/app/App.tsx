@@ -9,6 +9,7 @@ import { PanelProvider } from '../contexts/PanelContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import { TerminalProvider } from '../contexts/TerminalContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { ExtensionProvider } from '../contexts/ExtensionContext';
 import { DesktopLayout } from '../layouts/DesktopLayout';
 import { LoadingScreen } from '../pages/LoadingScreen';
 import { LoginPage } from '../pages/LoginPage';
@@ -30,17 +31,19 @@ export function App() {
           <WindowProvider>
             <LayoutProvider>
               <SidebarProvider>
-                <PanelProvider>
-                  <NotificationProvider>
-                    <TerminalProvider>
-                      <EditorProvider>
-                        <AIProvider>
-                          <AppRouter />
-                        </AIProvider>
-                      </EditorProvider>
-                    </TerminalProvider>
-                  </NotificationProvider>
-                </PanelProvider>
+                <ExtensionProvider>
+                  <PanelProvider>
+                    <NotificationProvider>
+                      <TerminalProvider>
+                        <EditorProvider>
+                          <AIProvider>
+                            <AppRouter />
+                          </AIProvider>
+                        </EditorProvider>
+                      </TerminalProvider>
+                    </NotificationProvider>
+                  </PanelProvider>
+                </ExtensionProvider>
               </SidebarProvider>
             </LayoutProvider>
           </WindowProvider>

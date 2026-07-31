@@ -8,6 +8,7 @@ import { useResize } from '../hooks/useResize';
 import { Skeleton } from './Loading/Skeleton';
 import { FileExplorer } from './explorer/FileExplorer';
 import { SettingsPanel } from './SettingsPanel';
+import { ExtensionsPanel } from './extensions/ExtensionsPanel';
 import { cn } from '../utils/cn';
 
 const titleMap: Record<ActivityItem, string> = {
@@ -60,11 +61,12 @@ export function Sidebar() {
               </div>
             </div>
 
-            {/* Content Area */}
             {activeActivity === 'explorer' ? (
               <FileExplorer />
             ) : activeActivity === 'settings' ? (
               <SettingsPanel />
+            ) : activeActivity === 'extensions' ? (
+              <ExtensionsPanel />
             ) : (
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="flex flex-col gap-3">
