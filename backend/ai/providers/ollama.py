@@ -26,7 +26,14 @@ class OllamaProvider(AIProvider):
             }
         }
         
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Bypass-Tunnel-Reminder": "true",
+            "ngrok-skip-browser-warning": "true"
+        }
+        
+        async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
             response = await client.post(f"{self.host}/api/chat", json=payload)
             if response.status_code >= 400:
                 error_msg = response.text
@@ -55,7 +62,14 @@ class OllamaProvider(AIProvider):
             }
         }
         
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Bypass-Tunnel-Reminder": "true",
+            "ngrok-skip-browser-warning": "true"
+        }
+        
+        async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
             async with client.stream("POST", f"{self.host}/api/chat", json=payload) as response:
                 if response.status_code >= 400:
                     await response.aread()
@@ -95,7 +109,14 @@ class OllamaProvider(AIProvider):
             }
         }
         
-        async with httpx.AsyncClient(timeout=120.0) as client:
+        headers = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Bypass-Tunnel-Reminder": "true",
+            "ngrok-skip-browser-warning": "true"
+        }
+        
+        async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
             response = await client.post(f"{self.host}/api/chat", json=payload)
             if response.status_code >= 400:
                 error_msg = response.text
