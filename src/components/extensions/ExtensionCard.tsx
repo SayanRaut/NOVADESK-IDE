@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, Check, Download, AlertCircle } from 'lucide-react';
-import { Extension, useExtensions } from '../../contexts/ExtensionContext';
+import { type Extension, useExtensions } from '../../contexts/ExtensionContext';
 import { cn } from '../../utils/cn';
 
 interface ExtensionCardProps {
