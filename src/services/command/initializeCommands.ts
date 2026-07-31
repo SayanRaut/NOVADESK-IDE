@@ -11,12 +11,29 @@ export function initializeCommands() {
 
   // File Commands
   CommandRegistry.registerCommand({
+    id: 'file.newTextFile',
+    title: 'New Text File',
+    execute: () => console.log('file.newTextFile executed')
+  });
+
+  CommandRegistry.registerCommand({
     id: 'file.newFile',
-    title: 'New File',
-    execute: async () => {
-      // In real implementation, this triggers a dialog or opens a new untitled editor
-      console.log('file.newFile executed');
+    title: 'New File...',
+    execute: () => console.log('file.newFile executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.newWindow',
+    title: 'New Window',
+    execute: () => {
+      if (window.electronAPI) window.electronAPI.windowControl('newWindow'); // assuming such exists, or stub
     }
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.openFile',
+    title: 'Open File...',
+    execute: () => console.log('file.openFile executed')
   });
 
   CommandRegistry.registerCommand({
@@ -25,14 +42,35 @@ export function initializeCommands() {
     execute: async () => {
       if (window.electronAPI) {
         const folder = await window.electronAPI.openFolder();
-        // Since we don't have direct access to EditorContext here easily,
-        // we might need an event emitter or pass dependencies. 
-        // For phase 1, we can trigger a custom event that the EditorContext listens to
         if (folder) {
           window.dispatchEvent(new CustomEvent('ide:openWorkspace', { detail: folder }));
         }
       }
     }
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.openWorkspaceFromFile',
+    title: 'Open Workspace from File...',
+    execute: () => console.log('file.openWorkspaceFromFile executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.addFolderToWorkspace',
+    title: 'Add Folder to Workspace...',
+    execute: () => console.log('file.addFolderToWorkspace executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.saveWorkspaceAs',
+    title: 'Save Workspace As...',
+    execute: () => console.log('file.saveWorkspaceAs executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.duplicateWorkspace',
+    title: 'Duplicate Workspace',
+    execute: () => console.log('file.duplicateWorkspace executed')
   });
 
   CommandRegistry.registerCommand({
@@ -45,11 +83,52 @@ export function initializeCommands() {
   });
 
   CommandRegistry.registerCommand({
+    id: 'file.saveAs',
+    title: 'Save As...',
+    when: 'hasActiveEditor',
+    execute: () => console.log('file.saveAs executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.saveAll',
+    title: 'Save All',
+    execute: () => console.log('file.saveAll executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.autoSave',
+    title: 'Auto Save',
+    execute: () => console.log('file.autoSave executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.revertFile',
+    title: 'Revert File',
+    when: 'hasActiveEditor',
+    execute: () => console.log('file.revertFile executed')
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.closeEditor',
+    title: 'Close Editor',
+    when: 'hasActiveEditor',
+    execute: () => console.log('file.closeEditor executed') // hook up to EditorContext later
+  });
+
+  CommandRegistry.registerCommand({
     id: 'file.closeFolder',
-    title: 'Close Folder',
+    title: 'Close Workspace',
     when: 'isWorkspaceOpen',
     execute: () => {
       window.dispatchEvent(new CustomEvent('ide:closeWorkspace'));
+    }
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.closeWindow',
+    title: 'Close Window',
+    execute: () => {
+      if (window.electronAPI) window.electronAPI.windowControl('close');
     }
   });
 
@@ -109,10 +188,17 @@ export function initializeCommands() {
   // ==========================================
   // 2. REGISTER KEYBINDINGS
   // ==========================================
-  KeybindingManager.register({ commandId: 'file.newFile', key: 'Ctrl+N' });
-  KeybindingManager.register({ commandId: 'file.openFolder', key: 'Ctrl+O' });
+  KeybindingManager.register({ commandId: 'file.newTextFile', key: 'Ctrl+N' });
+  KeybindingManager.register({ commandId: 'file.newFile', key: 'Ctrl+Alt+Win+N' });
+  KeybindingManager.register({ commandId: 'file.newWindow', key: 'Ctrl+Shift+N' });
+  KeybindingManager.register({ commandId: 'file.openFile', key: 'Ctrl+O' });
+  KeybindingManager.register({ commandId: 'file.openFolder', key: 'Ctrl+K Ctrl+O' });
   KeybindingManager.register({ commandId: 'file.save', key: 'Ctrl+S' });
-  KeybindingManager.register({ commandId: 'file.exit', key: 'Alt+F4' });
+  KeybindingManager.register({ commandId: 'file.saveAs', key: 'Ctrl+Shift+S' });
+  KeybindingManager.register({ commandId: 'file.saveAll', key: 'Ctrl+K S' });
+  KeybindingManager.register({ commandId: 'file.closeEditor', key: 'Ctrl+F4' });
+  KeybindingManager.register({ commandId: 'file.closeFolder', key: 'Ctrl+K F' });
+  KeybindingManager.register({ commandId: 'file.closeWindow', key: 'Alt+F4' });
   KeybindingManager.register({ commandId: 'edit.undo', key: 'Ctrl+Z' });
   KeybindingManager.register({ commandId: 'edit.copy', key: 'Ctrl+C' });
   KeybindingManager.register({ commandId: 'view.toggleSidebar', key: 'Ctrl+B' });
@@ -126,18 +212,51 @@ export function initializeCommands() {
 
   // File Menu
   MenuRegistry.registerMenu('menubar/file', [
+    { id: 'file.newTextFile', type: 'command', commandId: 'file.newTextFile' },
     { id: 'file.newFile', type: 'command', commandId: 'file.newFile' },
-    { id: 'file.newFolder', type: 'command', commandId: 'file.newFolder', label: 'New Folder' },
+    { id: 'file.newWindow', type: 'command', commandId: 'file.newWindow' },
+    { id: 'file.newWindowProfile', type: 'submenu', label: 'New Window with Profile', submenuId: 'menubar/file/newProfile' },
     { id: 'sep1', type: 'separator' },
+    { id: 'file.openFile', type: 'command', commandId: 'file.openFile' },
     { id: 'file.openFolder', type: 'command', commandId: 'file.openFolder' },
-    { id: 'file.openWorkspace', type: 'command', commandId: 'file.openWorkspace', label: 'Open Workspace...' },
+    { id: 'file.openWorkspaceFromFile', type: 'command', commandId: 'file.openWorkspaceFromFile' },
+    { id: 'file.openRecent', type: 'submenu', label: 'Open Recent', submenuId: 'menubar/file/openRecent' },
     { id: 'sep2', type: 'separator' },
-    { id: 'file.save', type: 'command', commandId: 'file.save' },
-    { id: 'file.saveAll', type: 'command', commandId: 'file.saveAll', label: 'Save All' },
+    { id: 'file.addFolderToWorkspace', type: 'command', commandId: 'file.addFolderToWorkspace' },
+    { id: 'file.saveWorkspaceAs', type: 'command', commandId: 'file.saveWorkspaceAs' },
+    { id: 'file.duplicateWorkspace', type: 'command', commandId: 'file.duplicateWorkspace' },
     { id: 'sep3', type: 'separator' },
-    { id: 'file.closeFolder', type: 'command', commandId: 'file.closeFolder' },
+    { id: 'file.save', type: 'command', commandId: 'file.save' },
+    { id: 'file.saveAs', type: 'command', commandId: 'file.saveAs' },
+    { id: 'file.saveAll', type: 'command', commandId: 'file.saveAll' },
     { id: 'sep4', type: 'separator' },
+    { id: 'file.share', type: 'submenu', label: 'Share', submenuId: 'menubar/file/share' },
+    { id: 'sep5', type: 'separator' },
+    { id: 'file.autoSave', type: 'command', commandId: 'file.autoSave' },
+    { id: 'file.preferences', type: 'submenu', label: 'Preferences', submenuId: 'menubar/file/preferences' },
+    { id: 'sep6', type: 'separator' },
+    { id: 'file.revertFile', type: 'command', commandId: 'file.revertFile' },
+    { id: 'file.closeEditor', type: 'command', commandId: 'file.closeEditor' },
+    { id: 'file.closeFolder', type: 'command', commandId: 'file.closeFolder' },
+    { id: 'file.closeWindow', type: 'command', commandId: 'file.closeWindow' },
+    { id: 'sep7', type: 'separator' },
     { id: 'file.exit', type: 'command', commandId: 'file.exit' },
+  ]);
+
+  // Register File Submenus
+  MenuRegistry.registerMenu('menubar/file/newProfile', [
+    { id: 'profile.default', type: 'command', commandId: 'stub', label: 'Default' },
+  ]);
+  MenuRegistry.registerMenu('menubar/file/openRecent', [
+    { id: 'recent.1', type: 'command', commandId: 'stub', label: 'C:\\Projects\\NovaDesk' },
+    { id: 'recent.clear', type: 'command', commandId: 'stub', label: 'Clear Recently Opened' },
+  ]);
+  MenuRegistry.registerMenu('menubar/file/share', [
+    { id: 'share.export', type: 'command', commandId: 'stub', label: 'Export...' },
+  ]);
+  MenuRegistry.registerMenu('menubar/file/preferences', [
+    { id: 'pref.settings', type: 'command', commandId: 'stub', label: 'Settings' },
+    { id: 'pref.theme', type: 'command', commandId: 'stub', label: 'Theme' },
   ]);
 
   // Edit Menu
