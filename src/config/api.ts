@@ -13,7 +13,11 @@ export const initApiConfig = async () => {
   if (window.electronAPI) {
     const config = await window.electronAPI.getApiConfig();
     if (config?.baseUrl) {
-      currentApiBaseUrl = config.baseUrl.replace(/\/+$/, '');
+      let loadedUrl = config.baseUrl.replace(/\/+$/, '');
+      if (loadedUrl.includes('trycloudflare.com') || loadedUrl.includes('localhost:8000')) {
+        loadedUrl = 'https://novadesk-ide.onrender.com';
+      }
+      currentApiBaseUrl = loadedUrl;
     }
   }
 };
@@ -28,7 +32,14 @@ export const getApiBaseUrl = () => currentApiBaseUrl;
  */
 export const setApiBaseUrl = async (url: string) => {
   // Strip any trailing slashes
-  const cleanUrl = url.replace(/\/+$/, '');
+  let cleanUrl = url.replace(/\/+$/, '');
+  
+  // Prevent common user misconfigurations where they paste the Ollama tunnel URL
+  if (cleanUrl.includes('trycloudflare.com') || cleanUrl.includes('localhost:8000')) {
+    console.error('CRITICAL: Cannot set backend URL to a cloudflare tunnel or localhost:8000. Forcing Render URL.');
+    cleanUrl = 'https://novadesk-ide.onrender.com';
+  }
+  
   currentApiBaseUrl = cleanUrl;
   if (window.electronAPI) {
     await window.electronAPI.saveApiConfig({ baseUrl: cleanUrl });

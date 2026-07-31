@@ -96,9 +96,14 @@ export const LoginPage = () => {
         setError((payload as any).error);
       } else if (payload && payload.access_token) {
         const { access_token, refresh_token } = payload;
-        
         try {
-          const apiBase = getApiBaseUrl();
+          let apiBase = getApiBaseUrl();
+          // Forcefully prevent using a cloudflare tunnel for the auth endpoint, as that belongs to Ollama!
+          if (apiBase.includes('trycloudflare.com') || apiBase.includes('localhost:8000')) {
+             console.error('[LoginPage] CRITICAL: API Base was set to a tunnel or localhost! Forcing Render URL.');
+             apiBase = 'https://novadesk-ide.onrender.com';
+          }
+          
           console.log('[LoginPage] Attempting to fetch profile from:', `${apiBase}/api/auth/me`);
           console.log('[LoginPage] Using token:', access_token.substring(0, 10) + '...');
           
