@@ -13,13 +13,13 @@ export function initializeCommands() {
   CommandRegistry.registerCommand({
     id: 'file.newTextFile',
     title: 'New Text File',
-    execute: () => console.log('file.newTextFile executed')
+    execute: () => window.dispatchEvent(new CustomEvent('ide:newFile'))
   });
 
   CommandRegistry.registerCommand({
     id: 'file.newFile',
     title: 'New File...',
-    execute: () => console.log('file.newFile executed')
+    execute: () => window.dispatchEvent(new CustomEvent('ide:newFile'))
   });
 
   CommandRegistry.registerCommand({
@@ -92,7 +92,7 @@ export function initializeCommands() {
   CommandRegistry.registerCommand({
     id: 'file.saveAll',
     title: 'Save All',
-    execute: () => console.log('file.saveAll executed')
+    execute: () => window.dispatchEvent(new CustomEvent('ide:saveAllFiles'))
   });
 
   CommandRegistry.registerCommand({
@@ -112,7 +112,7 @@ export function initializeCommands() {
     id: 'file.closeEditor',
     title: 'Close Editor',
     when: 'hasActiveEditor',
-    execute: () => console.log('file.closeEditor executed') // hook up to EditorContext later
+    execute: () => window.dispatchEvent(new CustomEvent('ide:closeActiveFile'))
   });
 
   CommandRegistry.registerCommand({

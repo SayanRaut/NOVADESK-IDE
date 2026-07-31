@@ -426,6 +426,9 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     const handleSave = () => {
       saveActiveFile();
     };
+    const handleSaveAll = () => {
+      saveAllFiles();
+    };
     const handleOpenWorkspace = (e: Event) => {
       const customEvent = e as CustomEvent;
       if (customEvent.detail) openWorkspace(customEvent.detail);
@@ -433,17 +436,27 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     const handleCloseWorkspace = () => {
       closeWorkspace();
     };
+    const handleCloseActiveFile = () => {
+      const activeGroup = editorGroups.find(g => g.id === activeGroupId);
+      if (activeGroup?.activeFile) {
+        closeFile(activeGroup.activeFile, activeGroupId);
+      }
+    };
 
     window.addEventListener('ide:saveActiveFile', handleSave);
+    window.addEventListener('ide:saveAllFiles', handleSaveAll);
     window.addEventListener('ide:openWorkspace', handleOpenWorkspace);
     window.addEventListener('ide:closeWorkspace', handleCloseWorkspace);
+    window.addEventListener('ide:closeActiveFile', handleCloseActiveFile);
 
     return () => {
       window.removeEventListener('ide:saveActiveFile', handleSave);
+      window.removeEventListener('ide:saveAllFiles', handleSaveAll);
       window.removeEventListener('ide:openWorkspace', handleOpenWorkspace);
       window.removeEventListener('ide:closeWorkspace', handleCloseWorkspace);
+      window.removeEventListener('ide:closeActiveFile', handleCloseActiveFile);
     };
-  }, [saveActiveFile, openWorkspace, closeWorkspace]);
+  }, [saveActiveFile, saveAllFiles, openWorkspace, closeWorkspace, closeFile, editorGroups, activeGroupId]);
 
   const value = useMemo(() => {
     const activeGroup = editorGroups.find(g => g.id === activeGroupId);
