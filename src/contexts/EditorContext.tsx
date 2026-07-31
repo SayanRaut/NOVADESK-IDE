@@ -225,29 +225,7 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     return () => clearTimeout(timer);
   }, [dirtyFiles, fileContents]);
 
-  // Command Action Listeners
-  useEffect(() => {
-    const handleSave = () => {
-      saveActiveFile();
-    };
-    const handleOpenWorkspace = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      if (customEvent.detail) openWorkspace(customEvent.detail);
-    };
-    const handleCloseWorkspace = () => {
-      closeWorkspace();
-    };
 
-    window.addEventListener('ide:saveActiveFile', handleSave);
-    window.addEventListener('ide:openWorkspace', handleOpenWorkspace);
-    window.addEventListener('ide:closeWorkspace', handleCloseWorkspace);
-
-    return () => {
-      window.removeEventListener('ide:saveActiveFile', handleSave);
-      window.removeEventListener('ide:openWorkspace', handleOpenWorkspace);
-      window.removeEventListener('ide:closeWorkspace', handleCloseWorkspace);
-    };
-  }, [saveActiveFile, openWorkspace, closeWorkspace]);
 
   const loadWorkspaceState = (path: string) => {
     try {
@@ -442,6 +420,30 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
       return next;
     });
   }, []);
+
+  // Command Action Listeners
+  useEffect(() => {
+    const handleSave = () => {
+      saveActiveFile();
+    };
+    const handleOpenWorkspace = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) openWorkspace(customEvent.detail);
+    };
+    const handleCloseWorkspace = () => {
+      closeWorkspace();
+    };
+
+    window.addEventListener('ide:saveActiveFile', handleSave);
+    window.addEventListener('ide:openWorkspace', handleOpenWorkspace);
+    window.addEventListener('ide:closeWorkspace', handleCloseWorkspace);
+
+    return () => {
+      window.removeEventListener('ide:saveActiveFile', handleSave);
+      window.removeEventListener('ide:openWorkspace', handleOpenWorkspace);
+      window.removeEventListener('ide:closeWorkspace', handleCloseWorkspace);
+    };
+  }, [saveActiveFile, openWorkspace, closeWorkspace]);
 
   const value = useMemo(() => {
     const activeGroup = editorGroups.find(g => g.id === activeGroupId);
