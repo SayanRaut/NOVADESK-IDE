@@ -15,6 +15,54 @@ export function initializeCommands() {
     title: 'New File...',
     execute: () => window.dispatchEvent(new CustomEvent('ide:newFile'))
   });
+  
+  CommandRegistry.registerCommand({
+    id: 'file.openFolder',
+    title: 'Open Folder...',
+    execute: async () => {
+      if (window.electronAPI) {
+        const folder = await window.electronAPI.openFolder();
+        if (folder) {
+          window.dispatchEvent(new CustomEvent('ide:openWorkspace', { detail: folder }));
+        }
+      }
+    }
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.save',
+    title: 'Save',
+    when: 'hasActiveEditor',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:saveActiveFile'))
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.saveAll',
+    title: 'Save All',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:saveAllFiles'))
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.closeEditor',
+    title: 'Close Editor',
+    when: 'hasActiveEditor',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:closeActiveFile'))
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.closeFolder',
+    title: 'Close Workspace',
+    when: 'isWorkspaceOpen',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:closeWorkspace'))
+  });
+
+  CommandRegistry.registerCommand({
+    id: 'file.exit',
+    title: 'Exit',
+    execute: () => {
+      if (window.electronAPI) window.electronAPI.windowControl('close');
+    }
+  });
 
   // Edit Commands
   CommandRegistry.registerCommand({
