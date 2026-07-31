@@ -42,8 +42,8 @@ export function TitleBar() {
         </div>
       </div>
 
-      <div className="flex items-center absolute left-1/2 -translate-x-1/2 pointer-events-none">
-        <span className="text-slate-300 opacity-80">{workspaceName} - NovaDesk</span>
+      <div className="flex items-center absolute left-1/2 -translate-x-1/2 pointer-events-none hidden md:flex truncate">
+        <span className="text-slate-300 opacity-80 truncate max-w-[200px] lg:max-w-[400px]">{workspaceName} - NovaDesk</span>
       </div>
 
       <div className="flex h-full [-webkit-app-region:no-drag]">

@@ -26,8 +26,8 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
   // Subscribe to context changes to re-evaluate 'when' clause
   useContextKeyService(); 
   
-  const isVisible = item.when ? useContextKeyService.getState().evaluate(item.when) : true;
-  if (!isVisible) return null;
+  // We keep the items in the DOM but render them as disabled if the command's 'when' clause is false.
+  // The 'when' clause check happens via CommandRegistry.isCommandEnabled inside the command renderer.
 
   if (item.type === 'separator') {
     return <MenubarSeparator className="h-px bg-slate-700/50 my-1 mx-2" />;
@@ -45,7 +45,7 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
         </MenubarSubTrigger>
         <MenubarPortal>
           <MenubarSubContent 
-            className="min-w-[220px] bg-[#1e1e1e] border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95"
+            className="min-w-[220px] bg-[#1e1e1e] border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-left-2 duration-200 ease-out"
             sideOffset={2}
             alignOffset={-4}
           >
@@ -113,7 +113,7 @@ export const IDEMenuBar: React.FC<{ menuIds: string[] }> = ({ menuIds }) => {
             </MenubarTrigger>
             <MenubarPortal>
               <MenubarContent 
-                className="min-w-[220px] bg-[#1e1e1e] border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95"
+                className="min-w-[220px] bg-[#1e1e1e] border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-2 duration-200 ease-out"
                 align="start"
                 sideOffset={4}
               >
