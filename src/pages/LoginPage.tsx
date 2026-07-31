@@ -141,7 +141,7 @@ export const LoginPage = () => {
 
   return (
     <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#0d0d0d] px-6 text-gray-200">
-      <div className="absolute inset-0 z-0 opacity-60">
+      <div className="absolute inset-0 z-0 opacity-50">
         <Strands 
           colors={['#1d4ed8', '#7C3AED', '#06B6D4', '#EAB308']} 
           count={4}
