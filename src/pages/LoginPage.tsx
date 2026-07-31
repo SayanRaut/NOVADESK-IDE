@@ -16,18 +16,46 @@ export const LoginPage = () => {
       const state = await window.electronAPI.startGoogleLogin();
       
       const payload = await new Promise<{ access_token?: string; refresh_token?: string; error?: string } | null>((resolve) => {
+        let isResolved = false;
+
+        // Listen for the deep link IPC event
+        let unsubscribe: (() => void) | undefined;
+        if (window.electronAPI && window.electronAPI.onGoogleAuth) {
+          unsubscribe = window.electronAPI.onGoogleAuth((pending) => {
+            if (isResolved) return;
+            isResolved = true;
+            if ((pending as any).error) {
+              resolve({ error: (pending as any).error });
+            } else if (pending.ticket) {
+              resolve({ 
+                access_token: pending.ticket, 
+                refresh_token: (pending as any).refresh_token 
+              });
+            }
+          });
+        }
+
         const interval = setInterval(async () => {
+          if (isResolved) {
+            clearInterval(interval);
+            if (unsubscribe) unsubscribe();
+            return;
+          }
           try {
-            // First check if the desktop deep link was triggered (works better with multiple workers)
+            // First check if the desktop deep link was triggered and saved (if mainWindow wasn't ready)
             if (window.electronAPI && window.electronAPI.checkPendingAuth) {
               const pending = await window.electronAPI.checkPendingAuth();
               if (pending) {
                 if ((pending as any).error) {
+                  isResolved = true;
                   clearInterval(interval);
+                  if (unsubscribe) unsubscribe();
                   resolve({ error: (pending as any).error });
                   return;
                 } else if (pending.ticket) {
+                  isResolved = true;
                   clearInterval(interval);
+                  if (unsubscribe) unsubscribe();
                   resolve({ 
                     access_token: pending.ticket, 
                     refresh_token: (pending as any).refresh_token 
@@ -43,7 +71,9 @@ export const LoginPage = () => {
             if (res.ok) {
               const data = await res.json();
               if (!data.pending) {
+                isResolved = true;
                 clearInterval(interval);
+                if (unsubscribe) unsubscribe();
                 resolve(data);
               }
             }
@@ -53,7 +83,10 @@ export const LoginPage = () => {
         }, 1500);
         
         setTimeout(() => {
+          if (isResolved) return;
+          isResolved = true;
           clearInterval(interval);
+          if (unsubscribe) unsubscribe();
           resolve(null);
         }, 300000);
       });
