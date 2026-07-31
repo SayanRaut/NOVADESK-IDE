@@ -99,9 +99,15 @@ export const LoginPage = () => {
         
         try {
           const apiBase = getApiBaseUrl();
+          console.log('[LoginPage] Attempting to fetch profile from:', `${apiBase}/api/auth/me`);
+          console.log('[LoginPage] Using token:', access_token.substring(0, 10) + '...');
+          
           const resMe = await fetch(`${apiBase}/api/auth/me`, {
             headers: { 'Authorization': `Bearer ${access_token}` }
           });
+          
+          console.log('[LoginPage] Profile fetch response status:', resMe.status);
+          
           if (!resMe.ok) {
             let detail = 'Failed to fetch user profile';
             try {
