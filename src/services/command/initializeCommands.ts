@@ -1,5 +1,5 @@
 import { CommandRegistry } from './CommandRegistry';
-import { MenuRegistry, IMenuItem } from './MenuRegistry';
+import { MenuRegistry, type IMenuItem } from './MenuRegistry';
 import { KeybindingManager } from './KeybindingManager';
 
 export function initializeCommands() {

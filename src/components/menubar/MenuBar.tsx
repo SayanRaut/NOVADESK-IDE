@@ -3,7 +3,7 @@ import * as MenubarPrimitive from '@radix-ui/react-menubar';
 import { ChevronRight } from 'lucide-react';
 import { CommandRegistry } from '../../services/command/CommandRegistry';
 import { KeybindingManager } from '../../services/command/KeybindingManager';
-import { MenuRegistry, IMenu, IMenuItem } from '../../services/command/MenuRegistry';
+import { MenuRegistry, type IMenu, type IMenuItem } from '../../services/command/MenuRegistry';
 import { useContextKeyService } from '../../services/command/ContextKeyService';
 import { cn } from '../../utils/cn';
 
