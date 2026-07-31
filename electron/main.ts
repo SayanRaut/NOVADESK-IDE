@@ -7,13 +7,16 @@ import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
-
 import dotenv from 'dotenv';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(import.meta.url);
+import { OpenVSXClient } from './extensions/OpenVSXClient';
+import { VSIXInstaller } from './extensions/VSIXInstaller';
+import { extensionRegistry } from './extensions/ExtensionRegistry';
+import { extensionHostManager } from './extensions/ExtensionHostManager';
 
 // Ensure dotenv loads from the project root instead of wherever the process started
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const pty = require('node-pty') as typeof import('node-pty');
@@ -261,6 +264,9 @@ app.on('open-url', (event, url) => {
 app.whenReady().then(() => {
   setupProtocolHandler();
   createWindow();
+  
+  // Start the Extension Host
+  extensionHostManager.start();
 
   console.log('[Main Process] App ready. Checking process.argv for initial deep link:', process.argv);
   const launchLink = process.argv.find((argument) => argument.startsWith(`${desktopScheme}://`));
@@ -279,6 +285,7 @@ app.on('before-quit', () => {
   for (const id of ptyProcesses.keys()) {
     stopTerminal(id);
   }
+  extensionHostManager.stop();
 });
 
 ipcMain.handle('window:control', (event, action: 'minimize' | 'maximize' | 'close') => {
@@ -683,3 +690,25 @@ ipcMain.handle('api:getConfig', () => {
     return null;
   }
 });
+
+// Extension Marketplace IPCs
+ipcMain.handle('extensions:search', async (_event, query: string, sortBy?: string, sortOrder?: string, offset?: number) => {
+  return OpenVSXClient.search(query, sortBy, sortOrder, offset);
+});
+
+ipcMain.handle('extensions:install', async (_event, namespace: string, name: string) => {
+  await VSIXInstaller.installFromOpenVSX(namespace, name);
+});
+
+ipcMain.handle('extensions:uninstall', async (_event, id: string) => {
+  await VSIXInstaller.uninstall(id);
+});
+
+ipcMain.handle('extensions:getInstalled', () => {
+  return extensionRegistry.getInstalled();
+});
+
+ipcMain.handle('extensions:toggle', (_event, id: string, enabled: boolean) => {
+  extensionRegistry.toggleExtension(id, enabled);
+});
+

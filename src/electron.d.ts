@@ -45,6 +45,11 @@ declare global {
       clearTokens: () => Promise<void>;
       saveApiConfig: (config: { baseUrl: string }) => Promise<void>;
       getApiConfig: () => Promise<{ baseUrl: string } | null>;
+      searchExtensions: (query: string, sortBy?: string, sortOrder?: string, offset?: number) => Promise<any>;
+      installExtension: (namespace: string, name: string) => Promise<void>;
+      uninstallExtension: (id: string) => Promise<void>;
+      getInstalledExtensions: () => Promise<any[]>;
+      toggleExtension: (id: string, enabled: boolean) => Promise<void>;
     };
   }
 }

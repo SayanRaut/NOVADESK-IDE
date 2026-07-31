@@ -59,4 +59,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearTokens: () => ipcRenderer.invoke('auth:clearTokens'),
   saveApiConfig: (config: { baseUrl: string }) => ipcRenderer.invoke('api:saveConfig', config),
   getApiConfig: () => ipcRenderer.invoke('api:getConfig'),
+  searchExtensions: (query: string, sortBy?: string, sortOrder?: string, offset?: number) => ipcRenderer.invoke('extensions:search', query, sortBy, sortOrder, offset),
+  installExtension: (namespace: string, name: string) => ipcRenderer.invoke('extensions:install', namespace, name),
+  uninstallExtension: (id: string) => ipcRenderer.invoke('extensions:uninstall', id),
+  getInstalledExtensions: () => ipcRenderer.invoke('extensions:getInstalled'),
+  toggleExtension: (id: string, enabled: boolean) => ipcRenderer.invoke('extensions:toggle', id, enabled),
 });

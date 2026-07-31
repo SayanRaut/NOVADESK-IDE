@@ -21,8 +21,13 @@ export const ExtensionCard: React.FC<ExtensionCardProps> = ({ extension }) => {
 
   const handleInstall = async () => {
     setLoading(true);
-    await installExtension(extension.id);
-    setLoading(false);
+    try {
+      await installExtension(extension.namespace, extension.name);
+    } catch (e) {
+      console.error('Failed to install', e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleUninstall = async () => {
@@ -65,6 +70,21 @@ export const ExtensionCard: React.FC<ExtensionCardProps> = ({ extension }) => {
         <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
           {extension.description}
         </p>
+        
+        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-500">
+          {extension.downloadCount !== undefined && (
+            <span className="flex items-center gap-0.5" title="Downloads">
+              <Download className="w-3 h-3" />
+              {(extension.downloadCount / 1000).toFixed(1)}k
+            </span>
+          )}
+          {extension.averageRating !== undefined && extension.averageRating > 0 && (
+            <span className="flex items-center gap-0.5" title="Rating">
+              <span className="text-yellow-500">★</span>
+              {extension.averageRating.toFixed(1)}
+            </span>
+          )}
+        </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2 mt-1">
