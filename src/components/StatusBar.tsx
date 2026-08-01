@@ -32,7 +32,7 @@ export function StatusBar() {
       try {
         await http.get('/health', { timeout: 5000 });
         setBackendStatus('connected');
-      } catch (e) {
+      } catch {
         setBackendStatus('offline');
       }
     };

@@ -37,7 +37,7 @@ export function BottomPanel() {
           animate={{ height: size, opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="relative flex flex-col bg-[#141414] border-t border-[#2a2a2a] shrink-0 overflow-hidden"
+          className="relative flex flex-col bg-slate-950 border-t border-slate-800 shrink-0 overflow-hidden"
           style={{ height: size }}
         >
           {/* Resize Handle */}
@@ -84,7 +84,7 @@ export function BottomPanel() {
             </div>
 
             {/* Panel Content */}
-            <div className="flex-1 overflow-auto bg-[#1a1a1a]">
+            <div className="flex-1 overflow-auto bg-slate-950">
               {activeTab === 'terminal' ? (
                 <TerminalPanel />
               ) : (

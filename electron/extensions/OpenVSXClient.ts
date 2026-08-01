@@ -48,7 +48,7 @@ export class OpenVSXClient {
           try {
             const data = JSON.parse(body);
             resolve(data as OpenVSXSearchResponse);
-          } catch (e) {
+          } catch {
             reject(new Error('Failed to parse Open VSX response'));
           }
         });
@@ -82,7 +82,7 @@ export class OpenVSXClient {
           try {
             const data = JSON.parse(body);
             resolve(data as OpenVSXExtension);
-          } catch (e) {
+          } catch {
             reject(new Error('Failed to parse Open VSX response'));
           }
         });

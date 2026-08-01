@@ -32,7 +32,7 @@ export function EditorTabContextMenu({ file, groupId, x, y, onClose }: Props) {
     <div 
       ref={ref}
       style={{ top: y, left: x }}
-      className="fixed z-50 w-48 bg-[#1e1e1e] border border-slate-700 rounded shadow-xl py-1 text-sm text-slate-300"
+      className="fixed z-50 w-48 bg-slate-950 border border-slate-700 rounded shadow-xl py-1 text-sm text-slate-300"
     >
       <button 
         className="w-full flex items-center px-3 py-1.5 hover:bg-blue-600 hover:text-white"

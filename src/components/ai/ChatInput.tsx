@@ -76,7 +76,7 @@ export const ChatInput = () => {
         />
         <div className="flex justify-between items-center px-2 pb-2">
           <div className="flex gap-2">
-            <button type="button" onClick={() => setActiveBottomPanel('terminal')} title="Open terminal" className="text-gray-500 hover:text-gray-300 p-1 rounded hover:bg-[#222] transition-ui">
+            <button type="button" onClick={() => setActiveBottomPanel('terminal')} title="Open terminal" className="text-gray-500 hover:text-gray-300 p-1 rounded hover:bg-slate-900 transition-ui">
               <SquareTerminal size={14} />
             </button>
           </div>
@@ -84,7 +84,7 @@ export const ChatInput = () => {
             onClick={handleSend}
             disabled={!input.trim() || isThinking}
             className={`p-1.5 rounded transition-ui ${
-              input.trim() && !isThinking ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-[#222] text-gray-600 cursor-not-allowed'
+              input.trim() && !isThinking ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-slate-900 text-gray-600 cursor-not-allowed'
             }`}
           >
             <Send size={14} />

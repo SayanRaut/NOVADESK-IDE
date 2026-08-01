@@ -28,7 +28,7 @@ export const ExtensionsPanel: React.FC = () => {
     setIsSearching(true);
     try {
       if (window.electronAPI && window.electronAPI.searchExtensions) {
-        const response = await window.electronAPI.searchExtensions(debouncedQuery, 'downloadCount', 'desc', 0, 20);
+        const response = await window.electronAPI.searchExtensions(debouncedQuery, 'downloadCount', 'desc', 0);
         
         // Map Open VSX format to our Extension interface
         const mapped: Extension[] = response.extensions.map((ext: any) => ({

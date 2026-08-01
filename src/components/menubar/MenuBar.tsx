@@ -3,7 +3,7 @@ import * as MenubarPrimitive from '@radix-ui/react-menubar';
 import { ChevronRight } from 'lucide-react';
 import { CommandRegistry } from '../../services/command/CommandRegistry';
 import { KeybindingManager } from '../../services/command/KeybindingManager';
-import { MenuRegistry, type IMenu, type IMenuItem } from '../../services/command/MenuRegistry';
+import { MenuRegistry, type IMenuItem } from '../../services/command/MenuRegistry';
 import { useContextKeyService } from '../../services/command/ContextKeyService';
 import { cn } from '../../utils/cn';
 
@@ -17,9 +17,7 @@ const MenubarSeparator = MenubarPrimitive.Separator;
 const MenubarSub = MenubarPrimitive.Sub;
 const MenubarSubTrigger = MenubarPrimitive.SubTrigger;
 const MenubarSubContent = MenubarPrimitive.SubContent;
-const MenubarCheckboxItem = MenubarPrimitive.CheckboxItem;
-const MenubarRadioGroup = MenubarPrimitive.RadioGroup;
-const MenubarRadioItem = MenubarPrimitive.RadioItem;
+
 
 // Recursive component to render menu items
 const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
@@ -45,7 +43,7 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
         </MenubarSubTrigger>
         <MenubarPortal>
           <MenubarSubContent 
-            className="min-w-[220px] bg-[#1e1e1e] border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-left-2 duration-200 ease-out"
+            className="min-w-[220px] bg-slate-950 border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-left-2 duration-200 ease-out"
             sideOffset={2}
             alignOffset={-4}
           >
@@ -99,7 +97,7 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
 // Main MenuBar Component
 export const IDEMenuBar: React.FC<{ menuIds: string[] }> = ({ menuIds }) => {
   return (
-    <Menubar className="flex items-center h-8 px-2 bg-[#181818] border-b border-black/20">
+    <Menubar className="flex items-center h-8 px-2 bg-slate-950 border-b border-black/20">
       {menuIds.map(menuId => {
         const menu = MenuRegistry.getMenu(menuId);
         if (!menu || menu.items.length === 0) return null;
@@ -113,7 +111,7 @@ export const IDEMenuBar: React.FC<{ menuIds: string[] }> = ({ menuIds }) => {
             </MenubarTrigger>
             <MenubarPortal>
               <MenubarContent 
-                className="min-w-[220px] bg-[#1e1e1e] border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-2 duration-200 ease-out"
+                className="min-w-[220px] bg-slate-950 border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-2 duration-200 ease-out"
                 align="start"
                 sideOffset={4}
               >

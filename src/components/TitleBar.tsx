@@ -21,7 +21,7 @@ export function TitleBar() {
   return (
     <div 
       className={cn(
-        "h-8 flex items-center justify-between text-xs font-medium select-none text-slate-400 bg-[#141414] border-b border-[#2a2a2a]",
+        "h-8 flex items-center justify-between text-xs font-medium select-none text-slate-400 bg-slate-950 border-b border-slate-800",
         "[-webkit-app-region:drag]"
       )}
     >

@@ -47,8 +47,8 @@ export const ChatInput = ({ compact = false }: ChatInputProps) => {
   const busy = isStreaming || isThinking;
 
   return (
-    <div className={`border-t border-[#1e1e1e] bg-[#0e0e0e] ${compact ? 'p-2' : 'p-3'}`}>
-      <div className="relative rounded-xl bg-[#141414] border border-[#252525] focus-within:border-blue-500/40 focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.15)] transition-all">
+    <div className={`border-t border-slate-950 bg-[#0e0e0e] ${compact ? 'p-2' : 'p-3'}`}>
+      <div className="relative rounded-xl bg-slate-950 border border-[#252525] focus-within:border-blue-500/40 focus-within:shadow-[0_0_0_1px_rgba(59,130,246,0.15)] transition-all">
         <textarea
           ref={textareaRef}
           value={input}

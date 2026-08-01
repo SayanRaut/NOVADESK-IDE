@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { useEditor } from '../../contexts/EditorContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { registerMonacoThemes, getEditorTheme } from '../../utils/editorThemes';
 
 export function MonacoEditor({ groupId }: { groupId: string }) {
   const { editorGroups, fileContents, setFileContents, setFileDirty, setCursorPosition, activeGroupId } = useEditor();
-  const { actualTheme } = useTheme();
+  const { theme } = useTheme();
   
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -48,24 +49,7 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
   }, [activeFile, fileContents]);
 
   const handleBeforeMount = (monacoInstance: any) => {
-    monacoInstance.editor.defineTheme('novadesk-dark', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [],
-      colors: {
-        'editor.background': '#1e1e1e',
-        'editor.lineHighlightBackground': '#2a2d2e',
-      }
-    });
-    monacoInstance.editor.defineTheme('novadesk-light', {
-      base: 'vs',
-      inherit: true,
-      rules: [],
-      colors: {
-        'editor.background': '#ffffff',
-        'editor.lineHighlightBackground': '#f0f0f0',
-      }
-    });
+    registerMonacoThemes(monacoInstance);
 
     // Mock Hover Provider architecture
     monacoInstance.languages.registerHoverProvider('*', {
@@ -146,7 +130,7 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
         onChange={handleEditorChange}
         onMount={handleMount}
         beforeMount={handleBeforeMount}
-        theme={actualTheme === 'dark' ? 'novadesk-dark' : 'novadesk-light'}
+        theme={getEditorTheme(theme)}
         options={{
           minimap: { enabled: true, renderCharacters: false },
           wordWrap: 'on',

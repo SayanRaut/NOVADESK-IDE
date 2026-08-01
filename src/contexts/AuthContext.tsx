@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const restoredUser = await getCurrentUser(tokens.access_token);
           setAccessToken(tokens.access_token);
           setUser(restoredUser);
-        } catch (error) {
+        } catch {
           // If access token is expired, try to refresh
           if (tokens.refresh_token) {
             try {
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               }
               setAccessToken(newSession.access_token);
               setUser(newSession.user);
-            } catch (refreshError) {
+            } catch {
               await window.electronAPI.clearTokens();
             }
           } else {

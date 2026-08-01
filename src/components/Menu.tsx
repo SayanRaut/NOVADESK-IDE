@@ -56,7 +56,7 @@ export function Menu({ label, items, isOpen, onToggle, onClose, onHover }: MenuP
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.1 }}
-            className="absolute top-full left-0 mt-0 py-1 w-48 bg-[#1e1e1e] border border-slate-700/50 shadow-2xl rounded-md z-50 overflow-hidden"
+            className="absolute top-full left-0 mt-0 py-1 w-48 bg-slate-950 border border-slate-700/50 shadow-2xl rounded-md z-50 overflow-hidden"
           >
             {items.map((item, index) => {
               if (item.divider) {

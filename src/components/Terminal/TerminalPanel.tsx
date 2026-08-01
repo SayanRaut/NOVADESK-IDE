@@ -15,7 +15,7 @@ export function TerminalPanel() {
   }, [terminals.length, newTerminal]);
 
   return (
-    <div className="flex w-full h-full bg-[#1a1a1a] overflow-hidden">
+    <div className="flex w-full h-full bg-slate-950 overflow-hidden">
       {/* Terminal Content Area */}
       <div className="flex-1 relative overflow-hidden">
         {terminals.map(term => (
@@ -28,7 +28,7 @@ export function TerminalPanel() {
       </div>
 
       {/* Terminal Sidebar (Tabs) */}
-      <div className="w-48 bg-[#1e1e1e] border-l border-slate-800 flex flex-col shrink-0">
+      <div className="w-48 bg-slate-950 border-l border-slate-800 flex flex-col shrink-0">
         <div className="flex items-center justify-between p-2 text-slate-300 border-b border-slate-800">
           <span className="text-xs font-semibold uppercase tracking-wider">Terminals</span>
           <button 

@@ -1,5 +1,4 @@
-import { ChildProcess, fork } from 'child_process';
-import * as path from 'path';
+import { ChildProcess } from 'child_process';
 
 export class ExtensionHostManager {
   private hostProcess: ChildProcess | null = null;

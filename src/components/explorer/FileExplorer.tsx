@@ -6,8 +6,8 @@ import { useEditor, type FileTree } from '../../contexts/EditorContext';
 const getFileIcon = (name: string) => {
   if (name.endsWith('.tsx') || name.endsWith('.ts')) return <FileCode size={14} className="text-blue-400" />;
   if (name.endsWith('.json')) return <FileJson size={14} className="text-yellow-400" />;
-  if (name.endsWith('.md')) return <FileText size={14} className="text-gray-400" />;
-  return <File size={14} className="text-gray-300" />;
+  if (name.endsWith('.md')) return <FileText size={14} className="text-slate-400" />;
+  return <File size={14} className="text-slate-300" />;
 };
 
 const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) => {
@@ -34,7 +34,7 @@ const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) =
     <div>
       <div 
         className={`flex items-center gap-1 py-1 cursor-pointer transition-ui select-none ${
-          isSelected ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--hover-bg)] text-gray-300'
+          isSelected ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--hover-bg)] text-slate-300'
         }`}
         style={{ paddingLeft }}
         onClick={handleClick}
@@ -94,9 +94,9 @@ export const FileExplorer = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400 select-none">
+      <div className="flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400 select-none">
         <span>Explorer</span>
-        <div className="flex items-center gap-1 text-gray-400 normal-case">
+        <div className="flex items-center gap-1 text-slate-400 normal-case">
           <button type="button" title="New file" onClick={() => { setIsCreating('file'); setError(null); }} className="rounded p-1 hover:bg-[var(--hover-bg)] hover:text-white"><FilePlus2 size={15} /></button>
           <button type="button" title="New folder" onClick={() => { setIsCreating('folder'); setError(null); }} className="rounded p-1 hover:bg-[var(--hover-bg)] hover:text-white"><FolderPlus size={15} /></button>
           <button type="button" title="Refresh Explorer" onClick={refreshWorkspace} className="rounded p-1 hover:bg-[var(--hover-bg)] hover:text-white"><RefreshCw size={14} /></button>

@@ -32,9 +32,9 @@ export const CodeBlock = ({ language, code }: CodeBlockProps) => {
   }, [code]);
 
   return (
-    <div className="my-3 rounded-lg border border-[#2a2a2a] bg-[#0d0d0d] overflow-hidden font-mono text-[13px]">
+    <div className="my-3 rounded-lg border border-slate-800 bg-slate-950 overflow-hidden font-mono text-[13px]">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#141414] border-b border-[#2a2a2a]">
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-950 border-b border-slate-800">
         <span className="text-xs text-slate-400 uppercase tracking-wider">
           {language ?? 'text'}
         </span>

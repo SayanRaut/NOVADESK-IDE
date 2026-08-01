@@ -16,7 +16,7 @@ function EditorGroupView({ groupId }: { groupId: string }) {
   return (
     <div 
       className={cn(
-        "h-full w-full flex flex-col bg-[#1e1e1e] overflow-hidden border-slate-800 transition-opacity",
+        "h-full w-full flex flex-col bg-slate-950 overflow-hidden border-slate-800 transition-opacity",
         activeGroupId === groupId ? "border-transparent opacity-100" : "opacity-70"
       )}
       onClickCapture={() => {
@@ -37,18 +37,18 @@ function EditorGroupView({ groupId }: { groupId: string }) {
 export function EditorArea() {
   const { editorGroups, splitState } = useEditor();
 
-  if (editorGroups.length === 0) return <div className="flex-1 bg-[#1e1e1e]" />;
+  if (editorGroups.length === 0) return <div className="flex-1 bg-slate-950" />;
 
   if (editorGroups.length === 1 || splitState === 'none') {
     return (
-      <div className="flex-1 flex flex-col bg-[#1e1e1e] overflow-hidden">
+      <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden">
         <EditorGroupView groupId={editorGroups[0].id} />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#1e1e1e] overflow-hidden">
+    <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden">
       <PanelGroup orientation={splitState === 'horizontal' ? 'horizontal' : 'vertical'}>
         {editorGroups.map((group, index) => (
           <React.Fragment key={group.id}>
@@ -57,7 +57,7 @@ export function EditorArea() {
             </Panel>
             {index < editorGroups.length - 1 && (
               <PanelResizeHandle className={cn(
-                "hover:bg-blue-500 transition-colors bg-[#2a2a2a] z-10",
+                "hover:bg-blue-500 transition-colors bg-slate-900 z-10",
                 splitState === 'horizontal' ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize"
               )} />
             )}
