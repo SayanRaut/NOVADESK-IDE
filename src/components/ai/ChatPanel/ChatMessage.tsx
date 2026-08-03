@@ -100,7 +100,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
                     return <CodeBlock language={match?.[1]} code={code} />;
                   }
                   return (
-                    <code className="bg-[#1a1a1a] text-pink-400 px-1.5 py-0.5 rounded text-[12px] font-mono" {...props}>
+                    <code className="bg-slate-950 text-pink-400 px-1.5 py-0.5 rounded text-[12px] font-mono" {...props}>
                       {children}
                     </code>
                   );
@@ -124,15 +124,15 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
                 h1({ children }) { return <h1 className="text-lg font-bold text-slate-100 mb-2">{children}</h1>; },
                 h2({ children }) { return <h2 className="text-base font-semibold text-slate-100 mb-2">{children}</h2>; },
                 h3({ children }) { return <h3 className="text-sm font-semibold text-slate-200 mb-1">{children}</h3>; },
-                hr() { return <hr className="border-[#2a2a2a] my-3" />; },
+                hr() { return <hr className="border-slate-800 my-3" />; },
                 a({ href, children }) {
                   return <a href={href} target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">{children}</a>;
                 },
                 table({ children }) {
-                  return <div className="overflow-x-auto my-2"><table className="w-full text-xs border-collapse border border-[#2a2a2a]">{children}</table></div>;
+                  return <div className="overflow-x-auto my-2"><table className="w-full text-xs border-collapse border border-slate-800">{children}</table></div>;
                 },
-                th({ children }) { return <th className="border border-[#2a2a2a] px-2 py-1 bg-[#1a1a1a] text-slate-300 font-medium text-left">{children}</th>; },
-                td({ children }) { return <td className="border border-[#2a2a2a] px-2 py-1 text-slate-400">{children}</td>; },
+                th({ children }) { return <th className="border border-slate-800 px-2 py-1 bg-slate-950 text-slate-300 font-medium text-left">{children}</th>; },
+                td({ children }) { return <td className="border border-slate-800 px-2 py-1 text-slate-400">{children}</td>; },
               }}
             >
               {message.content}
@@ -143,7 +143,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
           )}
           
           {message.artifact?.requestFeedback && !isStreaming && (
-            <div className="mt-4 p-3 bg-[#1a1a1a] rounded-lg border border-blue-500/30">
+            <div className="mt-4 p-3 bg-slate-950 rounded-lg border border-blue-500/30">
               <div className="text-sm text-slate-300 mb-3">
                 <span className="font-semibold text-blue-400">Artifact Generated:</span> {message.artifact.path.split(/[\\/]/).pop()}
               </div>
@@ -156,7 +156,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
                 </button>
                 <button
                   onClick={() => sendMessage('I want to make changes to the plan.')}
-                  className="px-3 py-1.5 bg-[#2a2a2a] hover:bg-[#333] text-slate-300 rounded text-xs font-medium transition-colors flex-1"
+                  className="px-3 py-1.5 bg-slate-900 hover:bg-[#333] text-slate-300 rounded text-xs font-medium transition-colors flex-1"
                 >
                   Feedback
                 </button>
@@ -168,26 +168,26 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
         {/* Hover actions - only for completed messages */}
         {!isStreaming && message.content && (
           <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={copy} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-[#1a1a1a] transition-colors">
+            <button onClick={copy} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-slate-950 transition-colors">
               {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
               {copied ? 'Copied' : 'Copy'}
             </button>
-            <button onClick={regenerate} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-[#1a1a1a] transition-colors">
+            <button onClick={regenerate} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-slate-950 transition-colors">
               <RotateCcw size={11} /> Regenerate
             </button>
             <button
               onClick={() => setLiked(l => l === true ? null : true)}
-              className={`p-1 rounded text-[11px] transition-colors hover:bg-[#1a1a1a] ${liked === true ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`p-1 rounded text-[11px] transition-colors hover:bg-slate-950 ${liked === true ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <ThumbsUp size={11} />
             </button>
             <button
               onClick={() => setLiked(l => l === false ? null : false)}
-              className={`p-1 rounded text-[11px] transition-colors hover:bg-[#1a1a1a] ${liked === false ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`p-1 rounded text-[11px] transition-colors hover:bg-slate-950 ${liked === false ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <ThumbsDown size={11} />
             </button>
-            <button onClick={remove} className="p-1 rounded text-[11px] text-slate-500 hover:text-red-400 hover:bg-[#1a1a1a] transition-colors">
+            <button onClick={remove} className="p-1 rounded text-[11px] text-slate-500 hover:text-red-400 hover:bg-slate-950 transition-colors">
               <Trash2 size={11} />
             </button>
           </div>

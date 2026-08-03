@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
-import { OpenVSXExtension } from './OpenVSXClient';
 
 export interface InstalledExtension {
   id: string; // namespace.name

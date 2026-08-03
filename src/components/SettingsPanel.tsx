@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Server, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Server, Save, CheckCircle2, AlertCircle, Palette } from 'lucide-react';
 import { getApiBaseUrl, setApiBaseUrl } from '../config/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 
 export function SettingsPanel() {
   const [url, setUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     setUrl(getApiBaseUrl());
@@ -111,6 +113,32 @@ export function SettingsPanel() {
             Test Connection
           </button>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-2 mt-4">
+        <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+          <Palette className="w-5 h-5 text-purple-400" />
+          Appearance
+        </h2>
+        <p className="text-slate-400 text-xs">
+          Customize the look and feel of the IDE.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <label className="text-slate-300 font-medium">Theme</label>
+        <select
+          value={theme}
+          onChange={(e) => setTheme(e.target.value as any)}
+          className="bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 w-full text-xs"
+        >
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="abyss">Abyss</option>
+          <option value="tomorrow-night-blue">Tomorrow Night Blue</option>
+          <option value="hc-black">High Contrast Dark</option>
+          <option value="hc-light">High Contrast Light</option>
+        </select>
       </div>
     </div>
   );

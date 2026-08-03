@@ -1,5 +1,5 @@
 import { CommandRegistry } from './CommandRegistry';
-import { MenuRegistry, type IMenuItem } from './MenuRegistry';
+import { MenuRegistry } from './MenuRegistry';
 import { KeybindingManager } from './KeybindingManager';
 
 export function initializeCommands() {
@@ -13,7 +13,7 @@ export function initializeCommands() {
   CommandRegistry.registerCommand({
     id: 'file.newFile',
     title: 'New File...',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:newFile'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:newFile')); }
   });
   
   CommandRegistry.registerCommand({
@@ -33,27 +33,27 @@ export function initializeCommands() {
     id: 'file.save',
     title: 'Save',
     when: 'hasActiveEditor',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:saveActiveFile'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:saveActiveFile')); }
   });
 
   CommandRegistry.registerCommand({
     id: 'file.saveAll',
     title: 'Save All',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:saveAllFiles'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:saveAllFiles')); }
   });
 
   CommandRegistry.registerCommand({
     id: 'file.closeEditor',
     title: 'Close Editor',
     when: 'hasActiveEditor',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:closeActiveFile'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:closeActiveFile')); }
   });
 
   CommandRegistry.registerCommand({
     id: 'file.closeFolder',
     title: 'Close Workspace',
     when: 'isWorkspaceOpen',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:closeWorkspace'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:closeWorkspace')); }
   });
 
   CommandRegistry.registerCommand({
@@ -69,37 +69,37 @@ export function initializeCommands() {
     id: 'edit.undo',
     title: 'Undo',
     when: 'editorTextFocus',
-    execute: () => document.execCommand('undo')
+    execute: () => { document.execCommand('undo'); }
   });
   CommandRegistry.registerCommand({
     id: 'edit.redo',
     title: 'Redo',
     when: 'editorTextFocus',
-    execute: () => document.execCommand('redo')
+    execute: () => { document.execCommand('redo'); }
   });
   CommandRegistry.registerCommand({
     id: 'edit.cut',
     title: 'Cut',
     when: 'hasSelection',
-    execute: () => document.execCommand('cut')
+    execute: () => { document.execCommand('cut'); }
   });
   CommandRegistry.registerCommand({
     id: 'edit.copy',
     title: 'Copy',
     when: 'hasSelection',
-    execute: () => document.execCommand('copy')
+    execute: () => { document.execCommand('copy'); }
   });
   CommandRegistry.registerCommand({
     id: 'edit.paste',
     title: 'Paste',
     when: 'editorTextFocus',
-    execute: () => document.execCommand('paste')
+    execute: () => { document.execCommand('paste'); }
   });
   CommandRegistry.registerCommand({
     id: 'edit.selectAll',
     title: 'Select All',
     when: 'editorTextFocus',
-    execute: () => document.execCommand('selectAll')
+    execute: () => { document.execCommand('selectAll'); }
   });
 
   // Edit Commands (Monaco handles most natively, these are logical triggers)
@@ -116,41 +116,41 @@ export function initializeCommands() {
     id: 'edit.copy',
     title: 'Copy',
     when: 'hasSelection',
-    execute: () => document.execCommand('copy')
+    execute: () => { document.execCommand('copy'); }
   });
 
   // View Commands
   CommandRegistry.registerCommand({
     id: 'view.toggleSidebar',
     title: 'Toggle Side Bar',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:toggleSidebar'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:toggleSidebar')); }
   });
   
   CommandRegistry.registerCommand({
     id: 'view.toggleTerminal',
     title: 'Toggle Terminal',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:toggleTerminal'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:toggleTerminal')); }
   });
 
   // AI Commands
   CommandRegistry.registerCommand({
     id: 'ai.chat.new',
     title: 'New AI Chat',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:newAIChat'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:newAIChat')); }
   });
 
   CommandRegistry.registerCommand({
     id: 'ai.explain',
     title: 'Explain Code',
     when: 'hasSelection',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:explainCode'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:explainCode')); }
   });
 
 
   CommandRegistry.registerCommand({
     id: 'go.toFile',
     title: 'Go to File',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:searchFiles'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:searchFiles')); }
   });
 
   // Run Commands
@@ -158,7 +158,7 @@ export function initializeCommands() {
     id: 'run.runCode',
     title: 'Run Code',
     when: 'hasActiveEditor',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:runCode'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:runCode')); }
   });
 
   // ==========================================

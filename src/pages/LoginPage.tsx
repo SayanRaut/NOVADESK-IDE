@@ -119,7 +119,7 @@ export const LoginPage = () => {
             try {
               const errData = await resMe.json();
               detail = errData.detail || errData.message || detail;
-            } catch (e) {}
+            } catch {}
             throw new Error(`[Debug] HTTP ${resMe.status}: ${detail}`);
           }
           const user = await resMe.json();
@@ -140,7 +140,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-[#0d0d0d] px-6 text-gray-200">
+    <main className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-slate-950 px-6 text-gray-200">
       <div className="absolute inset-0 z-0 opacity-50">
         <Strands 
           colors={['#1d4ed8', '#7C3AED', '#06B6D4', '#EAB308']} 
@@ -178,16 +178,16 @@ export const LoginPage = () => {
           </button>
 
           <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-[#3b3b3b]"></div>
+              <div className="flex-grow border-t border-slate-800"></div>
               <span className="mx-4 shrink-0 text-xs text-gray-500">or</span>
-              <div className="flex-grow border-t border-[#3b3b3b]"></div>
+              <div className="flex-grow border-t border-slate-800"></div>
           </div>
 
           <button
             type="button"
             onClick={continueLocally}
             disabled={isWorking}
-            className="w-full rounded-lg border border-[#3b3b3b] px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-[#222] disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-lg border border-slate-800 px-4 py-3 text-sm font-medium text-gray-200 transition hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Continue locally
           </button>

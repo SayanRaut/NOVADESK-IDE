@@ -13,10 +13,10 @@ export const ChatArea = ({ compact = false, showHeader = true }: ChatAreaProps) 
   const { activeConversation, clearMessages, activeAgent } = useAI();
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-[#0c0c0c]">
+    <div className="flex flex-col h-full min-h-0 bg-slate-950">
       {/* Header */}
       {showHeader && (
-        <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#1e1e1e] shrink-0">
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-950 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <Sparkles size={14} className="text-blue-400 shrink-0" />
             <span className="text-xs font-medium text-slate-300 truncate">
@@ -33,7 +33,7 @@ export const ChatArea = ({ compact = false, showHeader = true }: ChatAreaProps) 
             <button
               onClick={clearMessages}
               title="Clear messages"
-              className="p-1.5 rounded-md text-slate-600 hover:text-slate-300 hover:bg-[#1a1a1a] transition-colors"
+              className="p-1.5 rounded-md text-slate-600 hover:text-slate-300 hover:bg-slate-950 transition-colors"
             >
               <Trash2 size={13} />
             </button>

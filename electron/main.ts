@@ -299,6 +299,44 @@ ipcMain.handle('window:control', (event, action: 'minimize' | 'maximize' | 'clos
   if (action === 'close') window.close();
 });
 
+ipcMain.handle('window:setTheme', (event, theme: string) => {
+  const window = BrowserWindow.fromWebContents(event.sender);
+  if (!window) return;
+
+  let color = '#141414';
+  let symbolColor = '#ffffff';
+
+  switch (theme) {
+    case 'light':
+      color = '#f9fafb';
+      symbolColor = '#111111';
+      break;
+    case 'abyss':
+      color = '#000c18';
+      symbolColor = '#6688cc';
+      break;
+    case 'tomorrow-night-blue':
+      color = '#002451';
+      symbolColor = '#ffffff';
+      break;
+    case 'hc-black':
+      color = '#000000';
+      symbolColor = '#ffffff';
+      break;
+    case 'hc-light':
+      color = '#ffffff';
+      symbolColor = '#000000';
+      break;
+    case 'dark':
+    default:
+      color = '#141414';
+      symbolColor = '#ffffff';
+      break;
+  }
+
+  window.setTitleBarOverlay({ color, symbolColor });
+});
+
 let workspaceWatcher: fs.FSWatcher | null = null;
 
 const startWorkspaceWatcher = (rootPath: string) => {
@@ -512,7 +550,7 @@ ipcMain.handle('git:status', async () => {
   try {
     const { stdout } = await runGit(['status', '--porcelain=v1', '--branch']);
     return stdout;
-  } catch (err) {
+  } catch {
     return null; // Not a git repo or no workspace open
   }
 });
@@ -603,12 +641,12 @@ ipcMain.on('terminal:resize', (_event, id: string, cols: number, rows: number) =
 });
 
 // Stubs for future Task/Process architecture
-ipcMain.handle('tasks:spawn', (_event, command: string) => {
+ipcMain.handle('tasks:spawn', (_event, _command: string) => {
   // Stub for Phase 5 architecture requirement
   return randomUUID();
 });
 
-ipcMain.handle('tasks:kill', (_event, taskId: string) => {
+ipcMain.handle('tasks:kill', (_event, _taskId: string) => {
   // Stub for Phase 5 architecture requirement
 });
 
@@ -650,7 +688,7 @@ ipcMain.handle('auth:getTokens', () => {
     } else {
       return JSON.parse(data.toString('utf-8'));
     }
-  } catch (err) {
+  } catch {
     return null;
   }
 });
@@ -658,7 +696,7 @@ ipcMain.handle('auth:getTokens', () => {
 ipcMain.handle('auth:clearTokens', () => {
   try {
     fs.unlinkSync(getTokensPath());
-  } catch (err) {
+  } catch {
     // Ignore if not exists
   }
 });
@@ -686,7 +724,7 @@ ipcMain.handle('api:getConfig', () => {
     } else {
       return JSON.parse(data.toString('utf-8'));
     }
-  } catch (err) {
+  } catch {
     return null;
   }
 });

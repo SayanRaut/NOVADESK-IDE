@@ -12,7 +12,7 @@ export function WelcomePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-300 bg-[#1e1e1e] overflow-y-auto">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-300 bg-slate-950 overflow-y-auto">
       <div className="max-w-2xl w-full">
         <h1 className="text-3xl font-light text-slate-100 mb-2 tracking-wide">NovaDesk</h1>
         <p className="text-slate-400 mb-10 text-sm">The modern, AI-powered IDE for productive developers.</p>

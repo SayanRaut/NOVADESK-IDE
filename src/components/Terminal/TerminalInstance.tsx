@@ -4,6 +4,81 @@ import { FitAddon } from '@xterm/addon-fit';
 import { WebglAddon } from '@xterm/addon-webgl';
 import 'xterm/css/xterm.css';
 import { cn } from '../../utils/cn';
+import { useTheme } from '../../contexts/ThemeContext';
+
+const darkTheme = {
+  background: '#1a1a1a',
+  foreground: '#f3f3f3',
+  cursor: '#f3f3f3',
+  selectionBackground: '#333333',
+  black: '#000000',
+  red: '#ef4444',
+  green: '#10b981',
+  yellow: '#f59e0b',
+  blue: '#3b82f6',
+  magenta: '#8b5cf6',
+  cyan: '#06b6d4',
+  white: '#ffffff',
+};
+
+const lightTheme = {
+  background: '#f9fafb',
+  foreground: '#111111',
+  cursor: '#111111',
+  selectionBackground: '#e5e7eb',
+  black: '#000000',
+  red: '#ef4444',
+  green: '#10b981',
+  yellow: '#f59e0b',
+  blue: '#3b82f6',
+  magenta: '#8b5cf6',
+  cyan: '#06b6d4',
+  white: '#ffffff',
+};
+
+const abyssTheme = {
+  ...darkTheme,
+  background: '#000c18',
+  foreground: '#6688cc',
+  cursor: '#6688cc',
+  selectionBackground: '#18253a',
+};
+
+const tomorrowNightBlueTheme = {
+  ...darkTheme,
+  background: '#002451',
+  foreground: '#ffffff',
+  cursor: '#ffffff',
+  selectionBackground: '#003f8e',
+};
+
+const hcBlackTheme = {
+  ...darkTheme,
+  background: '#000000',
+  foreground: '#ffffff',
+  cursor: '#ffffff',
+  selectionBackground: '#004400',
+};
+
+const hcLightTheme = {
+  ...lightTheme,
+  background: '#ffffff',
+  foreground: '#000000',
+  cursor: '#000000',
+  selectionBackground: '#bbbbbb',
+};
+
+function getTerminalTheme(theme: string) {
+  switch (theme) {
+    case 'abyss': return abyssTheme;
+    case 'tomorrow-night-blue': return tomorrowNightBlueTheme;
+    case 'hc-black': return hcBlackTheme;
+    case 'hc-light': return hcLightTheme;
+    case 'light': return lightTheme;
+    case 'dark': 
+    default: return darkTheme;
+  }
+}
 
 type Props = {
   id: string;
@@ -14,25 +89,13 @@ export function TerminalInstance({ id, isActive }: Props) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!terminalRef.current) return;
 
     const term = new Terminal({
-      theme: {
-        background: '#1a1a1a',
-        foreground: '#f3f3f3',
-        cursor: '#f3f3f3',
-        selectionBackground: '#333333',
-        black: '#000000',
-        red: '#ef4444',
-        green: '#10b981',
-        yellow: '#f59e0b',
-        blue: '#3b82f6',
-        magenta: '#8b5cf6',
-        cyan: '#06b6d4',
-        white: '#ffffff',
-      },
+      theme: getTerminalTheme(theme),
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
       fontSize: 13,
       cursorBlink: true,
@@ -83,7 +146,7 @@ export function TerminalInstance({ id, isActive }: Props) {
         if (window.electronAPI && xtermRef.current) {
           window.electronAPI.resizeTerminal(id, xtermRef.current.cols, xtermRef.current.rows);
         }
-      } catch (e) {
+      } catch {
         // ignore
       }
     };
@@ -98,6 +161,12 @@ export function TerminalInstance({ id, isActive }: Props) {
 
     return () => observer.disconnect();
   }, [isActive, id]);
+
+  useEffect(() => {
+    if (xtermRef.current) {
+      xtermRef.current.options.theme = getTerminalTheme(theme);
+    }
+  }, [theme]);
 
   return (
     <div 

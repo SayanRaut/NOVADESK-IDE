@@ -13,7 +13,7 @@ export function EditorTabs({ groupId }: { groupId: string }) {
 
   if (!group || group.openFiles.length === 0) {
     return (
-      <div className="flex bg-[#141414] h-9 items-center justify-end px-2 border-b border-[#2a2a2a]">
+      <div className="flex bg-slate-950 h-9 items-center justify-end px-2 border-b border-slate-800">
         <button onClick={() => closeGroup(groupId)} className="p-1 hover:bg-slate-800 rounded text-slate-400">
           <X className="w-3.5 h-3.5" />
         </button>
@@ -40,7 +40,7 @@ export function EditorTabs({ groupId }: { groupId: string }) {
   };
 
   return (
-    <div className="flex bg-[#141414] overflow-x-auto no-scrollbar border-b border-[#2a2a2a] select-none">
+    <div className="flex bg-slate-950 overflow-x-auto no-scrollbar border-b border-slate-800 select-none">
       {group.openFiles.map((file, index) => {
         const isActive = file === group.activeFile;
         const isDirty = dirtyFiles.has(file);
@@ -63,8 +63,8 @@ export function EditorTabs({ groupId }: { groupId: string }) {
             }}
             onDoubleClick={() => isPinned ? unpinFile(file, groupId) : pinFile(file, groupId)}
             className={cn(
-              "flex items-center h-9 px-3 gap-2 border-r border-[#2a2a2a] cursor-pointer group min-w-fit max-w-[200px]",
-              isActive ? "bg-[#1e1e1e] text-blue-400 border-t-2 border-t-blue-500" : "bg-[#141414] text-slate-400 hover:bg-[#1a1a1a] border-t-2 border-t-transparent"
+              "flex items-center h-9 px-3 gap-2 border-r border-slate-800 cursor-pointer group min-w-fit max-w-[200px]",
+              isActive ? "bg-slate-950 text-blue-400 border-t-2 border-t-blue-500" : "bg-slate-950 text-slate-400 hover:bg-slate-950 border-t-2 border-t-transparent"
             )}
             onClick={() => openFile(file, groupId)}
           >

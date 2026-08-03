@@ -220,7 +220,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
         setConversations(prev => [convo, ...prev]);
         setActiveConversation(convo);
         targetConversationId = convo.id;
-      } catch (e) {
+      } catch {
         console.error("Failed to auto-create conversation");
       }
     }

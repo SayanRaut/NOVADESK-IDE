@@ -45,7 +45,7 @@ export const MessageList = () => {
         </div>
         <div className="grid grid-cols-1 gap-2 w-full max-w-sm mt-2">
           {['Explain this code', 'Find bugs in selection', 'Write unit tests', 'Refactor for readability'].map(hint => (
-            <div key={hint} className="px-3 py-2 rounded-lg border border-[#2a2a2a] bg-[#111] text-xs text-slate-400 cursor-default hover:border-[#3a3a3a] hover:text-slate-300 transition-colors">
+            <div key={hint} className="px-3 py-2 rounded-lg border border-slate-800 bg-[#111] text-xs text-slate-400 cursor-default hover:border-slate-800 hover:text-slate-300 transition-colors">
               {hint}
             </div>
           ))}

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { DiffEditor as MonacoDiffEditor } from '@monaco-editor/react';
+import { DiffEditor as MonacoDiffEditor, useMonaco } from '@monaco-editor/react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useEffect } from 'react';
+import { registerMonacoThemes, getEditorTheme } from '../../utils/editorThemes';
 
 interface DiffEditorProps {
   originalContent: string;
@@ -19,11 +20,18 @@ export function DiffEditor({
   onAccept,
   onReject
 }: DiffEditorProps) {
-  const { actualTheme } = useTheme();
+  const { theme } = useTheme();
+  const monaco = useMonaco();
+
+  useEffect(() => {
+    if (monaco) {
+      registerMonacoThemes(monaco);
+    }
+  }, [monaco]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#1e1e1e]">
-      <div className="flex justify-between items-center px-4 py-2 bg-[#252526] text-slate-300 border-b border-[#333]">
+    <div className="flex flex-col h-full w-full bg-slate-950">
+      <div className="flex justify-between items-center px-4 py-2 bg-slate-900 text-slate-300 border-b border-slate-800">
         <div className="text-sm font-medium">
           Previewing changes for: <span className="text-blue-400">{filePath}</span>
         </div>
@@ -52,7 +60,7 @@ export function DiffEditor({
           language={language}
           original={originalContent}
           modified={modifiedContent}
-          theme={actualTheme === 'dark' ? 'vs-dark' : 'vs'}
+          theme={getEditorTheme(theme)}
           options={{
             renderSideBySide: true,
             minimap: { enabled: false },

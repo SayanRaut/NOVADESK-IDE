@@ -14,7 +14,10 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ['node-pty']
+              external: ['node-pty', 'extract-zip']
+            },
+            rolldownOptions: {
+              external: ['node-pty', 'extract-zip']
             }
           }
         }

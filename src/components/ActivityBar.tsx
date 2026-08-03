@@ -104,7 +104,7 @@ export function ActivityBar() {
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-14 bottom-12 w-64 p-5 bg-[#1e1e1e] border border-slate-700/50 rounded-xl shadow-2xl z-50 flex flex-col gap-4"
+              className="absolute left-14 bottom-12 w-64 p-5 bg-slate-950 border border-slate-700/50 rounded-xl shadow-2xl z-50 flex flex-col gap-4"
             >
               <div className="flex flex-col items-center justify-center gap-2 mb-2">
                 <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-bold">

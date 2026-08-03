@@ -201,7 +201,7 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
         try {
           const text = await window.electronAPI!.readFile(payload.fullPath);
           setFileContents(prev => ({ ...prev, [payload.fullPath]: text }));
-        } catch (e) {
+        } catch {
           // File might have been deleted, ignore for now
         }
       }
@@ -243,7 +243,7 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
         setExpandedFolders(new Set());
         setActiveGroupId('main');
       }
-    } catch (e) {
+    } catch {
       setEditorGroups([defaultGroup]);
       setSplitState('none');
       setExpandedFolders(new Set());

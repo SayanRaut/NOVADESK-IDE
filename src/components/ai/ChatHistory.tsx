@@ -29,7 +29,7 @@ export const ChatHistory = () => {
             </div>
 
             <div className={`max-w-[85%] text-sm rounded-lg p-3 ${
-              msg.role === 'user' ? 'bg-[#2a2a2a] text-gray-200' : 'text-gray-300'
+              msg.role === 'user' ? 'bg-slate-900 text-gray-200' : 'text-gray-300'
             }`}>
               {msg.role === 'user' ? (
                 <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -40,7 +40,7 @@ export const ChatHistory = () => {
                       const match = /language-(\w+)/.exec(className || '');
                       return !inline && match ? (
                         <div className="relative group rounded bg-black my-2 overflow-hidden border border-[var(--border-color)]">
-                          <div className="flex justify-between items-center px-3 py-1 bg-[#1a1a1a] text-xs text-gray-400 border-b border-[var(--border-color)]">
+                          <div className="flex justify-between items-center px-3 py-1 bg-slate-950 text-xs text-gray-400 border-b border-[var(--border-color)]">
                             <span>{match[1]}</span>
                             <button className="hover:text-white transition-ui">Copy</button>
                           </div>
