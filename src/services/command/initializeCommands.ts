@@ -132,6 +132,12 @@ export function initializeCommands() {
     execute: () => { window.dispatchEvent(new CustomEvent('ide:toggleTerminal')); }
   });
 
+  CommandRegistry.registerCommand({
+    id: 'view.runAndDebug',
+    title: 'Run and Debug',
+    execute: () => window.dispatchEvent(new CustomEvent('ide:toggleRunDebug'))
+  });
+
   // AI Commands
   CommandRegistry.registerCommand({
     id: 'ai.chat.new',
@@ -182,6 +188,7 @@ export function initializeCommands() {
 
   KeybindingManager.register({ commandId: 'view.toggleSidebar', key: 'Ctrl+B' });
   KeybindingManager.register({ commandId: 'view.toggleTerminal', key: 'Ctrl+`' });
+  KeybindingManager.register({ commandId: 'view.runAndDebug', key: 'Ctrl+Shift+D' });
   
   KeybindingManager.register({ commandId: 'go.toFile', key: 'Ctrl+P' });
   
@@ -223,6 +230,7 @@ export function initializeCommands() {
   MenuRegistry.registerMenu('menubar/view', [
     { id: 'view.explorer', type: 'command', commandId: 'stub', label: 'Explorer' },
     { id: 'view.search', type: 'command', commandId: 'stub', label: 'Search' },
+    { id: 'view.runAndDebug', type: 'command', commandId: 'view.runAndDebug' },
     { id: 'sep1', type: 'separator' },
     { id: 'view.toggleSidebar', type: 'command', commandId: 'view.toggleSidebar' },
     { id: 'view.toggleTerminal', type: 'command', commandId: 'view.toggleTerminal' },

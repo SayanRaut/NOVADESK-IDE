@@ -2,14 +2,19 @@ import { useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { useEditor } from '../../contexts/EditorContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useDebug } from '../../contexts/DebugContext';
+import * as monaco from 'monaco-editor';
 import { registerMonacoThemes, getEditorTheme } from '../../utils/editorThemes';
 
 export function MonacoEditor({ groupId }: { groupId: string }) {
   const { editorGroups, fileContents, setFileContents, setFileDirty, setCursorPosition, activeGroupId } = useEditor();
   const { theme } = useTheme();
+  const { breakpoints, toggleBreakpoint } = useDebug();
   
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const [decorations, setDecorations] = useState<string[]>([]);
   
   const group = editorGroups.find(g => g.id === groupId);
   const activeFile = group?.activeFile;
@@ -48,6 +53,22 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
     }
   }, [activeFile, fileContents]);
 
+  // Sync breakpoints
+  useEffect(() => {
+    if (!editorInstance || !activeFile) return;
+    const fileBreakpoints = breakpoints.filter(bp => bp.filePath === activeFile);
+    
+    const newDecorations = fileBreakpoints.map(bp => ({
+      range: new monaco.Range(bp.line, 1, bp.line, 1),
+      options: {
+        isWholeLine: false,
+        glyphMarginClassName: 'bg-red-500 rounded-full w-3 h-3 ml-1 mt-[3px] border border-red-700 shadow-sm'
+      }
+    }));
+    
+    setDecorations(editorInstance.deltaDecorations(decorations, newDecorations));
+  }, [breakpoints, activeFile, editorInstance]);
+
   const handleBeforeMount = (monacoInstance: any) => {
     registerMonacoThemes(monacoInstance);
 
@@ -85,6 +106,7 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
   };
 
   const handleMount = (editor: any) => {
+    setEditorInstance(editor);
     editor.onDidChangeCursorPosition((e: any) => {
       if (isFocused) {
         setCursorPosition({
@@ -94,6 +116,13 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
       }
     });
     
+    editor.onMouseDown((e: any) => {
+      if (e.target.type === monaco.editor.MouseTargetType.GUTTER_GLYPH_MARGIN && activeFile) {
+        const line = e.target.position.lineNumber;
+        toggleBreakpoint(activeFile, line);
+      }
+    });
+
     // Gain focus on mount if it's the active group
     if (isFocused) {
       editor.focus();

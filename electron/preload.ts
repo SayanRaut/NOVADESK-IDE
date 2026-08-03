@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setTheme: (theme: string) => ipcRenderer.invoke('window:setTheme', theme),
   openFolder: () => ipcRenderer.invoke('workspace:openFolder'),
   chooseFolder: () => ipcRenderer.invoke('workspace:chooseFolder'),
+  showSaveDialog: (defaultPath?: string) => ipcRenderer.invoke('workspace:showSaveDialog', defaultPath),
   setWorkspace: (rootPath: string) => ipcRenderer.invoke('workspace:setWorkspace', rootPath),
   readDirectory: (directoryPath: string) => ipcRenderer.invoke('workspace:readDirectory', directoryPath),
   readFile: (filePath: string) => ipcRenderer.invoke('workspace:readFile', filePath),

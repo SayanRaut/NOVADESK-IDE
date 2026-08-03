@@ -5,6 +5,7 @@ import { EditorTabs } from './editor/EditorTabs';
 import { Breadcrumb } from './editor/Breadcrumb';
 import { MonacoEditor } from './editor/MonacoEditor';
 import { WelcomePage } from './editor/WelcomePage';
+import { DebugToolbar } from './run-debug/DebugToolbar';
 import { cn } from '../utils/cn';
 
 function EditorGroupView({ groupId }: { groupId: string }) {
@@ -41,14 +42,16 @@ export function EditorArea() {
 
   if (editorGroups.length === 1 || splitState === 'none') {
     return (
-      <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden">
+      <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+        <DebugToolbar />
         <EditorGroupView groupId={editorGroups[0].id} />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden">
+    <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+      <DebugToolbar />
       <PanelGroup orientation={splitState === 'horizontal' ? 'horizontal' : 'vertical'}>
         {editorGroups.map((group, index) => (
           <React.Fragment key={group.id}>

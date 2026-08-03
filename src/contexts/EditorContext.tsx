@@ -400,8 +400,37 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     const activeGroup = editorGroups.find(g => g.id === activeGroupId);
     if (!activeGroup?.activeFile || !window.electronAPI) return;
     const file = activeGroup.activeFile;
-    await window.electronAPI.writeFile(file, fileContents[file] ?? '');
-    setFileDirty(file, false);
+    
+    let targetFile = file;
+    if (file.startsWith('Untitled-')) {
+      const selectedPath = await window.electronAPI.showSaveDialog();
+      if (!selectedPath) return; // User canceled
+      
+      targetFile = selectedPath;
+      
+      // Migrate contents to new path
+      setFileContents((prev) => {
+        const next = { ...prev };
+        next[targetFile] = next[file] ?? '';
+        delete next[file];
+        return next;
+      });
+      
+      // Update editor groups to replace Untitled tab with real file tab
+      setEditorGroups((groups) => groups.map((g) => {
+        if (!g.openFiles.includes(file)) return g;
+        return {
+          ...g,
+          openFiles: g.openFiles.map((f) => f === file ? targetFile : f),
+          pinnedTabs: g.pinnedTabs.map((f) => f === file ? targetFile : f),
+          activeFile: g.activeFile === file ? targetFile : g.activeFile
+        };
+      }));
+    }
+    
+    await window.electronAPI.writeFile(targetFile, fileContents[file] ?? '');
+    setFileDirty(targetFile, false);
+    if (file !== targetFile) setFileDirty(file, false);
   }, [editorGroups, activeGroupId, fileContents, setFileDirty]);
 
   const saveAllFiles = useCallback(async () => {
@@ -442,12 +471,20 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
         closeFile(activeGroup.activeFile, activeGroupId);
       }
     };
+    const handleNewFile = () => {
+      const untitledCount = Math.floor(Math.random() * 10000);
+      const newFileId = `Untitled-${untitledCount}`;
+      setFileContents(prev => ({ ...prev, [newFileId]: '' }));
+      openFile(newFileId, activeGroupId);
+      setFileDirty(newFileId, true);
+    };
 
     window.addEventListener('ide:saveActiveFile', handleSave);
     window.addEventListener('ide:saveAllFiles', handleSaveAll);
     window.addEventListener('ide:openWorkspace', handleOpenWorkspace);
     window.addEventListener('ide:closeWorkspace', handleCloseWorkspace);
     window.addEventListener('ide:closeActiveFile', handleCloseActiveFile);
+    window.addEventListener('ide:newFile', handleNewFile);
 
     return () => {
       window.removeEventListener('ide:saveActiveFile', handleSave);
@@ -455,8 +492,9 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
       window.removeEventListener('ide:openWorkspace', handleOpenWorkspace);
       window.removeEventListener('ide:closeWorkspace', handleCloseWorkspace);
       window.removeEventListener('ide:closeActiveFile', handleCloseActiveFile);
+      window.removeEventListener('ide:newFile', handleNewFile);
     };
-  }, [saveActiveFile, saveAllFiles, openWorkspace, closeWorkspace, closeFile, editorGroups, activeGroupId]);
+  }, [saveActiveFile, saveAllFiles, openWorkspace, closeWorkspace, closeFile, openFile, editorGroups, activeGroupId, setFileDirty]);
 
   const value = useMemo(() => {
     const activeGroup = editorGroups.find(g => g.id === activeGroupId);

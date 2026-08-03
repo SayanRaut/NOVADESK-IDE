@@ -7,6 +7,7 @@ declare global {
       setTheme: (theme: string) => Promise<void>;
       openFolder: () => Promise<string | null>;
       chooseFolder: () => Promise<string | null>;
+      showSaveDialog: (defaultPath?: string) => Promise<string | null>;
       setWorkspace: (rootPath: string) => Promise<{ ok: boolean }>;
       readDirectory: (directoryPath: string) => Promise<Array<{ name: string; isDirectory: boolean; path: string }>>;
       readFile: (filePath: string) => Promise<string>;

@@ -9,7 +9,10 @@ import { Skeleton } from './Loading/Skeleton';
 import { FileExplorer } from './explorer/FileExplorer';
 import { SettingsPanel } from './SettingsPanel';
 import { ExtensionsPanel } from './extensions/ExtensionsPanel';
+import { SearchPanel } from './search/SearchPanel';
+import { RunDebugPanel } from './run-debug/RunDebugPanel';
 import { cn } from '../utils/cn';
+import { useEffect } from 'react';
 
 const titleMap: Record<ActivityItem, string> = {
   explorer: 'EXPLORER',
@@ -22,8 +25,21 @@ const titleMap: Record<ActivityItem, string> = {
 };
 
 export function Sidebar() {
-  const { activeActivity } = useSidebar();
+  const { activeActivity, setActiveActivity } = useSidebar();
   const { isSidebarOpen, setSidebarOpen } = useLayout();
+  
+  useEffect(() => {
+    const handleToggleRunDebug = () => {
+      if (activeActivity === 'run-debug') {
+        setSidebarOpen(!isSidebarOpen);
+      } else {
+        setActiveActivity('run-debug');
+        if (!isSidebarOpen) setSidebarOpen(true);
+      }
+    };
+    window.addEventListener('ide:toggleRunDebug', handleToggleRunDebug);
+    return () => window.removeEventListener('ide:toggleRunDebug', handleToggleRunDebug);
+  }, [activeActivity, isSidebarOpen, setSidebarOpen, setActiveActivity]);
   
   const { size, isResizing, onMouseDown } = useResize({
     initialSize: 260,
@@ -63,6 +79,10 @@ export function Sidebar() {
 
             {activeActivity === 'explorer' ? (
               <FileExplorer />
+            ) : activeActivity === 'search' ? (
+              <SearchPanel />
+            ) : activeActivity === 'run-debug' ? (
+              <RunDebugPanel />
             ) : activeActivity === 'settings' ? (
               <SettingsPanel />
             ) : activeActivity === 'extensions' ? (

@@ -381,6 +381,17 @@ ipcMain.handle('workspace:chooseFolder', async () => {
   return canceled || !filePaths[0] ? null : path.resolve(filePaths[0]);
 });
 
+ipcMain.handle('workspace:showSaveDialog', async (_event, defaultPath?: string) => {
+  const options: Electron.SaveDialogOptions = {
+    title: 'Save As',
+    defaultPath,
+  };
+  const { canceled, filePath } = await (mainWindow
+    ? dialog.showSaveDialog(mainWindow, options)
+    : dialog.showSaveDialog(options));
+  return canceled || !filePath ? null : path.resolve(filePath);
+});
+
 ipcMain.handle('workspace:readDirectory', async (_event, directoryPath: string) => {
   if (!isInsideWorkspace(directoryPath)) throw new Error('Directory is outside the active workspace.');
   return fs.readdirSync(directoryPath, { withFileTypes: true })

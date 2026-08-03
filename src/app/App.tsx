@@ -8,6 +8,7 @@ import { WindowProvider } from '../contexts/WindowContext';
 import { PanelProvider } from '../contexts/PanelContext';
 import { NotificationProvider } from '../contexts/NotificationContext';
 import { TerminalProvider } from '../contexts/TerminalContext';
+import { DebugProvider } from '../contexts/DebugContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ExtensionProvider } from '../contexts/ExtensionContext';
 import { DesktopLayout } from '../layouts/DesktopLayout';
@@ -39,11 +40,13 @@ export function App() {
                   <PanelProvider>
                     <NotificationProvider>
                       <TerminalProvider>
-                        <EditorProvider>
-                          <AIProvider>
-                            <AppRouter />
-                          </AIProvider>
-                        </EditorProvider>
+                        <DebugProvider>
+                          <EditorProvider>
+                            <AIProvider>
+                              <AppRouter />
+                            </AIProvider>
+                          </EditorProvider>
+                        </DebugProvider>
                       </TerminalProvider>
                     </NotificationProvider>
                   </PanelProvider>

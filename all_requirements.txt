@@ -1,0 +1,52 @@
+Node.js Dependencies (package.json):
+- @monaco-editor/react
+- @xterm/addon-fit
+- @xterm/addon-webgl
+- clsx
+- dotenv
+- framer-motion
+- highlight.js
+- lucide-react
+- node-pty
+- react
+- react-dom
+- react-markdown
+- react-resizable-panels
+- rehype-highlight
+- remark-gfm
+- tailwind-merge
+- xterm
+
+Node.js Dev Dependencies (package.json):
+- @tailwindcss/vite
+- @types/node
+- @types/react
+- @types/react-dom
+- @vitejs/plugin-react
+- concurrently
+- cross-env
+- electron
+- oxlint
+- tailwindcss
+- typescript
+- vite
+- vite-plugin-electron
+- vite-plugin-electron-renderer
+
+Python Dependencies (backend/requirements.txt):
+- fastapi
+- uvicorn
+- sqlalchemy
+- asyncpg
+- alembic
+- qdrant-client
+- langgraph
+- pydantic
+- pydantic-settings
+- python-dotenv
+- google-auth
+- websockets
+- python-jose[cryptography]
+- passlib[bcrypt]
+- redis
+- aiosqlite
