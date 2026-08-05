@@ -4,6 +4,7 @@ declare global {
   interface Window {
     electronAPI?: {
       windowControl: (action: 'minimize' | 'maximize' | 'close') => Promise<void>;
+      setZoom: (zoomFactor: number) => Promise<void>;
       setTheme: (theme: string) => Promise<void>;
       openFolder: () => Promise<string | null>;
       chooseFolder: () => Promise<string | null>;

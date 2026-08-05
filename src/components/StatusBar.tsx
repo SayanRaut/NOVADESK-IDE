@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react';
-import { GitBranch, XCircle, AlertTriangle, Bell, Palette, Terminal as TerminalIcon, Server, ServerOff, LogIn } from 'lucide-react';
+import { GitBranch, XCircle, AlertTriangle, Bell, Palette, Terminal as TerminalIcon, Server, ServerOff, LogIn, Check, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { useEditor } from '../contexts/EditorContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useTerminal } from '../contexts/TerminalContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useLayout } from '../contexts/LayoutContext';
+import { usePanel } from '../contexts/PanelContext';
+import { useUI } from '../contexts/UIContext';
 import { http } from '../services/http';
 
 export function StatusBar() {
-  const { cursorPosition, editorGroups, activeGroupId } = useEditor();
+  const { cursorPosition, editorGroups, activeGroupId, problems } = useEditor();
   const { theme, setTheme } = useTheme();
   const { terminals } = useTerminal();
   const { accessToken, logout } = useAuth();
+  const { setBottomPanelOpen } = useLayout();
+  const { setActiveTab } = usePanel();
+  const { zoomLevel, setZoomLevel } = useUI();
   const activeFile = editorGroups.find(g => g.id === activeGroupId)?.activeFile;
   const [gitBranch, setGitBranch] = useState<string>('main');
   const [backendStatus, setBackendStatus] = useState<'connected' | 'offline'>('offline');
@@ -59,6 +65,10 @@ export function StatusBar() {
     else if (ext === 'py') language = 'Python';
   }
 
+  const allProblems = Object.values(problems || {}).flat();
+  const errorCount = allProblems.filter(p => p.severity >= 8).length;
+  const warningCount = allProblems.filter(p => p.severity >= 4 && p.severity < 8).length;
+
   return (
     <div className="h-6 bg-blue-600 text-white flex items-center justify-between px-2 text-[11px] select-none shrink-0 z-20">
       {/* Left side */}
@@ -82,11 +92,19 @@ export function StatusBar() {
           )}
         </button>
 
-        <button className="flex items-center h-full px-2 hover:bg-white/20 transition-colors gap-1.5">
-          <XCircle className="w-3.5 h-3.5" />
-          <span>0</span>
+        <button 
+          className="flex items-center h-full px-2 hover:bg-white/20 transition-colors gap-1.5"
+          onClick={() => {
+            setBottomPanelOpen(true);
+            setActiveTab('problems');
+          }}
+          title="View Problems"
+        >
+          {errorCount === 0 && warningCount === 0 && <Check className="w-3.5 h-3.5 text-green-400" />}
+          <XCircle className="w-3.5 h-3.5 ml-1" />
+          <span>{errorCount}</span>
           <AlertTriangle className="w-3.5 h-3.5 ml-1" />
-          <span>0</span>
+          <span>{warningCount}</span>
         </button>
       </div>
 
@@ -112,6 +130,31 @@ export function StatusBar() {
         
         <button className="flex items-center h-full px-2 hover:bg-white/20 transition-colors">
           <span>{language}</span>
+        </button>
+
+        <button 
+          className="flex items-center h-full px-2 hover:bg-white/20 transition-colors"
+          onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.1))}
+          title="Zoom Out"
+        >
+          <ZoomOut className="w-3.5 h-3.5" />
+        </button>
+        
+        <button 
+          className="flex items-center h-full px-2 hover:bg-white/20 transition-colors gap-1.5"
+          onClick={() => setZoomLevel(1)}
+          title="Reset Zoom"
+        >
+          <RotateCcw className="w-3 h-3" />
+          <span>{Math.round(zoomLevel * 100)}%</span>
+        </button>
+        
+        <button 
+          className="flex items-center h-full px-2 hover:bg-white/20 transition-colors"
+          onClick={() => setZoomLevel(z => Math.min(2.5, z + 0.1))}
+          title="Zoom In"
+        >
+          <ZoomIn className="w-3.5 h-3.5" />
         </button>
 
         <button 

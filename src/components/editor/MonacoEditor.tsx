@@ -7,7 +7,7 @@ import * as monaco from 'monaco-editor';
 import { registerMonacoThemes, getEditorTheme } from '../../utils/editorThemes';
 
 export function MonacoEditor({ groupId }: { groupId: string }) {
-  const { editorGroups, fileContents, setFileContents, setFileDirty, setCursorPosition, activeGroupId } = useEditor();
+  const { editorGroups, fileContents, setFileContents, setFileDirty, setCursorPosition, activeGroupId, setProblems } = useEditor();
   const { theme } = useTheme();
   const { breakpoints, toggleBreakpoint } = useDebug();
   
@@ -157,6 +157,11 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
         language={language}
         value={content}
         onChange={handleEditorChange}
+        onValidate={(markers) => {
+          if (activeFile) {
+            setProblems(prev => ({ ...prev, [activeFile]: markers }));
+          }
+        }}
         onMount={handleMount}
         beforeMount={handleBeforeMount}
         theme={getEditorTheme(theme)}
