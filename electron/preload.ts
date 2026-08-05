@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   windowControl: (action: 'minimize' | 'maximize' | 'close') => ipcRenderer.invoke('window:control', action),
+  setZoom: (zoomFactor: number) => ipcRenderer.invoke('window:setZoom', zoomFactor),
   setTheme: (theme: string) => ipcRenderer.invoke('window:setTheme', theme),
   openFolder: () => ipcRenderer.invoke('workspace:openFolder'),
   chooseFolder: () => ipcRenderer.invoke('workspace:chooseFolder'),

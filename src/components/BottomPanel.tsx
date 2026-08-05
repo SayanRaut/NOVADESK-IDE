@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PanelBottomClose, Terminal, AlertCircle, ListTree, Bug, Activity } from 'lucide-react';
+import { PanelBottomClose, Terminal, AlertCircle, ListTree, Bug, Activity, XCircle, AlertTriangle } from 'lucide-react';
 import { useLayout } from '../contexts/LayoutContext';
 import { usePanel } from '../contexts/PanelContext';
+import { useEditor } from '../contexts/EditorContext';
 import type { BottomPanelTab } from '../contexts/PanelContext';
 import { useResize } from '../hooks/useResize';
 import { TerminalPanel } from './Terminal/TerminalPanel';
@@ -19,6 +20,11 @@ const tabs: { id: BottomPanelTab; label: string; icon?: React.ElementType }[] = 
 export function BottomPanel() {
   const { isBottomPanelOpen, setBottomPanelOpen } = useLayout();
   const { activeTab, setActiveTab } = usePanel();
+  const { problems, setActiveGroup, openFile } = useEditor();
+  
+  const allProblems = Object.entries(problems).flatMap(([file, markers]) => 
+    markers.map(m => ({ file, ...m }))
+  );
   
   const { size, isResizing, onMouseDown } = useResize({
     initialSize: 280,
@@ -89,7 +95,25 @@ export function BottomPanel() {
                 <TerminalPanel />
               ) : (
                 <div className="p-4 text-sm text-slate-400">
-                  {activeTab === 'problems' && <div>No problems detected.</div>}
+                  {activeTab === 'problems' && (
+                    <div className="flex flex-col gap-1">
+                      {allProblems.length === 0 ? (
+                        <div>No problems detected.</div>
+                      ) : (
+                        allProblems.map((p, i) => (
+                          <div 
+                            key={i} 
+                            className="flex gap-2 items-center hover:bg-white/5 p-1 rounded cursor-pointer transition-colors"
+                            onClick={() => openFile(p.file)}
+                          >
+                            {p.severity >= 8 ? <XCircle className="w-3.5 h-3.5 text-red-500 shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 text-yellow-500 shrink-0" />}
+                            <span className="truncate flex-1" title={p.message}>{p.message}</span>
+                            <span className="text-slate-500 text-xs shrink-0">{p.file.split(/[\\/]/).pop()} [{p.startLineNumber}, {p.startColumn}]</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                   {activeTab === 'output' && <div>Output will appear here.</div>}
                   {activeTab === 'debug' && <div>Debug console initialized.</div>}
                   {activeTab === 'ai-logs' && <div>AI Workspace logs will stream here.</div>}

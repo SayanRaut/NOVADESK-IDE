@@ -299,6 +299,10 @@ ipcMain.handle('window:control', (event, action: 'minimize' | 'maximize' | 'clos
   if (action === 'close') window.close();
 });
 
+ipcMain.handle('window:setZoom', (event, zoomFactor: number) => {
+  event.sender.setZoomFactor(zoomFactor);
+});
+
 ipcMain.handle('window:setTheme', (event, theme: string) => {
   const window = BrowserWindow.fromWebContents(event.sender);
   if (!window) return;
