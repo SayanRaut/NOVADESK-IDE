@@ -121,6 +121,12 @@ export function initializeCommands() {
 
   // View Commands
   CommandRegistry.registerCommand({
+    id: 'view.commandPalette',
+    title: 'Command Palette...',
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:openCommandPalette')); }
+  });
+
+  CommandRegistry.registerCommand({
     id: 'view.toggleSidebar',
     title: 'Toggle Side Bar',
     execute: () => { window.dispatchEvent(new CustomEvent('ide:toggleSidebar')); }
@@ -228,6 +234,8 @@ export function initializeCommands() {
 
   // View Menu
   MenuRegistry.registerMenu('menubar/view', [
+    { id: 'view.commandPalette', type: 'command', commandId: 'view.commandPalette', label: 'Command Palette...' },
+    { id: 'sep0', type: 'separator' },
     { id: 'view.explorer', type: 'command', commandId: 'stub', label: 'Explorer' },
     { id: 'view.search', type: 'command', commandId: 'stub', label: 'Search' },
     { id: 'view.runAndDebug', type: 'command', commandId: 'view.runAndDebug' },

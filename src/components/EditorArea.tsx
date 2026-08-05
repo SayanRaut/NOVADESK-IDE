@@ -7,9 +7,11 @@ import { MonacoEditor } from './editor/MonacoEditor';
 import { WelcomePage } from './editor/WelcomePage';
 import { DebugToolbar } from './run-debug/DebugToolbar';
 import { cn } from '../utils/cn';
+import { useTheme } from '../contexts/ThemeContext';
 
 function EditorGroupView({ groupId }: { groupId: string }) {
   const { editorGroups, setActiveGroup, activeGroupId } = useEditor();
+  const { customBackground } = useTheme();
   const group = editorGroups.find(g => g.id === groupId);
   
   if (!group) return null;
@@ -17,7 +19,8 @@ function EditorGroupView({ groupId }: { groupId: string }) {
   return (
     <div 
       className={cn(
-        "h-full w-full flex flex-col bg-slate-950 overflow-hidden border-slate-800 transition-opacity",
+        "h-full w-full flex flex-col overflow-hidden transition-opacity relative z-10",
+        customBackground ? "bg-transparent" : "bg-slate-950 border-slate-800",
         activeGroupId === groupId ? "border-transparent opacity-100" : "opacity-70"
       )}
       onClickCapture={() => {
@@ -37,12 +40,15 @@ function EditorGroupView({ groupId }: { groupId: string }) {
 
 export function EditorArea() {
   const { editorGroups, splitState } = useEditor();
+  const { customBackground } = useTheme();
 
-  if (editorGroups.length === 0) return <div className="flex-1 bg-slate-950" />;
+  if (editorGroups.length === 0) return (
+    <div className={cn("flex-1 relative overflow-hidden", customBackground ? "bg-transparent" : "bg-slate-950")} />
+  );
 
   if (editorGroups.length === 1 || splitState === 'none') {
     return (
-      <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+      <div className={cn("flex-1 flex flex-col overflow-hidden relative", customBackground ? "bg-transparent" : "bg-slate-950")}>
         <DebugToolbar />
         <EditorGroupView groupId={editorGroups[0].id} />
       </div>
@@ -50,7 +56,7 @@ export function EditorArea() {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-950 overflow-hidden relative">
+    <div className={cn("flex-1 flex flex-col overflow-hidden relative", customBackground ? "bg-transparent" : "bg-slate-950")}>
       <DebugToolbar />
       <PanelGroup orientation={splitState === 'horizontal' ? 'horizontal' : 'vertical'}>
         {editorGroups.map((group, index) => (

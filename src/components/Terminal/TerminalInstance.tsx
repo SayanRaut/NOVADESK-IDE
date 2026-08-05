@@ -89,15 +89,20 @@ export function TerminalInstance({ id, isActive }: Props) {
   const terminalRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
-  const { theme } = useTheme();
+  const { theme, customBackground, fontSize } = useTheme();
 
   useEffect(() => {
     if (!terminalRef.current) return;
 
+    const termTheme = getTerminalTheme(theme);
+    if (customBackground) {
+      termTheme.background = 'transparent';
+    }
+
     const term = new Terminal({
-      theme: getTerminalTheme(theme),
+      theme: termTheme,
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-      fontSize: 13,
+      fontSize: fontSize,
       cursorBlink: true,
       allowTransparency: true,
     });
@@ -164,9 +169,15 @@ export function TerminalInstance({ id, isActive }: Props) {
 
   useEffect(() => {
     if (xtermRef.current) {
-      xtermRef.current.options.theme = getTerminalTheme(theme);
+      const termTheme = getTerminalTheme(theme);
+      if (customBackground) {
+        termTheme.background = 'transparent';
+      }
+      xtermRef.current.options.theme = termTheme;
+      xtermRef.current.options.fontSize = fontSize;
+      fitAddonRef.current?.fit();
     }
-  }, [theme]);
+  }, [theme, customBackground, fontSize]);
 
   return (
     <div 

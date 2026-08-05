@@ -13,9 +13,13 @@ const UIContext = createContext<UIContextType | undefined>(undefined);
 export const UIProvider = ({ children }: { children: ReactNode }) => {
   const [activeSidebar, setActiveSidebar] = useState<string | null>('files');
   const [activeBottomPanel, setActiveBottomPanel] = useState<string | null>('terminal');
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [zoomLevel, setZoomLevel] = useState<number>(() => {
+    const saved = localStorage.getItem('novadesk:zoomLevel');
+    return saved ? parseFloat(saved) : 1;
+  });
 
   useEffect(() => {
+    localStorage.setItem('novadesk:zoomLevel', zoomLevel.toString());
     if (window.electronAPI) {
       window.electronAPI.setZoom(zoomLevel);
     }

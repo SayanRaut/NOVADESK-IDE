@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 import { useEditor } from '../../contexts/EditorContext';
+import { useProblems } from '../../contexts/ProblemsContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useDebug } from '../../contexts/DebugContext';
 import * as monaco from 'monaco-editor';
 import { registerMonacoThemes, getEditorTheme } from '../../utils/editorThemes';
 
 export function MonacoEditor({ groupId }: { groupId: string }) {
-  const { editorGroups, fileContents, setFileContents, setFileDirty, setCursorPosition, activeGroupId, setProblems } = useEditor();
-  const { theme } = useTheme();
+  const { editorGroups, fileContents, setFileContents, setFileDirty, setCursorPosition, activeGroupId } = useEditor();
+  const { setProblems } = useProblems();
+  const { theme, fontSize, minimapEnabled, setMinimapEnabled } = useTheme();
   const { breakpoints, toggleBreakpoint } = useDebug();
   
   const [content, setContent] = useState<string>('');
@@ -131,7 +133,31 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
     editor.onDidFocusEditorWidget(() => {
       // Could notify context that this group should be active, but let's keep it simple
     });
+
+    // Add Toggle Minimap command to Command Palette
+    editor.addAction({
+      id: 'toggle-minimap',
+      label: 'View: Toggle Minimap',
+      contextMenuGroupId: 'navigation',
+      run: (ed: any) => {
+        const currentOptions = ed.getOptions();
+        const currentEnabled = currentOptions.get(monaco.editor.EditorOption.minimap).enabled;
+        setMinimapEnabled(!currentEnabled);
+      }
+    });
   };
+
+  useEffect(() => {
+    const handleCommandPalette = () => {
+      if (editorInstance && isFocused) {
+        editorInstance.focus();
+        editorInstance.trigger('any', 'editor.action.quickCommand', {});
+      }
+    };
+
+    window.addEventListener('ide:openCommandPalette', handleCommandPalette);
+    return () => window.removeEventListener('ide:openCommandPalette', handleCommandPalette);
+  }, [editorInstance, isFocused]);
 
   if (!activeFile) return null;
 
@@ -166,9 +192,9 @@ export function MonacoEditor({ groupId }: { groupId: string }) {
         beforeMount={handleBeforeMount}
         theme={getEditorTheme(theme)}
         options={{
-          minimap: { enabled: true, renderCharacters: false },
+          minimap: { enabled: minimapEnabled, renderCharacters: false },
           wordWrap: 'on',
-          fontSize: 13,
+          fontSize: fontSize,
           fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
           padding: { top: 16 },
           scrollBeyondLastLine: true,

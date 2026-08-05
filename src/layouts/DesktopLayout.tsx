@@ -10,11 +10,29 @@ import { ToastContainer } from '../components/Notification/ToastContainer';
 import { useEditor } from '../contexts/EditorContext';
 import { useLayout } from '../contexts/LayoutContext';
 import { usePanel } from '../contexts/PanelContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export function DesktopLayout() {
   const { saveActiveFile, saveAllFiles, editorGroups, activeGroupId, closeFile } = useEditor();
   const { isBottomPanelOpen, setBottomPanelOpen } = useLayout();
   const { setActiveTab } = usePanel();
+  const { customBackground } = useTheme();
+
+  const CustomBgLayer = customBackground ? (
+    <div 
+      className="absolute inset-0 z-0 pointer-events-none overflow-hidden" 
+      style={{ backgroundColor: 'var(--panel-bg)' }}
+    >
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-[1.02]"
+        style={{
+          backgroundImage: 'var(--custom-bg-image)',
+          filter: 'blur(var(--custom-bg-blur))',
+          opacity: 'var(--editor-bg-opacity)',
+        }}
+      />
+    </div>
+  ) : null;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,8 +74,11 @@ export function DesktopLayout() {
         
         {/* Center content (Editor + Bottom Panel) */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          <EditorArea />
-          <BottomPanel />
+          {CustomBgLayer}
+          <div className="flex-1 flex flex-col z-10 overflow-hidden">
+            <EditorArea />
+            <BottomPanel />
+          </div>
         </div>
         
         <AISidebar />

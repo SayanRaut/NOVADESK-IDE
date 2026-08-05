@@ -4,6 +4,8 @@ import { PanelBottomClose, Terminal, AlertCircle, ListTree, Bug, Activity, XCirc
 import { useLayout } from '../contexts/LayoutContext';
 import { usePanel } from '../contexts/PanelContext';
 import { useEditor } from '../contexts/EditorContext';
+import { useProblems } from '../contexts/ProblemsContext';
+import { useTheme } from '../contexts/ThemeContext';
 import type { BottomPanelTab } from '../contexts/PanelContext';
 import { useResize } from '../hooks/useResize';
 import { TerminalPanel } from './Terminal/TerminalPanel';
@@ -20,7 +22,9 @@ const tabs: { id: BottomPanelTab; label: string; icon?: React.ElementType }[] = 
 export function BottomPanel() {
   const { isBottomPanelOpen, setBottomPanelOpen } = useLayout();
   const { activeTab, setActiveTab } = usePanel();
-  const { problems, setActiveGroup, openFile } = useEditor();
+  const { openFile } = useEditor();
+  const { problems } = useProblems();
+  const { customBackground } = useTheme();
   
   const allProblems = Object.entries(problems).flatMap(([file, markers]) => 
     markers.map(m => ({ file, ...m }))
@@ -43,7 +47,10 @@ export function BottomPanel() {
           animate={{ height: size, opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="relative flex flex-col bg-slate-950 border-t border-slate-800 shrink-0 overflow-hidden"
+          className={cn(
+            "relative flex flex-col border-t border-slate-800 shrink-0 overflow-hidden",
+            customBackground ? "bg-transparent" : "bg-slate-950"
+          )}
           style={{ height: size }}
         >
           {/* Resize Handle */}
@@ -90,7 +97,7 @@ export function BottomPanel() {
             </div>
 
             {/* Panel Content */}
-            <div className="flex-1 overflow-auto bg-slate-950">
+            <div className={cn("flex-1 overflow-auto", customBackground ? "bg-transparent" : "bg-slate-950")}>
               {activeTab === 'terminal' ? (
                 <TerminalPanel />
               ) : (

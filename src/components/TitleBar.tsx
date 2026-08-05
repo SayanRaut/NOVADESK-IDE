@@ -1,11 +1,9 @@
-import { useWindowControls } from '../contexts/WindowContext';
+// Window controls are handled natively via Electron's titleBarOverlay
 import { useEditor } from '../contexts/EditorContext';
-import { Minus, Square, X } from 'lucide-react';
 import { IDEMenuBar } from './menubar/MenuBar';
 import { cn } from '../utils/cn';
 
 export function TitleBar() {
-  const { minimize, maximize, close } = useWindowControls();
   const { workspaceName } = useEditor();
 
   const menuIds = [
@@ -37,30 +35,12 @@ export function TitleBar() {
         </div>
       </div>
 
-      <div className="flex items-center absolute left-1/2 -translate-x-1/2 pointer-events-none hidden md:flex truncate">
-        <span className="text-slate-300 opacity-80 truncate max-w-[200px] lg:max-w-[400px]">{workspaceName} - NovaDesk</span>
+      <div className="flex-1 flex justify-center items-center pointer-events-none hidden md:flex min-w-0 px-4">
+        <span className="text-slate-300 opacity-80 truncate">{workspaceName} - NovaDesk</span>
       </div>
 
-      <div className="flex h-full [-webkit-app-region:no-drag]">
-        <button 
-          onClick={minimize}
-          className="h-full px-4 hover:bg-slate-800 flex items-center justify-center transition-colors"
-        >
-          <Minus className="w-3.5 h-3.5" />
-        </button>
-        <button 
-          onClick={maximize}
-          className="h-full px-4 hover:bg-slate-800 flex items-center justify-center transition-colors"
-        >
-          <Square className="w-3 h-3" />
-        </button>
-        <button 
-          onClick={close}
-          className="h-full px-4 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+      {/* Placeholder space for native window controls (titleBarOverlay) */}
+      <div className="w-[140px] shrink-0 [-webkit-app-region:no-drag]" />
     </div>
   );
 }

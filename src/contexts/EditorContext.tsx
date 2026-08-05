@@ -63,8 +63,6 @@ type EditorContextType = {
 
   expandedFolders: Set<string>;
   toggleFolderExpanded: (path: string) => void;
-  problems: Record<string, any[]>;
-  setProblems: Dispatch<SetStateAction<Record<string, any[]>>>;
 };
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
@@ -142,7 +140,6 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
   const [fileContents, setFileContents] = useState<Record<string, string>>({});
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(() => new Set());
   const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ line: 1, column: 1 });
-  const [problems, setProblems] = useState<Record<string, any[]>>({});
 
   // 1. Load initial global state
   useEffect(() => {
@@ -537,15 +534,13 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
       cursorPosition,
       setCursorPosition,
       expandedFolders,
-      toggleFolderExpanded,
-      problems,
-      setProblems
+      toggleFolderExpanded
     };
   }, [
     currentPath, recentWorkspaces, openWorkspace, closeWorkspace, fileTree, refreshVersion,
     refreshWorkspace, editorGroups, activeGroupId, setActiveGroup, splitState, openFile,
     closeFile, closeOthers, closeAll, pinFile, unpinFile, reorderTabs, splitGroup, closeGroup, fileContents, dirtyFiles, setFileDirty,
-    saveActiveFile, saveAllFiles, cursorPosition, expandedFolders, toggleFolderExpanded, problems
+    saveActiveFile, saveAllFiles, cursorPosition, expandedFolders, toggleFolderExpanded
   ]);
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;

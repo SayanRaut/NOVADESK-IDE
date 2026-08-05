@@ -215,4 +215,28 @@
   transition: all 0.2s ease-in-out;
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }  
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Custom Background Variables & Editor Transparency */
+:root {
+  --custom-bg-image: none;
+  --custom-bg-blur: 0px;
+  --editor-bg-opacity: 1;
+}
+
+html.has-custom-bg .monaco-editor,
+html.has-custom-bg .monaco-editor-background,
+html.has-custom-bg .monaco-editor .margin,
+html.has-custom-bg .editor-scrollable,
+html.has-custom-bg .minimap,
+html.has-custom-bg .minimap-decorations-layer,
+html.has-custom-bg .xterm,
+html.has-custom-bg .xterm-viewport,
+html.has-custom-bg .xterm-screen {
+  background-color: transparent !important;
+}
+
+/* Ensure empty text area gets transparent bg as well */
+html.has-custom-bg .monaco-editor .view-lines {
+  background-color: transparent !important;
+}
