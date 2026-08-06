@@ -57,7 +57,7 @@ export function RunDebugPanel() {
 
   const SectionHeader = ({ title, section, extra }: { title: string; section: keyof SectionState; extra?: React.ReactNode }) => (
     <div
-      className="flex items-center justify-between px-2 py-1 hover:bg-[#2a2d2e] cursor-pointer group text-[11px] font-bold text-slate-300 uppercase tracking-wide border-t border-slate-800"
+      className="flex items-center justify-between px-2 py-1 hover:bg-[var(--hover-bg)] cursor-pointer group text-[11px] font-bold text-slate-400 uppercase tracking-wide border-t border-[var(--border-color)]"
       onClick={() => toggleSection(section)}
     >
       <div className="flex items-center gap-1">
@@ -71,10 +71,10 @@ export function RunDebugPanel() {
   );
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-300 overflow-hidden select-none">
+    <div className="flex flex-col h-full glass-panel text-slate-300 overflow-hidden select-none">
       {/* Header Section */}
       <div className="p-4 flex items-center justify-between shrink-0 border-b border-slate-800">
-        <select className="flex-1 bg-[#1e1e1e] border border-slate-700/50 rounded text-slate-200 text-[13px] px-2 py-1 outline-none focus:border-blue-500/50 mr-2">
+        <select className="flex-1 bg-[var(--panel-bg)] border border-[var(--border-color)] rounded text-slate-200 text-[13px] px-2 py-1 outline-none focus:border-[var(--accent)] mr-2">
           <option>Launch Program</option>
           <option>Node.js</option>
           <option>Chrome</option>
@@ -82,13 +82,13 @@ export function RunDebugPanel() {
         <div className="flex items-center gap-1 text-slate-400">
           <button 
             title="Start Debugging" 
-            className="p-1 hover:text-green-400 transition-colors rounded hover:bg-slate-800"
+            className="p-1 hover:text-green-400 transition-colors rounded hover:glass-panel"
             onClick={handleStartDebugging}
             disabled={debugState !== 'idle'}
           >
             <Play className={`w-4 h-4 ${debugState !== 'idle' ? 'opacity-50' : ''}`} />
           </button>
-          <button title="Configure (launch.json)" className="p-1 hover:text-slate-200 transition-colors rounded hover:bg-slate-800">
+          <button title="Configure (launch.json)" className="p-1 hover:text-slate-200 transition-colors rounded hover:glass-panel">
             <Settings className="w-4 h-4" />
           </button>
         </div>
@@ -186,7 +186,7 @@ export function RunDebugPanel() {
                 ) : (
                   <div className="py-1 flex flex-col">
                     {breakpoints.map((bp, i) => (
-                      <div key={i} className="px-6 py-1 hover:bg-[#2a2d2e] cursor-pointer flex items-center gap-2 group">
+                      <div key={i} className="px-6 py-1 hover:bg-[var(--hover-bg)] cursor-pointer flex items-center gap-2 group">
                         <div className="w-2.5 h-2.5 rounded-full bg-red-500 border border-red-700 shadow-sm shrink-0" />
                         <div className="flex-1 text-[13px] text-slate-300 truncate">
                           {bp.filePath.split(/[\\/]/).pop()}

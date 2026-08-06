@@ -40,13 +40,13 @@ export const ConversationList = () => {
   };
 
   return (
-    <div className="flex flex-col h-full border-r border-slate-950 bg-[#0e0e0e] w-52 shrink-0">
+    <div className="flex flex-col h-full border-r border-[var(--border-color)] bg-[var(--activity-bar-bg)] w-52 shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-3 border-b border-slate-950">
+      <div className="flex items-center justify-between px-3 py-3 border-b border-[var(--border-color)]">
         <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Chats</span>
         <button
           onClick={() => void createNewConversation()}
-          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:text-slate-200 hover:bg-slate-950 transition-colors"
+          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:text-slate-200 hover:glass-panel transition-colors"
           title="New Chat"
         >
           <Plus size={14} />
@@ -54,8 +54,8 @@ export const ConversationList = () => {
       </div>
 
       {/* Search */}
-      <div className="px-2 py-2 border-b border-slate-950">
-        <div className="flex items-center gap-2 bg-slate-950 border border-[#252525] rounded px-2 py-1">
+      <div className="px-2 py-2 border-b border-[var(--border-color)]">
+        <div className="flex items-center gap-2 glass-panel border border-[var(--border-color)] rounded px-2 py-1">
           <Search size={11} className="text-slate-600 shrink-0" />
           <input
             value={search}
@@ -84,13 +84,13 @@ export const ConversationList = () => {
             className={cn(
               'group flex items-center gap-2 px-2 py-2 mx-1 rounded-md cursor-pointer transition-colors',
               activeConversation?.id === convo.id
-                ? 'bg-blue-600/15 border border-blue-500/20'
-                : 'hover:bg-slate-950'
+                ? 'bg-[#c4f042]/15 border border-[#c4f042]/20'
+                : 'hover:glass-panel'
             )}
           >
             <MessageSquare size={12} className={cn(
               'shrink-0',
-              activeConversation?.id === convo.id ? 'text-blue-400' : 'text-slate-600'
+              activeConversation?.id === convo.id ? 'text-[#c4f042]' : 'text-slate-600'
             )} />
 
             <div className="flex-1 min-w-0">
@@ -101,7 +101,7 @@ export const ConversationList = () => {
                   onChange={e => setEditTitle(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') void commitEdit(); if (e.key === 'Escape') setEditingId(null); }}
                   onClick={e => e.stopPropagation()}
-                  className="w-full bg-slate-950 border border-blue-500/50 rounded px-1 text-[11px] text-slate-200 outline-none"
+                  className="w-full glass-panel border border-[#c4f042]/50 rounded px-1 text-[11px] text-slate-200 outline-none"
                 />
               ) : (
                 <p className={cn(
@@ -140,10 +140,10 @@ export const ConversationList = () => {
       </div>
 
       {/* New Chat footer */}
-      <div className="p-2 border-t border-slate-950">
+      <div className="p-2 border-t border-[var(--border-color)]">
         <button
           onClick={() => void createNewConversation()}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600/10 hover:bg-blue-600/20 border border-blue-500/20 hover:border-blue-500/40 text-xs text-blue-400 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-md bg-[#c4f042]/10 hover:bg-[#c4f042]/20 border border-[#c4f042]/20 hover:border-[#c4f042]/40 text-xs text-[#c4f042] transition-colors"
         >
           <Plus size={13} />
           New Chat

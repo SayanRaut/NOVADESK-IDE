@@ -25,7 +25,7 @@ export function AISidebar() {
           animate={{ width: size, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="relative flex h-full bg-slate-950 border-l border-slate-950 shrink-0 overflow-hidden"
+          className="relative flex h-full glass-sidebar border-l border-[var(--border-color)] shrink-0 overflow-hidden"
           style={{ width: size }}
         >
           {/* Resize Handle */}
@@ -39,10 +39,10 @@ export function AISidebar() {
 
           <div className="flex flex-col w-full h-full min-w-[280px] overflow-hidden">
             {/* Close button row */}
-            <div className="flex items-center justify-end h-8 px-2 border-b border-slate-950 shrink-0">
+            <div className="flex items-center justify-end h-8 px-2 border-b border-[var(--border-color)] shrink-0">
               <button 
                 onClick={() => setAISidebarOpen(false)}
-                className="p-1 text-slate-600 hover:text-slate-300 hover:bg-slate-950 rounded transition-colors"
+                className="p-1 text-slate-600 hover:text-slate-300 hover:glass-sidebar rounded transition-colors"
                 title="Close AI Panel"
               >
                 <PanelRightClose className="w-3.5 h-3.5" />

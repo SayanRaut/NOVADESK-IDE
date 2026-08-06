@@ -30,8 +30,8 @@ export function DiffEditor({
   }, [monaco]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-slate-950">
-      <div className="flex justify-between items-center px-4 py-2 bg-slate-900 text-slate-300 border-b border-slate-800">
+    <div className="flex flex-col h-full w-full glass-panel">
+      <div className="flex justify-between items-center px-4 py-2 glass-panel text-slate-300 border-b border-slate-800">
         <div className="text-sm font-medium">
           Previewing changes for: <span className="text-blue-400">{filePath}</span>
         </div>

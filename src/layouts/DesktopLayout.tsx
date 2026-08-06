@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { TitleBar } from '../components/TitleBar';
+import { MenuBar } from '../components/MenuBar';
 import { ActivityBar } from '../components/ActivityBar';
 import { Sidebar } from '../components/Sidebar';
 import { EditorArea } from '../components/EditorArea';
@@ -64,28 +65,38 @@ export function DesktopLayout() {
   }, [saveActiveFile, saveAllFiles, editorGroups, activeGroupId, closeFile, isBottomPanelOpen, setBottomPanelOpen, setActiveTab]);
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden bg-slate-900 text-slate-200">
-      <TitleBar />
-      
-      {/* Main Body */}
-      <div className="flex flex-1 overflow-hidden">
-        <ActivityBar />
-        <Sidebar />
-        
-        {/* Center content (Editor + Bottom Panel) */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-          {CustomBgLayer}
-          <div className="flex-1 flex flex-col z-10 overflow-hidden">
-            <EditorArea />
-            <BottomPanel />
-          </div>
-        </div>
-        
-        <AISidebar />
+    <div className="relative flex flex-col h-screen w-screen overflow-hidden text-slate-200 bg-black">
+      {/* Mesh Animated Background for Glassmorphism */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden bg-slate-900">
+        <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-purple-900/40 mix-blend-screen filter blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-blue-900/40 mix-blend-screen filter blur-[120px] animate-pulse" style={{ animationDuration: '12s' }} />
+        <div className="absolute top-[30%] left-[40%] w-[40vw] h-[40vw] rounded-full bg-indigo-900/30 mix-blend-screen filter blur-[90px] animate-pulse" style={{ animationDuration: '10s' }} />
       </div>
 
-      <StatusBar />
-      <ToastContainer />
+      <div className="relative z-10 flex flex-col h-full w-full">
+        <TitleBar />
+        <MenuBar />
+        <ActivityBar />
+        
+        {/* Main Body */}
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar />
+          
+          {/* Center content (Editor + Bottom Panel) */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+            {CustomBgLayer}
+            <div className="flex-1 flex flex-col z-10 overflow-hidden">
+              <EditorArea />
+              <BottomPanel />
+            </div>
+          </div>
+          
+          <AISidebar />
+        </div>
+
+        <StatusBar />
+        <ToastContainer />
+      </div>
     </div>
   );
 }

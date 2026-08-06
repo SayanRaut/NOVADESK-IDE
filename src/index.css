@@ -212,6 +212,201 @@
 
 /* Smooth 200ms transitions */
 .transition-ui {
+    --hover-bg: #222222;
+    --accent: #3b82f6; /* Tailwind Blue-500 */
+    --accent-hover: #2563eb;
+    --activity-bar-bg: #161616;
+    --title-bar-bg: #141414;
+    --status-bar-bg: #0d0d0d;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+  }
+
+  .light {
+    --color-slate-50: #020617;
+    --color-slate-100: #0f172a;
+    --color-slate-200: #1e293b;
+    --color-slate-300: #334155;
+    --color-slate-400: #475569;
+    --color-slate-500: #64748b;
+    --color-slate-600: #94a3b8;
+    --color-slate-700: #cbd5e1;
+    --color-slate-800: #e2e8f0;
+    --color-slate-900: #f1f5f9;
+    --color-slate-950: #f8fafc;
+    
+    --background: #ffffff;
+    --foreground: #111111;
+    --panel-bg: #f9fafb;
+    --border-color: #e5e7eb;
+    --hover-bg: #e5e7eb;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --activity-bar-bg: #f3f4f6;
+    --title-bar-bg: #f3f4f6;
+    --status-bar-bg: #3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+  }
+
+  .abyss {
+    --color-slate-50: #f8f8f2;
+    --color-slate-100: #e6e6e6;
+    --color-slate-200: #cccccc;
+    --color-slate-300: #b3b3b3;
+    --color-slate-400: #999999;
+    --color-slate-500: #808080;
+    --color-slate-600: #666666;
+    --color-slate-700: #4d4d4d;
+    --color-slate-800: #1c2333;
+    --color-slate-900: #10192c;
+    --color-slate-950: #060b19;
+
+    --background: #000c18;
+    --foreground: #6688cc;
+    --panel-bg: #0b1524;
+    --border-color: #1b263b;
+    --hover-bg: #18253a;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --activity-bar-bg: #081220;
+    --title-bar-bg: #0a111a;
+    --status-bar-bg: #3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+  }
+
+  .tomorrow-night-blue {
+    --color-slate-50: #ffffff;
+    --color-slate-100: #eaeaeb;
+    --color-slate-200: #d1d1d4;
+    --color-slate-300: #b8b8bd;
+    --color-slate-400: #a0a0a5;
+    --color-slate-500: #87878e;
+    --color-slate-600: #6e6e77;
+    --color-slate-700: #555560;
+    --color-slate-800: #001f44;
+    --color-slate-900: #001a3b;
+    --color-slate-950: #001431;
+
+    --background: #002451;
+    --foreground: #ffffff;
+    --panel-bg: #001a3b;
+    --border-color: #00346e;
+    --hover-bg: #002d60;
+    --accent: #bbdaff;
+    --accent-hover: #99c7ff;
+    --activity-bar-bg: #001633;
+    --title-bar-bg: #00122b;
+    --status-bar-bg: #00122b;
+    --success: #d1f1a9;
+    --warning: #ffc58f;
+    --error: #ff9da4;
+  }
+
+  .hc-black {
+    --color-slate-50: #ffffff;
+    --color-slate-100: #f5f5f5;
+    --color-slate-200: #e0e0e0;
+    --color-slate-300: #cccccc;
+    --color-slate-400: #a3a3a3;
+    --color-slate-500: #7a7a7a;
+    --color-slate-600: #525252;
+    --color-slate-700: #2e2e2e;
+    --color-slate-800: #000000;
+    --color-slate-900: #000000;
+    --color-slate-950: #000000;
+
+    --background: #000000;
+    --foreground: #ffffff;
+    --panel-bg: #000000;
+    --border-color: #6fc3df;
+    --hover-bg: #111111;
+    --accent: #f8f8f2;
+    --accent-hover: #ffffff;
+    --activity-bar-bg: #000000;
+    --title-bar-bg: #000000;
+    --status-bar-bg: #000000;
+    --success: #00ff00;
+    --warning: #ffff00;
+    --error: #ff0000;
+  }
+
+  .hc-light {
+    --color-slate-50: #000000;
+    --color-slate-100: #000000;
+    --color-slate-200: #000000;
+    --color-slate-300: #292929;
+    --color-slate-400: #3a3a3a;
+    --color-slate-500: #5c5c5c;
+    --color-slate-600: #8a8a8a;
+    --color-slate-700: #b8b8b8;
+    --color-slate-800: #e0e0e0;
+    --color-slate-900: #ffffff;
+    --color-slate-950: #ffffff;
+    
+    --background: #ffffff;
+    --foreground: #000000;
+    --panel-bg: #ffffff;
+    --border-color: #000000;
+    --hover-bg: #eeeeee;
+    --accent: #0000ff;
+    --accent-hover: #0000aa;
+    --activity-bar-bg: #ffffff;
+    --title-bar-bg: #ffffff;
+    --status-bar-bg: #ffffff;
+    --success: #006600;
+    --warning: #996600;
+    --error: #cc0000;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    margin: 0;
+  }
+
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333333;
+  border: 2px solid var(--background);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444444;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.titlebar-drag {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Smooth 200ms transitions */
+.transition-ui {
   transition: all 0.2s ease-in-out;
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -224,19 +419,38 @@
   --editor-bg-opacity: 1;
 }
 
-html.has-custom-bg .monaco-editor,
-html.has-custom-bg .monaco-editor-background,
-html.has-custom-bg .monaco-editor .margin,
-html.has-custom-bg .editor-scrollable,
-html.has-custom-bg .minimap,
-html.has-custom-bg .minimap-decorations-layer,
-html.has-custom-bg .xterm,
-html.has-custom-bg .xterm-viewport,
-html.has-custom-bg .xterm-screen {
+.monaco-editor,
+.monaco-editor-background,
+.monaco-editor .margin,
+.editor-scrollable,
+.minimap,
+.minimap-decorations-layer,
+.xterm,
+.xterm-viewport,
+.xterm-screen {
   background-color: transparent !important;
 }
 
 /* Ensure empty text area gets transparent bg as well */
-html.has-custom-bg .monaco-editor .view-lines {
+.monaco-editor .view-lines {
   background-color: transparent !important;
+}
+
+/* Glassmorphism Utilities */
+@layer utilities {
+  .glass-panel {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)];
+  }
+  .glass-surface {
+    @apply bg-black/40 backdrop-blur-md border border-white/5;
+  }
+  .glass-sidebar {
+    @apply bg-slate-950/30 backdrop-blur-2xl border-r border-white/10;
+  }
+  .glass-activity-bar {
+    @apply bg-black/20 backdrop-blur-3xl border-r border-white/5;
+  }
+  .glass-element {
+    @apply bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all border border-white/5 rounded-md;
+  }
 }

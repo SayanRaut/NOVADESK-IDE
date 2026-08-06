@@ -37,13 +37,13 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
 
     return (
       <MenubarSub>
-        <MenubarSubTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-xs text-slate-300 hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white outline-none rounded-sm cursor-default select-none transition-colors data-[state=open]:bg-blue-600 data-[state=open]:text-white">
+        <MenubarSubTrigger className="flex items-center justify-between w-full px-3 py-1.5 text-xs text-[var(--foreground)] hover:bg-[var(--hover-bg)] focus:bg-[var(--hover-bg)] outline-none rounded-sm cursor-default select-none transition-colors data-[state=open]:bg-[var(--hover-bg)]">
           <span>{item.label}</span>
           <ChevronRight className="w-3.5 h-3.5 ml-2 opacity-60" />
         </MenubarSubTrigger>
         <MenubarPortal>
           <MenubarSubContent 
-            className="min-w-[220px] bg-slate-950 border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-left-2 duration-200 ease-out"
+            className="min-w-[220px] bg-transparent backdrop-blur-md border border-white/10 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-left-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-left-2 duration-200 ease-out"
             sideOffset={2}
             alignOffset={-4}
           >
@@ -69,7 +69,7 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
         className={cn(
           "flex items-center justify-between w-full px-3 py-1.5 text-xs outline-none rounded-sm cursor-default select-none transition-colors",
           isEnabled 
-            ? "text-slate-300 hover:bg-blue-600 hover:text-white focus:bg-blue-600 focus:text-white"
+            ? "text-[var(--foreground)] hover:bg-[var(--hover-bg)] focus:bg-[var(--hover-bg)]"
             : "text-slate-500 hover:bg-transparent cursor-not-allowed"
         )}
         disabled={!isEnabled}
@@ -97,21 +97,22 @@ const RecursiveMenuItem: React.FC<{ item: IMenuItem }> = ({ item }) => {
 // Main MenuBar Component
 export const IDEMenuBar: React.FC<{ menuIds: string[] }> = ({ menuIds }) => {
   return (
-    <Menubar className="flex items-center h-8 px-2 bg-slate-950 border-b border-black/20">
+    <Menubar className="flex items-center h-full px-2 bg-transparent border-none">
       {menuIds.map(menuId => {
         const menu = MenuRegistry.getMenu(menuId);
         if (!menu || menu.items.length === 0) return null;
 
         const title = menuId.replace('menubar/', '');
+        const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1);
 
         return (
           <MenubarMenu key={menuId}>
-            <MenubarTrigger className="px-2.5 py-1 text-xs text-slate-300 font-medium hover:bg-white/10 hover:text-slate-100 focus:bg-white/10 focus:text-slate-100 data-[state=open]:bg-white/10 data-[state=open]:text-slate-100 outline-none rounded-md cursor-default select-none transition-colors">
-              {title}
+            <MenubarTrigger className="px-2.5 py-1 text-xs text-[var(--foreground)] font-medium hover:bg-[var(--hover-bg)] focus:bg-[var(--hover-bg)] data-[state=open]:bg-[var(--hover-bg)] outline-none rounded-md cursor-default select-none transition-colors">
+              {capitalizedTitle}
             </MenubarTrigger>
             <MenubarPortal>
               <MenubarContent 
-                className="min-w-[220px] bg-slate-950 border border-slate-700/50 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-2 duration-200 ease-out"
+                className="min-w-[220px] bg-transparent backdrop-blur-md border border-white/10 rounded-md shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:slide-out-to-top-2 duration-200 ease-out"
                 align="start"
                 sideOffset={4}
               >

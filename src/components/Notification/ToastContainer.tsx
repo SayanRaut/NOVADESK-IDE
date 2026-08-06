@@ -26,7 +26,7 @@ export function ToastContainer() {
             exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
             className={cn(
               "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded shadow-lg border",
-              "bg-slate-800 border-slate-700 text-slate-200 min-w-[300px]"
+              "glass-panel border-slate-700 text-slate-200 min-w-[300px]"
             )}
           >
             {iconMap[toast.type]}

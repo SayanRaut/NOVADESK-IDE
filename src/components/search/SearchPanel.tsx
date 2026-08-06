@@ -134,10 +134,10 @@ export function SearchPanel() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 text-slate-300 text-sm overflow-hidden">
+    <div className="flex flex-col h-full glass-panel text-slate-300 text-sm overflow-hidden">
       {/* Input Section */}
       <div className="p-4 flex flex-col gap-2 shrink-0 border-b border-slate-800">
-        <div className="flex items-center bg-[#1e1e1e] border border-slate-700/50 rounded overflow-hidden focus-within:border-blue-500/50 transition-colors">
+        <div className="flex items-center bg-[var(--panel-bg)] border border-[var(--border-color)] rounded overflow-hidden focus-within:border-[var(--accent)] transition-colors">
           <button
             onClick={() => setIsReplaceExpanded(!isReplaceExpanded)}
             className="p-1.5 text-slate-500 hover:text-slate-300 transition-colors"
@@ -160,7 +160,7 @@ export function SearchPanel() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="flex items-center bg-[#1e1e1e] border border-slate-700/50 rounded overflow-hidden focus-within:border-blue-500/50 transition-colors ml-7"
+              className="flex items-center bg-[var(--panel-bg)] border border-[var(--border-color)] rounded overflow-hidden focus-within:border-[var(--accent)] transition-colors ml-7"
             >
               <input
                 type="text"
@@ -202,7 +202,7 @@ export function SearchPanel() {
             return (
               <div key={filePath} className="flex flex-col">
                 <div
-                  className="flex items-center gap-1.5 px-2 py-1 hover:bg-[#2a2d2e] cursor-pointer group"
+                  className="flex items-center gap-1.5 px-2 py-1 hover:bg-[var(--hover-bg)] cursor-pointer group"
                   onClick={() => toggleExpand(filePath)}
                 >
                   <div className="text-slate-500">
@@ -237,7 +237,7 @@ export function SearchPanel() {
                     {fileResults.map((result, idx) => (
                       <div
                         key={`${filePath}-${result.line}-${idx}`}
-                        className="flex items-start gap-2 pl-9 pr-2 py-1 hover:bg-[#2a2d2e] cursor-pointer group"
+                        className="flex items-start gap-2 pl-9 pr-2 py-1 hover:bg-[var(--hover-bg)] cursor-pointer group"
                         onClick={() => {
                           openFile(filePath);
                           setTimeout(() => setCursorPosition({ line: result.line, column: 1 }), 50);

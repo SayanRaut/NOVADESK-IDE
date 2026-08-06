@@ -1,5 +1,5 @@
-
 import { motion, AnimatePresence } from 'framer-motion';
+import Dock from './animations/Dock';
 import { Files, Search, GitBranch, Play, Blocks, Sparkles, Settings, UserCircle, LogOut } from 'lucide-react';
 import { useSidebar } from '../contexts/SidebarContext';
 import type { ActivityItem } from '../contexts/SidebarContext';
@@ -68,14 +68,14 @@ export function ActivityBar() {
         onClick={() => handleActivityClick(id)}
         whileHover={{ scale: 1.15 }}
         whileTap={{ scale: 0.95 }}
-        className="relative flex items-center justify-center w-12 h-12 text-slate-400 hover:text-slate-100 transition-colors group"
+        className="relative flex items-center justify-center w-10 h-10 mx-1 text-slate-400 hover:text-slate-100 transition-colors group"
         title={label}
       >
-        <Icon className={cn("w-6 h-6 transition-colors duration-150", isActive ? "text-blue-400" : "")} strokeWidth={1.5} />
+        <Icon className={cn("w-5 h-5 transition-colors duration-150", isActive ? "text-[#c4f042]" : "")} strokeWidth={1.5} />
         {isActive && id !== 'profile' && (
           <motion.div
             layoutId="active-activity-indicator"
-            className="absolute left-0 w-0.5 h-12 bg-blue-500"
+            className="absolute bottom-0 w-8 h-0.5 bg-[#c4f042]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.15 }}
@@ -86,13 +86,22 @@ export function ActivityBar() {
   };
 
   return (
-    <div className="w-12 h-full bg-slate-900 border-r border-slate-800 flex flex-col items-center justify-between py-2 select-none">
-      <div className="flex flex-col w-full">
-        {topItems.map(item => (
-          <ActivityIcon key={item.id} {...item} />
-        ))}
+    <div className="relative z-40 w-full h-12 glass-activity-bar border-b border-white/5 flex flex-row items-center justify-between px-4 select-none">
+      <div className="flex flex-row items-center h-full">
+        <Dock 
+          items={topItems.map(item => ({
+            id: item.id,
+            icon: <item.icon strokeWidth={1.5} />,
+            label: item.label,
+            onClick: () => handleActivityClick(item.id),
+            isActive: activeActivity === item.id || (item.id === 'ai' && isAISidebarOpen)
+          }))}
+          panelHeight={48}
+          baseItemSize={38}
+          magnification={50}
+        />
       </div>
-      <div className="flex flex-col w-full relative" ref={profileRef}>
+      <div className="flex flex-row items-center h-full relative" ref={profileRef}>
         {bottomItems.map(item => (
           <ActivityIcon key={item.id} {...item} />
         ))}
@@ -100,14 +109,14 @@ export function ActivityBar() {
         <AnimatePresence>
           {isProfileOpen && (
             <motion.div
-              initial={{ opacity: 0, x: -10, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -10, scale: 0.95 }}
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-14 bottom-12 w-64 p-5 bg-slate-950 border border-slate-700/50 rounded-xl shadow-2xl z-50 flex flex-col gap-4"
+              className="absolute right-0 top-12 w-64 p-5 bg-[#0a0a0a] border border-white/10 rounded-xl shadow-2xl z-50 flex flex-col gap-4"
             >
               <div className="flex flex-col items-center justify-center gap-2 mb-2">
-                <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg font-bold">
+                <div className="w-12 h-12 rounded-full bg-[#c4f042] flex items-center justify-center text-black text-lg font-bold">
                   {user?.display_name?.charAt(0)?.toUpperCase() || 'U'}
                 </div>
                 <div className="text-sm font-medium text-slate-200 mt-2 truncate w-full text-center">

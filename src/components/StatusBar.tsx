@@ -92,7 +92,7 @@ export function StatusBar() {
   const warningCount = allProblems.filter(p => p.severity >= 4 && p.severity < 8).length;
 
   return (
-    <div className="h-6 bg-blue-600 text-white flex items-center justify-between px-2 text-[11px] select-none shrink-0 z-20 overflow-visible relative">
+    <div className="h-6 glass-panel bg-emerald-500/10 text-[var(--foreground)] border-t border-emerald-500/20 flex items-center justify-between px-2 text-[11px] select-none shrink-0 z-20 overflow-visible relative">
       {/* Left side */}
       <div className="flex items-center h-full gap-0.5 overflow-hidden flex-shrink min-w-0">
         <button className="flex items-center h-full px-1.5 hover:bg-white/20 transition-colors gap-1.5 shrink-0 truncate">
@@ -147,15 +147,15 @@ export function StatusBar() {
           
           {showZoomMenu && (
             <div 
-              className="absolute bottom-full right-1/2 translate-x-1/2 mb-2 bg-[#1b1b1b] border border-[#3c3c3c] rounded-md shadow-xl z-50 text-gray-200"
+              className="absolute bottom-full right-1/2 translate-x-1/2 mb-2 bg-[var(--panel-bg)] border border-[var(--border-color)] rounded-md shadow-xl z-50 text-slate-200"
               onMouseLeave={() => setShowZoomMenu(false)}
             >
               {/* Caret arrow */}
-              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#1b1b1b] border-b border-r border-[#3c3c3c] rotate-45" />
+              <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[var(--panel-bg)] border-b border-r border-[var(--border-color)] rotate-45" />
               
-              <div className="flex items-center px-2 py-1.5 gap-2 relative z-10 bg-[#1b1b1b] rounded-md">
+              <div className="flex items-center px-2 py-1.5 gap-2 relative z-10 bg-[var(--panel-bg)] rounded-md">
                 <button 
-                  className="p-1 hover:bg-[#2a2d2e] rounded transition-colors text-gray-400 hover:text-gray-200"
+                  className="p-1 hover:bg-[var(--hover-bg)] rounded transition-colors text-slate-400 hover:text-slate-200"
                   onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.1))}
                   title="Zoom Out"
                 >
@@ -165,7 +165,7 @@ export function StatusBar() {
                 <span className="min-w-[1.5rem] text-center text-[13px]">{parseFloat(zoomLevel.toFixed(1))}</span>
                 
                 <button 
-                  className="p-1 hover:bg-[#2a2d2e] rounded transition-colors text-gray-400 hover:text-gray-200"
+                  className="p-1 hover:bg-[var(--hover-bg)] rounded transition-colors text-slate-400 hover:text-slate-200"
                   onClick={() => setZoomLevel(z => Math.min(2.5, z + 0.1))}
                   title="Zoom In"
                 >
@@ -173,7 +173,7 @@ export function StatusBar() {
                 </button>
                 
                 <button 
-                  className="px-2 py-1 hover:bg-[#2a2d2e] rounded transition-colors text-gray-400 hover:text-gray-200 text-[12px]"
+                  className="px-2 py-1 hover:bg-[var(--hover-bg)] rounded transition-colors text-slate-400 hover:text-slate-200 text-[12px]"
                   onClick={() => setZoomLevel(1)}
                   title="Reset Zoom"
                 >
@@ -208,32 +208,32 @@ export function StatusBar() {
           </button>
           
           {showMoreMenu && (
-            <div className="absolute bottom-full right-0 mb-1 bg-[#1e1e1e] border border-[#3c3c3c] rounded-md shadow-xl overflow-hidden min-w-[160px] z-50 text-gray-200 py-1 flex flex-col">
+            <div className="absolute bottom-full right-0 mb-1 bg-[var(--panel-bg)] border border-[var(--border-color)] rounded-md shadow-xl overflow-hidden min-w-[160px] z-50 text-slate-200 py-1 flex flex-col">
               
-              <div className="px-3 py-1.5 text-gray-400 flex justify-between items-center text-[10px] uppercase font-semibold">
+              <div className="px-3 py-1.5 text-slate-400 flex justify-between items-center text-[10px] uppercase font-semibold">
                 <span>Spaces</span>
                 <span className="text-gray-200">2</span>
               </div>
-              <div className="px-3 py-1.5 text-gray-400 flex justify-between items-center text-[10px] uppercase font-semibold">
+              <div className="px-3 py-1.5 text-slate-400 flex justify-between items-center text-[10px] uppercase font-semibold">
                 <span>Encoding</span>
-                <span className="text-gray-200">UTF-8</span>
+                <span className="text-slate-200">UTF-8</span>
               </div>
               
-              <div className="h-px bg-[#3c3c3c] my-1 mx-2" />
+              <div className="h-px bg-[var(--border-color)] my-1 mx-2" />
               
               <button 
-                className="flex items-center px-3 py-1.5 hover:bg-[#2a2d2e] gap-2 w-full text-left transition-colors"
+                className="flex items-center px-3 py-1.5 hover:bg-[var(--hover-bg)] gap-2 w-full text-left transition-colors"
                 onClick={() => {
                   setTheme(theme === 'dark' ? 'light' : 'dark');
                   setShowMoreMenu(false);
                 }}
               >
-                <Palette className="w-4 h-4 text-gray-400" />
+                <Palette className="w-4 h-4 text-slate-400" />
                 <span>Toggle Theme ({theme})</span>
               </button>
               
-              <button className="flex items-center px-3 py-1.5 hover:bg-[#2a2d2e] gap-2 w-full text-left transition-colors">
-                <Bell className="w-4 h-4 text-gray-400" />
+              <button className="flex items-center px-3 py-1.5 hover:bg-[var(--hover-bg)] gap-2 w-full text-left transition-colors">
+                <Bell className="w-4 h-4 text-slate-400" />
                 <span>Notifications</span>
               </button>
 

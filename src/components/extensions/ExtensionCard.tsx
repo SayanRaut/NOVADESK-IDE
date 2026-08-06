@@ -46,11 +46,11 @@ export const ExtensionCard: React.FC<ExtensionCardProps> = ({ extension }) => {
 
   return (
     <div className={cn(
-      "p-3 border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors flex gap-3",
+      "p-3 border-b border-slate-800/50 hover:glass-panel/20 transition-colors flex gap-3",
       !enabled && installed && "opacity-60 grayscale-[0.5]"
     )}>
       {/* Icon */}
-      <div className="w-10 h-10 shrink-0 bg-slate-800 rounded flex items-center justify-center overflow-hidden p-1.5">
+      <div className="w-10 h-10 shrink-0 glass-panel rounded flex items-center justify-center overflow-hidden p-1.5">
         {extension.iconUrl ? (
           <img src={extension.iconUrl} alt={extension.name} className="w-full h-full object-contain" />
         ) : (
@@ -93,7 +93,7 @@ export const ExtensionCard: React.FC<ExtensionCardProps> = ({ extension }) => {
               <button 
                 onClick={handleToggleEnable}
                 disabled={loading}
-                className="text-[10px] px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-colors flex items-center gap-1"
+                className="text-[10px] px-2 py-1 glass-panel hover:bg-slate-700 text-slate-300 rounded border border-slate-700 transition-colors flex items-center gap-1"
               >
                 {enabled ? 'Disable' : 'Enable'}
               </button>

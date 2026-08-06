@@ -25,7 +25,7 @@ export const AgentStatus = () => {
         <select
           value={selectedModel}
           onChange={(e) => setSelectedModel(e.target.value)}
-          className="bg-slate-900 text-xs text-gray-400 p-1 rounded outline-none border border-[var(--border-color)] cursor-pointer"
+          className="glass-panel text-xs text-gray-400 p-1 rounded outline-none border border-[var(--border-color)] cursor-pointer"
         >
           <optgroup label="Gemini">
             <option value="gemini_flash_fast">Flash - Fast</option>

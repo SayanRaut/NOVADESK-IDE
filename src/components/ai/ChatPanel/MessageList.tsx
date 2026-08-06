@@ -36,8 +36,8 @@ export const MessageList = () => {
   if (messages.length === 0 && !isThinking) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-4 p-8">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600/20 to-violet-600/20 border border-blue-500/20 flex items-center justify-center">
-          <Sparkles size={24} className="text-blue-400" />
+        <div className="w-14 h-14 rounded-2xl bg-[#c4f042]/10 border border-[#c4f042]/20 flex items-center justify-center">
+          <Sparkles size={24} className="text-[#c4f042]" />
         </div>
         <div className="text-center">
           <p className="text-slate-300 font-medium mb-1">NovaDesk AI</p>
@@ -45,7 +45,7 @@ export const MessageList = () => {
         </div>
         <div className="grid grid-cols-1 gap-2 w-full max-w-sm mt-2">
           {['Explain this code', 'Find bugs in selection', 'Write unit tests', 'Refactor for readability'].map(hint => (
-            <div key={hint} className="px-3 py-2 rounded-lg border border-slate-800 bg-[#111] text-xs text-slate-400 cursor-default hover:border-slate-800 hover:text-slate-300 transition-colors">
+            <div key={hint} className="px-3 py-2 rounded-lg border border-[var(--border-color)] bg-[var(--panel-bg)] text-xs text-slate-400 cursor-default hover:border-[var(--border-color)] hover:text-slate-300 transition-colors">
               {hint}
             </div>
           ))}
@@ -66,8 +66,8 @@ export const MessageList = () => {
 
         {isThinking && messages.at(-1)?.role !== 'model' && (
           <div className="flex gap-3">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            <div className="w-7 h-7 rounded-full bg-[#c4f042] flex items-center justify-center shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-black animate-pulse" />
             </div>
             <div className="flex items-center gap-1.5 h-7 text-slate-400 text-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce" />
@@ -84,9 +84,9 @@ export const MessageList = () => {
       {showScrollBtn && (
         <button
           onClick={() => scrollToBottom()}
-          className="absolute bottom-4 right-4 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 shadow-lg flex items-center justify-center transition-colors z-10"
+          className="absolute bottom-4 right-4 w-8 h-8 rounded-full bg-[#c4f042] hover:bg-[#a3cc3b] shadow-lg flex items-center justify-center transition-colors z-10"
         >
-          <ArrowDown size={14} className="text-white" />
+          <ArrowDown size={14} className="text-black" />
         </button>
       )}
     </div>

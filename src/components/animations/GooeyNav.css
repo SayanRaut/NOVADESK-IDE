@@ -1,0 +1,45 @@
+.gooey-nav-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.gooey-nav-container nav ul {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+}
+.gooey-nav-container nav ul li {
+  position: relative;
+}
+.gooey-nav-container .effect {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.gooey-nav-container .effect.filter {
+  background: var(--accent, #c4f042);
+  border-radius: 8px;
+  filter: url('#gooey');
+  opacity: 0.15; /* Subtle background highlight for the active icon */
+}
+
+.particle {
+  position: absolute;
+  background: var(--color, #c4f042);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  width: 8px;
+  height: 8px;
+  transform: translate(var(--start-x), var(--start-y)) scale(var(--scale)) rotate(var(--rotate));
+  animation: particle-anim var(--time) forwards ease-out;
+}
+@keyframes particle-anim {
+  to {
+    transform: translate(var(--end-x), var(--end-y)) scale(0) rotate(calc(var(--rotate) + 45deg));
+  }
+}

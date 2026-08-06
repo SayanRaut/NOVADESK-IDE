@@ -113,11 +113,11 @@ export function SettingsPanel() {
             setMessage('');
           }}
           placeholder="https://novadesk-ide.onrender.com"
-          className="bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 w-full font-mono text-xs"
+          className="glass-panel border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 w-full font-mono text-xs"
         />
         
         {message && (
-          <div className={`flex items-center gap-2 text-xs p-2 rounded bg-slate-950/50 border ${
+          <div className={`flex items-center gap-2 text-xs p-2 rounded glass-panel/50 border ${
             status === 'error' ? 'border-red-500/30 text-red-400' :
             status === 'success' ? 'border-green-500/30 text-green-400' :
             'border-blue-500/30 text-blue-400'
@@ -142,7 +142,7 @@ export function SettingsPanel() {
           <button
             onClick={handleTest}
             disabled={status === 'testing'}
-            className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 px-3 rounded flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 glass-panel hover:bg-slate-700 text-slate-200 py-1.5 px-3 rounded flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Server className="w-4 h-4" />
             Test Connection
@@ -165,7 +165,7 @@ export function SettingsPanel() {
         <select
           value={theme}
           onChange={(e) => setTheme(e.target.value as any)}
-          className="bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 w-full text-xs"
+          className="glass-panel border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-blue-500 w-full text-xs"
         >
           <option value="dark">Dark</option>
           <option value="light">Light</option>
@@ -183,7 +183,7 @@ export function SettingsPanel() {
         </h2>
       </div>
 
-      <div className="flex flex-col gap-4 bg-slate-950 p-4 rounded border border-slate-800">
+      <div className="flex flex-col gap-4 glass-panel p-4 rounded border border-slate-800">
         <div className="flex flex-col gap-2">
           <div className="flex justify-between items-center text-xs">
             <label className="text-slate-300 font-medium">Font Size</label>
@@ -209,11 +209,11 @@ export function SettingsPanel() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-4 bg-slate-950 p-4 rounded border border-slate-800">
+      <div className="flex flex-col gap-4 glass-panel p-4 rounded border border-slate-800">
         <div className="flex flex-col gap-2">
           <label className="text-slate-300 font-medium text-xs">Background Image</label>
           <div className="flex items-center gap-2">
-            <label className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 px-3 rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-xs">
+            <label className="flex-1 glass-panel hover:bg-slate-700 text-slate-200 py-1.5 px-3 rounded flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-xs">
               <ImagePlus className="w-4 h-4" />
               <span>{customBackground ? 'Change Image' : 'Upload Image'}</span>
               <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />

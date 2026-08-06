@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
           // Attempt to get user with current access token
           const restoredUser = await getCurrentUser(tokens.access_token);
+          
           setAccessToken(tokens.access_token);
           setUser(restoredUser);
         } catch {
@@ -58,12 +59,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               setUser(newSession.user);
             } catch {
               await window.electronAPI.clearTokens();
+              setAccessToken(null);
             }
           } else {
             await window.electronAPI.clearTokens();
+            setAccessToken(null);
           }
         }
       } finally {
+        // Ensure initialization flag is cleared even if background tasks are still running
         setIsInitializing(false);
       }
     };

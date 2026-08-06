@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 
 
-export type BottomPanelTab = 'terminal' | 'problems' | 'output' | 'debug' | 'ai-logs';
+export type BottomPanelTab = 'terminal' | 'problems' | 'output';
 
 interface PanelContextType {
   activeTab: BottomPanelTab;

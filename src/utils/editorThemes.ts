@@ -1,4 +1,31 @@
 export function registerMonacoThemes(monaco: any) {
+  monaco.editor.defineTheme('codeic-dark', {
+    base: 'vs-dark',
+    inherit: true,
+    rules: [
+      { token: 'keyword', foreground: 'ff2a5f', fontStyle: 'bold' },
+      { token: 'string', foreground: 'c4f042' },
+      { token: 'number', foreground: 'a78bfa' },
+      { token: 'type', foreground: '38bdf8' },
+      { token: 'class', foreground: '38bdf8' },
+      { token: 'function', foreground: 'e879f9' },
+      { token: 'comment', foreground: '64748b', fontStyle: 'italic' },
+      { token: 'variable', foreground: 'f8fafc' },
+    ],
+    colors: {
+      'editor.background': '#111111',
+      'editor.foreground': '#f8fafc',
+      'editor.lineHighlightBackground': '#1e1e1e',
+      'editorLineNumber.foreground': '#475569',
+      'editorLineNumber.activeForeground': '#c4f042',
+      'editorIndentGuide.background': '#1e293b',
+      'editorIndentGuide.activeBackground': '#334155',
+      'editorSuggestWidget.background': '#0f172a',
+      'editorSuggestWidget.border': '#1e293b',
+      'editorSuggestWidget.selectedBackground': '#1e293b',
+    }
+  });
+
   monaco.editor.defineTheme('novadesk-dark', {
     base: 'vs-dark',
     inherit: true,
@@ -48,6 +75,6 @@ export function getEditorTheme(theme: string): string {
     case 'hc-light': return 'hc-light';
     case 'light': return 'novadesk-light';
     case 'dark':
-    default: return 'novadesk-dark';
+    default: return 'codeic-dark';
   }
 }

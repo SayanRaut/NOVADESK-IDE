@@ -1,0 +1,32 @@
+.specular-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  border-radius: var(--sb-radius);
+  text-decoration: none;
+}
+.specular-button--lg {
+  height: 48px;
+  padding: 0 32px;
+}
+.specular-button__fx {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.specular-button__label {
+  position: relative;
+  z-index: 1;
+  color: var(--sb-text-color);
+  font-weight: 600;
+  font-size: 16px;
+}

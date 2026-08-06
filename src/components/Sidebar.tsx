@@ -57,7 +57,7 @@ export function Sidebar() {
           animate={{ width: size, opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
-          className="relative flex h-full bg-slate-900 border-r border-slate-800 shrink-0 overflow-hidden"
+          className="relative flex h-full bg-[var(--panel-bg)] border-r border-[var(--border-color)] shrink-0 overflow-hidden"
           style={{ width: size }}
         >
           <div className="flex flex-col w-full h-full min-w-[170px]">
@@ -65,12 +65,9 @@ export function Sidebar() {
             <div className="flex items-center justify-between h-9 px-4 uppercase text-[11px] font-semibold tracking-wider text-slate-300">
               <span className="truncate">{titleMap[activeActivity]}</span>
               <div className="flex items-center gap-1">
-                <button className="p-1 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded transition-colors">
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
                 <button 
                   onClick={() => setSidebarOpen(false)}
-                  className="p-1 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded transition-colors"
+                  className="p-1 text-slate-500 hover:text-slate-300 hover:glass-sidebar rounded transition-colors"
                 >
                   <PanelLeftClose className="w-4 h-4" />
                 </button>

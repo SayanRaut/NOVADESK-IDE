@@ -12,7 +12,7 @@ export function WelcomePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-300 bg-slate-950 overflow-y-auto">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 text-slate-300 glass-panel overflow-y-auto">
       <div className="max-w-2xl w-full">
         <h1 className="text-3xl font-light text-slate-100 mb-2 tracking-wide">NovaDesk</h1>
         <p className="text-slate-400 mb-10 text-sm">The modern, AI-powered IDE for productive developers.</p>
@@ -23,7 +23,7 @@ export function WelcomePage() {
             <div className="flex flex-col gap-2">
               <button 
                 onClick={handleOpenFolder}
-                className="flex items-center gap-3 p-2 hover:bg-slate-800 rounded transition-colors text-left"
+                className="flex items-center gap-3 p-2 hover:glass-panel rounded transition-colors text-left"
               >
                 <FolderPlus className="w-5 h-5 text-blue-400" />
                 <div>
@@ -31,21 +31,21 @@ export function WelcomePage() {
                   <div className="text-xs text-slate-500">Open a local project</div>
                 </div>
               </button>
-              <button className="flex items-center gap-3 p-2 hover:bg-slate-800 rounded transition-colors text-left">
+              <button className="flex items-center gap-3 p-2 hover:glass-panel rounded transition-colors text-left">
                 <GitBranch className="w-5 h-5 text-emerald-400" />
                 <div>
                   <div className="text-sm font-medium">Clone Repository...</div>
                   <div className="text-xs text-slate-500">Clone a repo from GitHub</div>
                 </div>
               </button>
-              <button className="flex items-center gap-3 p-2 hover:bg-slate-800 rounded transition-colors text-left">
+              <button className="flex items-center gap-3 p-2 hover:glass-panel rounded transition-colors text-left">
                 <Plus className="w-5 h-5 text-purple-400" />
                 <div>
                   <div className="text-sm font-medium">New Project...</div>
                   <div className="text-xs text-slate-500">Start from a template</div>
                 </div>
               </button>
-              <button className="flex items-center gap-3 p-2 hover:bg-slate-800 rounded transition-colors text-left">
+              <button className="flex items-center gap-3 p-2 hover:glass-panel rounded transition-colors text-left">
                 <Play className="w-5 h-5 text-orange-400" />
                 <div>
                   <div className="text-sm font-medium">AI Quick Start...</div>
@@ -63,7 +63,7 @@ export function WelcomePage() {
                   <div 
                     key={path}
                     onClick={() => openWorkspace(path)}
-                    className="flex flex-col gap-1 p-2 hover:bg-slate-800 rounded transition-colors cursor-pointer text-left"
+                    className="flex flex-col gap-1 p-2 hover:glass-panel rounded transition-colors cursor-pointer text-left"
                   >
                     <div className="text-sm font-medium flex items-center gap-2">
                       <Clock className="w-4 h-4 text-slate-500" />

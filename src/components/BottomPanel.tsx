@@ -14,9 +14,7 @@ import { cn } from '../utils/cn';
 const tabs: { id: BottomPanelTab; label: string; icon?: React.ElementType }[] = [
   { id: 'problems', label: 'PROBLEMS', icon: AlertCircle },
   { id: 'output', label: 'OUTPUT', icon: ListTree },
-  { id: 'debug', label: 'DEBUG CONSOLE', icon: Bug },
   { id: 'terminal', label: 'TERMINAL', icon: Terminal },
-  { id: 'ai-logs', label: 'AI LOGS', icon: Activity },
 ];
 
 export function BottomPanel() {
@@ -49,7 +47,7 @@ export function BottomPanel() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           className={cn(
             "relative flex flex-col border-t border-slate-800 shrink-0 overflow-hidden",
-            customBackground ? "bg-transparent" : "bg-slate-950"
+            customBackground ? "bg-transparent" : "glass-surface"
           )}
           style={{ height: size }}
         >
@@ -97,7 +95,7 @@ export function BottomPanel() {
             </div>
 
             {/* Panel Content */}
-            <div className={cn("flex-1 overflow-auto", customBackground ? "bg-transparent" : "bg-slate-950")}>
+            <div className={cn("flex-1 overflow-auto", customBackground ? "bg-transparent" : "glass-surface")}>
               {activeTab === 'terminal' ? (
                 <TerminalPanel />
               ) : (
@@ -122,8 +120,6 @@ export function BottomPanel() {
                     </div>
                   )}
                   {activeTab === 'output' && <div>Output will appear here.</div>}
-                  {activeTab === 'debug' && <div>Debug console initialized.</div>}
-                  {activeTab === 'ai-logs' && <div>AI Workspace logs will stream here.</div>}
                 </div>
               )}
             </div>

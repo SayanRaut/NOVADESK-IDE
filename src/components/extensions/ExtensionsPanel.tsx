@@ -66,7 +66,7 @@ export const ExtensionsPanel: React.FC = () => {
   const installedCount = installedExtensions.length;
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 overflow-hidden">
+    <div className="flex flex-col h-full glass-panel overflow-hidden">
       {/* Search Bar */}
       <div className="p-3 border-b border-slate-800 shrink-0 flex flex-col gap-2">
         <div className="relative">
@@ -75,7 +75,7 @@ export const ExtensionsPanel: React.FC = () => {
             placeholder="Search Extensions in Marketplace" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700/50 rounded pl-8 pr-8 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 focus:bg-slate-900 transition-colors"
+            className="w-full glass-panel border border-slate-700/50 rounded pl-8 pr-8 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500 focus:glass-panel transition-colors"
           />
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           <button className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-200">
@@ -85,7 +85,7 @@ export const ExtensionsPanel: React.FC = () => {
       </div>
 
       {/* List Header */}
-      <div className="flex items-center justify-between px-4 py-2 shrink-0 group hover:bg-slate-800/30 cursor-pointer">
+      <div className="flex items-center justify-between px-4 py-2 shrink-0 group hover:glass-panel/30 cursor-pointer">
         <h3 className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
           <button 
             onClick={() => setFilterMode('all')}
@@ -100,7 +100,7 @@ export const ExtensionsPanel: React.FC = () => {
           >
             INSTALLED
           </button>
-          <span className="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded-full text-[9px] ml-1">
+          <span className="glass-panel text-slate-300 px-1.5 py-0.5 rounded-full text-[9px] ml-1">
             {filterMode === 'installed' ? installedCount : ''}
           </span>
         </h3>
@@ -112,7 +112,7 @@ export const ExtensionsPanel: React.FC = () => {
       {/* Extension List */}
       <div className="flex-1 overflow-y-auto min-h-0 relative">
         {isSearching && filterMode === 'all' && (
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-10">
+          <div className="absolute inset-0 glass-panel/50 backdrop-blur-sm flex items-center justify-center z-10">
             <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
           </div>
         )}

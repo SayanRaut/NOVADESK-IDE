@@ -20,7 +20,7 @@ function EditorGroupView({ groupId }: { groupId: string }) {
     <div 
       className={cn(
         "h-full w-full flex flex-col overflow-hidden transition-opacity relative z-10",
-        customBackground ? "bg-transparent" : "bg-slate-950 border-slate-800",
+        customBackground ? "bg-transparent" : "bg-[var(--panel-bg)] border-[var(--border-color)]",
         activeGroupId === groupId ? "border-transparent opacity-100" : "opacity-70"
       )}
       onClickCapture={() => {
@@ -43,12 +43,12 @@ export function EditorArea() {
   const { customBackground } = useTheme();
 
   if (editorGroups.length === 0) return (
-    <div className={cn("flex-1 relative overflow-hidden", customBackground ? "bg-transparent" : "bg-slate-950")} />
+    <div className={cn("flex-1 relative overflow-hidden", customBackground ? "bg-transparent" : "bg-[var(--background)]")} />
   );
 
   if (editorGroups.length === 1 || splitState === 'none') {
     return (
-      <div className={cn("flex-1 flex flex-col overflow-hidden relative", customBackground ? "bg-transparent" : "bg-slate-950")}>
+      <div className={cn("flex-1 flex flex-col overflow-hidden relative", customBackground ? "bg-transparent" : "bg-[var(--background)]")}>
         <DebugToolbar />
         <EditorGroupView groupId={editorGroups[0].id} />
       </div>
@@ -56,7 +56,7 @@ export function EditorArea() {
   }
 
   return (
-    <div className={cn("flex-1 flex flex-col overflow-hidden relative", customBackground ? "bg-transparent" : "bg-slate-950")}>
+    <div className={cn("flex-1 flex flex-col overflow-hidden relative", customBackground ? "bg-transparent" : "bg-[var(--background)]")}>
       <DebugToolbar />
       <PanelGroup orientation={splitState === 'horizontal' ? 'horizontal' : 'vertical'}>
         {editorGroups.map((group, index) => (
@@ -66,7 +66,7 @@ export function EditorArea() {
             </Panel>
             {index < editorGroups.length - 1 && (
               <PanelResizeHandle className={cn(
-                "hover:bg-blue-500 transition-colors bg-slate-900 z-10",
+                "hover:bg-[var(--accent)] transition-colors bg-[var(--border-color)] z-10",
                 splitState === 'horizontal' ? "w-1 cursor-col-resize" : "h-1 cursor-row-resize"
               )} />
             )}

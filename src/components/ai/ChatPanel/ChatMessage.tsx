@@ -33,7 +33,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
     return (
       <div className="flex gap-3 group">
         <div className="flex-1 flex flex-col items-end gap-1">
-          <div className="max-w-[85%] bg-blue-600/20 border border-blue-500/30 text-slate-200 rounded-xl rounded-tr-sm px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap">
+          <div className="max-w-[85%] bg-[#c4f042]/10 border border-[#c4f042]/20 text-slate-200 rounded-xl rounded-tr-sm px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap">
             {message.content}
           </div>
           {/* Hover actions */}
@@ -46,8 +46,8 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
             </button>
           </div>
         </div>
-        <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-          <User size={14} className="text-white" />
+        <div className="w-7 h-7 rounded-full bg-[#c4f042] flex items-center justify-center shrink-0 mt-0.5">
+          <User size={14} className="text-black" />
         </div>
       </div>
     );
@@ -75,17 +75,17 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
   // Model message
   return (
     <div className="flex gap-3 group">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center shrink-0 mt-0.5">
-        <Bot size={14} className="text-white" />
+      <div className="w-7 h-7 rounded-full bg-[#c4f042] flex items-center justify-center shrink-0 mt-0.5">
+        <Bot size={14} className="text-black" />
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="text-sm text-slate-200 leading-relaxed">
           {isStreaming && !message.content ? (
             <div className="flex items-center gap-1 h-6 text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" />
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce [animation-delay:300ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-bounce [animation-delay:150ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-bounce [animation-delay:300ms]" />
             </div>
           ) : (
             <ReactMarkdown
@@ -100,7 +100,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
                     return <CodeBlock language={match?.[1]} code={code} />;
                   }
                   return (
-                    <code className="bg-slate-950 text-pink-400 px-1.5 py-0.5 rounded text-[12px] font-mono" {...props}>
+                    <code className="glass-panel text-pink-400 px-1.5 py-0.5 rounded text-[12px] font-mono" {...props}>
                       {children}
                     </code>
                   );
@@ -131,7 +131,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
                 table({ children }) {
                   return <div className="overflow-x-auto my-2"><table className="w-full text-xs border-collapse border border-slate-800">{children}</table></div>;
                 },
-                th({ children }) { return <th className="border border-slate-800 px-2 py-1 bg-slate-950 text-slate-300 font-medium text-left">{children}</th>; },
+                th({ children }) { return <th className="border border-slate-800 px-2 py-1 glass-panel text-slate-300 font-medium text-left">{children}</th>; },
                 td({ children }) { return <td className="border border-slate-800 px-2 py-1 text-slate-400">{children}</td>; },
               }}
             >
@@ -139,24 +139,24 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
             </ReactMarkdown>
           )}
           {isStreaming && (
-            <span className="inline-block w-0.5 h-3.5 bg-blue-400 ml-0.5 animate-pulse align-middle" />
+            <span className="inline-block w-0.5 h-3.5 bg-[#c4f042] ml-0.5 animate-pulse align-middle" />
           )}
           
           {message.artifact?.requestFeedback && !isStreaming && (
-            <div className="mt-4 p-3 bg-slate-950 rounded-lg border border-blue-500/30">
+            <div className="mt-4 p-3 glass-panel rounded-lg border border-[#c4f042]/30">
               <div className="text-sm text-slate-300 mb-3">
-                <span className="font-semibold text-blue-400">Artifact Generated:</span> {message.artifact.path.split(/[\\/]/).pop()}
+                <span className="font-semibold text-[#c4f042]">Artifact Generated:</span> {message.artifact.path.split(/[\\/]/).pop()}
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => sendMessage('/approve_plan')}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-medium transition-colors flex-1"
+                  className="px-3 py-1.5 bg-[#c4f042] hover:bg-[#a3cc3b] text-black rounded text-xs font-medium transition-colors flex-1"
                 >
                   Proceed
                 </button>
                 <button
                   onClick={() => sendMessage('I want to make changes to the plan.')}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-[#333] text-slate-300 rounded text-xs font-medium transition-colors flex-1"
+                  className="px-3 py-1.5 glass-panel hover:bg-[#333] text-slate-300 rounded text-xs font-medium transition-colors flex-1"
                 >
                   Feedback
                 </button>
@@ -168,26 +168,26 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
         {/* Hover actions - only for completed messages */}
         {!isStreaming && message.content && (
           <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={copy} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-slate-950 transition-colors">
+            <button onClick={copy} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:glass-panel transition-colors">
               {copied ? <Check size={11} className="text-green-400" /> : <Copy size={11} />}
               {copied ? 'Copied' : 'Copy'}
             </button>
-            <button onClick={regenerate} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-slate-950 transition-colors">
+            <button onClick={regenerate} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:glass-panel transition-colors">
               <RotateCcw size={11} /> Regenerate
             </button>
             <button
               onClick={() => setLiked(l => l === true ? null : true)}
-              className={`p-1 rounded text-[11px] transition-colors hover:bg-slate-950 ${liked === true ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`p-1 rounded text-[11px] transition-colors hover:glass-panel ${liked === true ? 'text-green-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <ThumbsUp size={11} />
             </button>
             <button
               onClick={() => setLiked(l => l === false ? null : false)}
-              className={`p-1 rounded text-[11px] transition-colors hover:bg-slate-950 ${liked === false ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`p-1 rounded text-[11px] transition-colors hover:glass-panel ${liked === false ? 'text-red-400' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <ThumbsDown size={11} />
             </button>
-            <button onClick={remove} className="p-1 rounded text-[11px] text-slate-500 hover:text-red-400 hover:bg-slate-950 transition-colors">
+            <button onClick={remove} className="p-1 rounded text-[11px] text-slate-500 hover:text-red-400 hover:glass-panel transition-colors">
               <Trash2 size={11} />
             </button>
           </div>
