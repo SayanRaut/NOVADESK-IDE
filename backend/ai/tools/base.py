@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Tuple
-from ..core.logger import logger
+from ai.core.logger import logger
 
 class ToolError(Exception):
     pass

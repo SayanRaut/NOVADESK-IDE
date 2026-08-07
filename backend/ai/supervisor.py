@@ -1,9 +1,9 @@
 from typing import Any
-from ..core.logger import logger
-from ..core.exceptions import AgentExecutionError
-from ..intent import IntentResult
-from ..router import model_router
-from ..manager import model_manager
+from ai.core.logger import logger
+from ai.core.exceptions import AgentExecutionError
+from ai.intent import IntentResult
+from ai.router import model_router
+from ai.manager import model_manager
 
 from .agents.specialized import (
     PlannerAgent, CodingAgent, ReviewAgent, 

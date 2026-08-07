@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import tiktoken
-from ..core.logger import logger
+from ai.core.logger import logger
 
 @dataclass
 class ContextEngine:

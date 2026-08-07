@@ -2,10 +2,10 @@ import httpx
 import json
 from typing import List, Dict, Any, AsyncGenerator
 
-from ..core.provider import ProviderInterface
-from ..core.config import ai_config
-from ..core.logger import logger
-from ..core.exceptions import ProviderError
+from ai.core.provider import ProviderInterface
+from ai.core.config import ai_config
+from ai.core.logger import logger
+from ai.core.exceptions import ProviderError
 
 class OllamaProvider(ProviderInterface):
     """

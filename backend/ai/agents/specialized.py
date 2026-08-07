@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
-from ..core.provider import ProviderInterface
-from ..core.logger import logger
-from ..tools.registry import tool_registry
+from ai.core.provider import ProviderInterface
+from ai.core.logger import logger
+from ai.tools.registry import tool_registry
 
 class BaseAgent(ABC):
     """
