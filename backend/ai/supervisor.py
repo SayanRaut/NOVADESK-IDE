@@ -5,7 +5,7 @@ from ..intent import IntentResult
 from ..router import model_router
 from ..manager import model_manager
 
-from .specialized import (
+from .agents.specialized import (
     PlannerAgent, CodingAgent, ReviewAgent, 
     DebugAgent, SearchAgent, VisionAgent
 )

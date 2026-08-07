@@ -4,8 +4,8 @@ from typing import Any
 
 from auth.dependencies import get_current_user
 from database.models import User
-from ..ai.supervisor import supervisor_agent
-from ..ai.intent import intent_classifier
+from ai.supervisor import supervisor_agent
+from ai.intent import intent_classifier
 
 router = APIRouter(tags=["AI"])
 
