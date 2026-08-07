@@ -1,5 +1,6 @@
 import os
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
 class AIConfig(BaseSettings):
     """Configuration for AI Engine."""
@@ -10,8 +11,6 @@ class AIConfig(BaseSettings):
     # Memory constraints
     MAX_VRAM_GB: float = Field(default=6.0)
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = 'utf-8'
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8')
 
 ai_config = AIConfig()
