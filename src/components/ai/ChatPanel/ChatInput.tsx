@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState } from 'react';
-import { Send, Square, Paperclip, SquareTerminal, FileCode } from 'lucide-react';
+import { Send, Square, Paperclip, SquareTerminal, FileCode, X } from 'lucide-react';
 import { useAI } from '../../../contexts/AIContext';
 import { useEditor } from '../../../contexts/EditorContext';
 import { useUI } from '../../../contexts/UIContext';
@@ -11,23 +11,38 @@ interface ChatInputProps {
 export const ChatInput = ({ compact = false }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const { sendMessage, isStreaming, isThinking, stopStreaming } = useAI();
-  const { activeFile, fileContents, openFiles } = useEditor();
+  const { activeFile, fileContents, openFiles, chatContextFiles, setChatContextFiles } = useEditor();
   const { setActiveBottomPanel } = useUI();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const text = input.trim();
     if (!text || isStreaming || isThinking) return;
     setInput('');
     // Reset textarea height
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
 
-    sendMessage(text, {
-      active_file: activeFile ?? '',
-      active_file_content: activeFile ? fileContents[activeFile] ?? '' : '',
+    let promptText = text;
+    if (chatContextFiles.length > 0 && window.electronAPI) {
+      let appendedContext = '\n\n=== ADDITIONAL CONTEXT FILES ===\n';
+      for (const file of chatContextFiles) {
+        let content = fileContents[file];
+        if (content === undefined) {
+           try {
+              content = await window.electronAPI.readFile(file);
+           } catch {
+              content = '<Error reading file>';
+           }
+        }
+        appendedContext += `\n--- ${file} ---\n${content}\n`;
+      }
+      promptText += appendedContext;
+    }
+
+    sendMessage(promptText, {
       open_files: openFiles,
     });
-  }, [input, isStreaming, isThinking, sendMessage, activeFile, fileContents, openFiles]);
+  }, [input, isStreaming, isThinking, sendMessage, fileContents, openFiles, chatContextFiles]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -49,12 +64,21 @@ export const ChatInput = ({ compact = false }: ChatInputProps) => {
   return (
     <div className={`border-t border-[var(--border-color)] bg-[var(--activity-bar-bg)] ${compact ? 'p-2' : 'p-3'}`}>
       <div className="relative rounded-xl glass-panel border border-[#252525] focus-within:border-[#c4f042]/40 focus-within:shadow-[0_0_0_1px_rgba(196,240,66,0.15)] transition-all flex flex-col">
-        {activeFile && (
-          <div className="flex items-center gap-1.5 px-3 pt-2 pb-0">
-            <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 rounded-md px-2 py-1 text-xs text-slate-300" title={`Context: ${activeFile}`}>
-              <FileCode size={12} className="text-[#c4f042]" />
-              <span className="truncate max-w-[200px]">{activeFile.split(/[\\/]/).pop()}</span>
-            </div>
+        {chatContextFiles.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 px-3 pt-2 pb-0 max-h-24 overflow-y-auto">
+            {chatContextFiles.map(file => (
+              <div key={file} className="flex items-center gap-1 bg-[#c4f042]/10 border border-[#c4f042]/20 rounded-md pl-2 pr-1 py-1 text-xs text-[#c4f042]" title={`Context: ${file}`}>
+                <FileCode size={12} className="text-[#c4f042]" />
+                <span className="truncate max-w-[200px]">{file.split(/[\\/]/).pop()}</span>
+                <button 
+                  type="button" 
+                  onClick={() => setChatContextFiles(prev => prev.filter(p => p !== file))} 
+                  className="hover:text-white transition-colors ml-0.5 rounded-sm hover:bg-black/20 p-0.5"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
           </div>
         )}
         <textarea

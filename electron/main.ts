@@ -129,7 +129,7 @@ const createTerminal = (cwd?: string) => {
 
 const runGit = async (args: string[]) => {
   if (!workspaceRoot) throw new Error('Open a workspace first.');
-  const { stdout, stderr } = await execFileAsync('git', args, { cwd: workspaceRoot, windowsHide: true });
+  const { stdout, stderr } = await execFileAsync('git', args, { cwd: workspaceRoot, windowsHide: true, maxBuffer: 50 * 1024 * 1024 });
   return { stdout, stderr };
 };
 
@@ -397,6 +397,10 @@ ipcMain.handle('workspace:showSaveDialog', async (_event, defaultPath?: string) 
 });
 
 ipcMain.handle('workspace:readDirectory', async (_event, directoryPath: string) => {
+  if (!workspaceRoot) {
+    workspaceRoot = path.resolve(directoryPath);
+    startWorkspaceWatcher(workspaceRoot);
+  }
   if (!isInsideWorkspace(directoryPath)) throw new Error('Directory is outside the active workspace.');
   return fs.readdirSync(directoryPath, { withFileTypes: true })
     .filter((entry) => !ignoredDirectoryNames.has(entry.name))
@@ -573,6 +577,147 @@ ipcMain.handle('git:status', async () => {
 ipcMain.handle('git:init', async () => {
   const { stdout, stderr } = await runGit(['init']);
   return stdout || stderr || 'Initialized empty Git repository.';
+});
+
+ipcMain.handle('git:log', async (_event, maxCount?: number) => {
+  try {
+    const args = ['log', '--pretty=format:%H|%s|%an|%ar', '-n', (maxCount || 50).toString()];
+    const { stdout } = await runGit(args);
+    return stdout;
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('git:branches', async () => {
+  try {
+    const { stdout } = await runGit(['branch', '-a']);
+    return stdout;
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('git:add', async (_event, filePath: string) => {
+  await runGit(['add', filePath]);
+  return true;
+});
+
+ipcMain.handle('git:unstage', async (_event, filePath: string) => {
+  await runGit(['reset', 'HEAD', filePath]);
+  return true;
+});
+
+ipcMain.handle('git:commit', async (_event, message: string) => {
+  try {
+    await runGit(['commit', '-m', message]);
+    return true;
+  } catch (error: any) {
+    throw new Error(error.stderr || error.message || 'Commit failed');
+  }
+});
+
+ipcMain.handle('git:remoteAdd', async (_event, url: string) => {
+  try {
+    try {
+      await runGit(['remote', 'add', 'origin', url]);
+    } catch (e: any) {
+      if (e.stderr && e.stderr.includes('already exists')) {
+        await runGit(['remote', 'set-url', 'origin', url]);
+      } else {
+        throw e;
+      }
+    }
+    
+    try {
+      await runGit(['fetch', 'origin']);
+    } catch (e: any) {
+      // Ignore fetch failures (like auth issues), just warn
+      console.warn('Fetch failed after remote add:', e.stderr || e.message);
+    }
+    
+    return true;
+  } catch (error: any) {
+    throw new Error(error.stderr || error.message || 'Failed to add remote');
+  }
+});
+
+ipcMain.handle('git:remoteRemove', async () => {
+  try {
+    await runGit(['remote', 'remove', 'origin']);
+    return true;
+  } catch {
+    return false;
+  }
+});
+
+ipcMain.handle('git:remoteUrl', async () => {
+  try {
+    const { stdout } = await runGit(['config', '--get', 'remote.origin.url']);
+    return stdout.trim();
+  } catch {
+    return null;
+  }
+});
+
+ipcMain.handle('system:openExternal', async (_event, url: string) => {
+  await shell.openExternal(url);
+  return true;
+});
+
+ipcMain.handle('git:addAll', async () => {
+  await runGit(['add', '.']);
+  return true;
+});
+
+ipcMain.handle('git:diffBranches', async (_event, base: string, compare: string) => {
+  try {
+    const { stdout } = await runGit(['diff', `${base}..${compare}`]);
+    return stdout;
+  } catch (error) {
+    console.error('git diff failed:', error);
+    return null;
+  }
+});
+
+ipcMain.handle('git:push', async (_event, branch: string) => {
+  try {
+    await runGit(['push', '-u', 'origin', branch]);
+    return true;
+  } catch (error: any) {
+    throw new Error(error.stderr || error.message || 'Push failed');
+  }
+});
+
+ipcMain.handle('git:checkout', async (_event, branch: string, isNew: boolean) => {
+  try {
+    if (isNew) {
+      await runGit(['checkout', '-b', branch]);
+    } else {
+      await runGit(['checkout', branch]);
+    }
+    return true;
+  } catch (error: any) {
+    throw new Error(error.stderr || error.message || 'Checkout failed');
+  }
+});
+
+ipcMain.handle('git:addFromDialog', async () => {
+  if (!mainWindow || !workspaceRoot) return false;
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: 'Select files or folders to stage',
+    properties: ['openFile', 'openDirectory', 'multiSelections']
+  });
+  
+  if (!result.canceled && result.filePaths.length > 0) {
+    try {
+      await runGit(['add', ...result.filePaths]);
+      return true;
+    } catch (error: any) {
+      throw new Error(error.stderr || error.message || 'Add failed');
+    }
+  }
+  return false;
 });
 
 ipcMain.handle('ai:getConnection', (): PublicAIConnection => publicAIConnection(readAIConnection()));

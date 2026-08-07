@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useEditor } from '../../contexts/EditorContext';
-import { X, File, Circle, Pin } from 'lucide-react';
+import { X, File, Circle, Pin, GitBranch, GitCompare } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { EditorTabContextMenu } from './EditorTabContextMenu';
 
@@ -45,7 +45,9 @@ export function EditorTabs({ groupId }: { groupId: string }) {
         const isActive = file === group.activeFile;
         const isDirty = dirtyFiles.has(file);
         const isPinned = group.pinnedTabs.includes(file);
-        const fileName = file.split(/[\\/]/).pop() || 'Unknown';
+        const isGitLog = file === 'git-log://history';
+        const isGitDiff = file.startsWith('git-diff://');
+        const fileName = isGitLog ? 'Git History' : (isGitDiff ? 'Branch Diff' : (file.split(/[\\/]/).pop() || 'Unknown'));
         
         return (
           <div
@@ -68,7 +70,7 @@ export function EditorTabs({ groupId }: { groupId: string }) {
             )}
             onClick={() => openFile(file, groupId)}
           >
-            {isPinned ? <Pin className="w-3 h-3 shrink-0 text-slate-500 transform rotate-45" /> : <File className="w-3.5 h-3.5 shrink-0" />}
+            {isPinned ? <Pin className="w-3 h-3 shrink-0 text-slate-500 transform rotate-45" /> : (isGitLog ? <GitBranch className="w-3.5 h-3.5 shrink-0" /> : (isGitDiff ? <GitCompare className="w-3.5 h-3.5 shrink-0" /> : <File className="w-3.5 h-3.5 shrink-0" />))}
             
             {!isPinned && <span className="text-xs truncate">{fileName}</span>}
             

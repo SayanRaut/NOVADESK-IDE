@@ -11,6 +11,7 @@ import { SettingsPanel } from './SettingsPanel';
 import { ExtensionsPanel } from './extensions/ExtensionsPanel';
 import { SearchPanel } from './search/SearchPanel';
 import { RunDebugPanel } from './run-debug/RunDebugPanel';
+import { SourceControlPanel } from './source-control/SourceControlPanel';
 import { cn } from '../utils/cn';
 import { useEffect } from 'react';
 
@@ -80,6 +81,8 @@ export function Sidebar() {
               <SearchPanel />
             ) : activeActivity === 'run-debug' ? (
               <RunDebugPanel />
+            ) : activeActivity === 'source-control' ? (
+              <SourceControlPanel />
             ) : activeActivity === 'settings' ? (
               <SettingsPanel />
             ) : activeActivity === 'extensions' ? (

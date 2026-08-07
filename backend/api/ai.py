@@ -1,17 +1,13 @@
-from __future__ import annotations
-
-from typing import Any, Literal
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any
 
 from auth.dependencies import get_current_user
-from database.database import get_db
 from database.models import User
+from ..ai.supervisor import supervisor_agent
+from ..ai.intent import intent_classifier
 
 router = APIRouter(tags=["AI"])
-
 
 class ChatContext(BaseModel):
     active_file: str = ""
@@ -21,91 +17,35 @@ class ChatContext(BaseModel):
     project_tree: str = Field(default="", max_length=12_000)
     git_status: str = Field(default="", max_length=2_000)
 
-
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=40_000)
-    model_id: str = "gemini_flash_fast"
-    mode: Literal["chat", "planner", "coding", "auto"] = "chat"
     context: ChatContext = Field(default_factory=ChatContext)
-
-
-@router.get("/models")
-async def get_models() -> dict[str, list[dict[str, object]]]:
-    """The desktop app renders this catalog; it never hardcodes provider details."""
-    models = [
-        {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro"},
-        {"id": "deepseek-r1:1.5b", "name": "Ollama DeepSeek R1 1.5B"},
-        {"id": "deepseek-r1:7b", "name": "Ollama DeepSeek R1 7B"}
-    ]
-    return {"models": models}
-
-
-@router.get("/credits")
-async def get_credits(
-    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
-) -> dict[str, Any]:
-    # Credits are unused in the Ollama refactoring
-    return {
-        "used": 0,
-        "remaining": 100,
-        "daily_limit": 100,
-        "reset_time": "2099-12-31T23:59:59"
-    }
-
+    has_images: bool = False
 
 @router.post("/chat")
 async def chat(
     request: ChatRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    """Non-streaming alternative for diagnostics and integrations."""
-    return {"agent": "ChatAssistant", "response": "Use WebSocket for chat."}
-
-class PlanRequest(BaseModel):
-    request: str
-    context: dict = Field(default_factory=dict)
-
-@router.post("/plan")
-async def plan(
-    request: PlanRequest,
-    current_user: User = Depends(get_current_user),
-) -> dict[str, Any]:
-    from ai.planner import Planner
-    from ai.providers.gemini import GeminiProvider
-    from ai.providers.ollama import OllamaProvider
-    
-    prefs = current_user.preferences or {}
-    model_id = prefs.get("model", "deepseek-r1:1.5b")
-    if "gemini" in model_id.lower():
-        provider = GeminiProvider()
-    else:
-        provider = OllamaProvider(model_name=model_id)
+    """
+    Unified AI endpoint. 
+    The frontend does not select the model. The backend decides based on intent.
+    """
+    try:
+        # 1. Classify intent
+        intent_result = intent_classifier.classify(request.message, has_images=request.has_images)
         
-    planner = Planner(provider)
-    result = await planner.create_plan(request.request, request.context)
-    return result.dict()
-
-class ExecuteRequest(BaseModel):
-    task: dict
-    context: dict = Field(default_factory=dict)
-
-@router.post("/execute")
-async def execute(
-    request: ExecuteRequest,
-    current_user: User = Depends(get_current_user),
-) -> dict[str, Any]:
-    from ai.executor import Executor
-    from ai.providers.gemini import GeminiProvider
-    from ai.providers.ollama import OllamaProvider
-    
-    prefs = current_user.preferences or {}
-    model_id = prefs.get("model", "deepseek-r1:1.5b")
-    if "gemini" in model_id.lower():
-        provider = GeminiProvider()
-    else:
-        provider = OllamaProvider(model_name=model_id)
+        # 2. Execute via Supervisor
+        response_text = await supervisor_agent.execute_task(
+            intent_result=intent_result,
+            task=request.message,
+            context=request.context.dict()
+        )
         
-    executor = Executor(provider)
-    result = await executor.execute_task(request.task, request.context)
-    return result.dict()
+        return {
+            "intent": intent_result.intent,
+            "confidence": intent_result.confidence,
+            "response": response_text
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

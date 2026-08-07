@@ -29,6 +29,8 @@ const ExplorerContext = createContext<{
   selectedFolder: string | null;
   setSelectedFolder: (path: string | null) => void;
   collapseVersion: number;
+  selectedPaths: Set<string>;
+  setSelectedPaths: React.Dispatch<React.SetStateAction<Set<string>>>;
 } | null>(null);
 
 const InlineCreator = ({ type, parentPath, level, onComplete }: { type: 'file' | 'folder', parentPath: string, level: number, onComplete: () => void }) => {
@@ -84,15 +86,15 @@ const InlineCreator = ({ type, parentPath, level, onComplete }: { type: 'file' |
 };
 
 const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) => {
-  const { activeFile, openFile, refreshWorkspace, refreshVersion } = useEditor();
+  const { activeFile, openFile, refreshWorkspace, refreshVersion, expandedFolders, setExpandedFolders, toggleFolderExpanded } = useEditor();
   const ctx = useContext(ExplorerContext);
-  const [isOpen, setIsOpen] = useState(false);
+  const isOpen = expandedFolders.has(item.path);
   const [children, setChildren] = useState<FileTree[] | undefined>(item.children);
   const [newName, setNewName] = useState(item.name);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const paddingLeft = `${level * 12 + 12}px`;
-  const isSelected = activeFile === item.path;
+  const isSelected = ctx?.selectedPaths.has(item.path) || (ctx?.selectedPaths.size === 0 && activeFile === item.path);
   const isRenaming = ctx?.renamingItem === item.path;
 
   useEffect(() => {
@@ -108,16 +110,24 @@ const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) =
   useEffect(() => {
     if (ctx?.collapseVersion !== undefined && ctx.collapseVersion > 0) {
       const shouldBeOpen = ctx.collapseVersion % 2 !== 0; // odd = expand, even = collapse
-      setIsOpen(shouldBeOpen);
-      if (shouldBeOpen && item.isDirectory && !children && window.electronAPI) {
-        void window.electronAPI.readDirectory(item.path).then(setChildren).catch(() => setChildren([]));
+      if (shouldBeOpen) {
+        setExpandedFolders(prev => new Set(prev).add(item.path));
+        if (item.isDirectory && !children && window.electronAPI) {
+          void window.electronAPI.readDirectory(item.path).then(setChildren).catch(() => setChildren([]));
+        }
+      } else {
+        setExpandedFolders(prev => {
+           const next = new Set(prev);
+           next.delete(item.path);
+           return next;
+        });
       }
     }
   }, [ctx?.collapseVersion]);
 
   useEffect(() => {
     if (isCreatingInside && !isOpen) {
-      setIsOpen(true);
+      toggleFolderExpanded(item.path);
       if (!children && window.electronAPI) {
         void window.electronAPI.readDirectory(item.path).then(setChildren).catch(() => setChildren([]));
       }
@@ -133,8 +143,21 @@ const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) =
 
   const handleClick = (e: React.MouseEvent) => {
     if (isRenaming) return;
+
+    if (e.ctrlKey || e.metaKey) {
+      e.stopPropagation();
+      ctx?.setSelectedPaths(prev => {
+        const next = new Set(prev);
+        if (next.has(item.path)) next.delete(item.path);
+        else next.add(item.path);
+        return next;
+      });
+      return;
+    }
+
+    ctx?.setSelectedPaths(new Set());
     if (item.isDirectory) {
-      setIsOpen(!isOpen);
+      toggleFolderExpanded(item.path);
       ctx?.setSelectedFolder(item.path);
       if (!isOpen && !children) {
         if (!window.electronAPI) return;
@@ -149,6 +172,9 @@ const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) =
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (ctx && !ctx.selectedPaths.has(item.path)) {
+      ctx.setSelectedPaths(new Set());
+    }
     ctx?.setContextMenu({
       x: e.clientX,
       y: e.clientY,
@@ -234,13 +260,14 @@ const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) =
 };
 
 export const FileExplorer = () => {
-  const { activeFile, currentPath, fileTree, setFileTree, refreshVersion, refreshWorkspace, openFile, splitGroup, activeGroupId } = useEditor();
+  const { activeFile, currentPath, fileTree, setFileTree, refreshVersion, refreshWorkspace, openFile, splitGroup, activeGroupId, setChatContextFiles } = useEditor();
   const { setAISidebarOpen, setBottomPanelOpen } = useLayout();
   const { setActiveTab } = usePanel();
   const { newTerminal } = useTerminal();
   const [isCreating, setIsCreating] = useState<{type: 'file' | 'folder', path: string} | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [collapseVersion, setCollapseVersion] = useState(0);
+  const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
   
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [renamingItem, setRenamingItem] = useState<string | null>(null);
@@ -270,11 +297,17 @@ export const FileExplorer = () => {
     if (!contextMenu || !window.electronAPI) return;
     const { item } = contextMenu;
     setContextMenu(null);
+    
+    const targetPaths = selectedPaths.has(item.path) ? Array.from(selectedPaths) : [item.path];
 
     try {
       switch (action) {
         case 'open':
-          openFile(item.path);
+          targetPaths.forEach(p => {
+             if (!p.endsWith('\\') && !p.endsWith('/')) {
+                openFile(p);
+             }
+          });
           break;
         case 'open-side':
           splitGroup(activeGroupId);
@@ -307,9 +340,12 @@ export const FileExplorer = () => {
           setRenamingItem(item.path);
           break;
         case 'delete':
-          if (confirm(`Are you sure you want to delete '${item.name}'?`)) {
-            await window.electronAPI.deleteFile(item.path);
+          if (confirm(`Are you sure you want to delete ${targetPaths.length > 1 ? `${targetPaths.length} items` : `'${item.name}'`}?`)) {
+            for (const p of targetPaths) {
+              await window.electronAPI.deleteFile(p);
+            }
             refreshWorkspace();
+            setSelectedPaths(new Set());
           }
           break;
         case 'duplicate':
@@ -320,16 +356,18 @@ export const FileExplorer = () => {
           await window.electronAPI.revealInExplorer(item.path);
           break;
         case 'copy-path':
-          await navigator.clipboard.writeText(item.path);
+          await navigator.clipboard.writeText(targetPaths.join('\n'));
           break;
         case 'copy-rel-path': {
-          let rel = currentPath && item.path.startsWith(currentPath) ? item.path.substring(currentPath.length + 1) : item.path;
-          rel = rel.replace(/\\/g, '/');
-          await navigator.clipboard.writeText(rel);
+          const rels = targetPaths.map(p => {
+             let rel = currentPath && p.startsWith(currentPath) ? p.substring(currentPath.length + 1) : p;
+             return rel.replace(/\\/g, '/');
+          });
+          await navigator.clipboard.writeText(rels.join('\n'));
           break;
         }
         case 'ai-chat':
-          openFile(item.path);
+          setChatContextFiles(prev => Array.from(new Set([...prev, ...targetPaths])));
           setAISidebarOpen(true);
           break;
         case 'new-file':
@@ -349,8 +387,8 @@ export const FileExplorer = () => {
   const workspaceName = currentPath ? currentPath.split(/[\\/]/).pop() || 'WORKSPACE' : 'EXPLORER';
 
   return (
-    <ExplorerContext.Provider value={{ setContextMenu, renamingItem, setRenamingItem, triggerCreate, selectedFolder, setSelectedFolder, isCreating, setIsCreating, collapseVersion }}>
-      <div className="flex flex-col h-full overflow-hidden relative">
+    <ExplorerContext.Provider value={{ setContextMenu, renamingItem, setRenamingItem, triggerCreate, selectedFolder, setSelectedFolder, isCreating, setIsCreating, collapseVersion, selectedPaths, setSelectedPaths }}>
+      <div className="flex flex-col h-full overflow-hidden relative" onClick={() => setSelectedPaths(new Set())}>
         <div className="flex items-center justify-between px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none shrink-0 overflow-hidden">
           <span className="truncate flex-1 mr-2" title={workspaceName}>{workspaceName}</span>
           <div className="flex items-center gap-1 text-slate-400 normal-case">

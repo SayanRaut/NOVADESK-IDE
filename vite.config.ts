@@ -28,4 +28,7 @@ export default defineConfig({
       renderer: {},
     }),
   ],
+  optimizeDeps: {
+    include: ['monaco-editor', '@monaco-editor/react']
+  }
 })

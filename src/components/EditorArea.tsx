@@ -5,6 +5,8 @@ import { EditorTabs } from './editor/EditorTabs';
 import { Breadcrumb } from './editor/Breadcrumb';
 import { MonacoEditor } from './editor/MonacoEditor';
 import { WelcomePage } from './editor/WelcomePage';
+import { GitLogViewer } from './editor/GitLogViewer';
+import { GitDiffViewer } from './editor/GitDiffViewer';
 import { DebugToolbar } from './run-debug/DebugToolbar';
 import { cn } from '../utils/cn';
 import { useTheme } from '../contexts/ThemeContext';
@@ -30,7 +32,13 @@ function EditorGroupView({ groupId }: { groupId: string }) {
       <EditorTabs groupId={groupId} />
       <Breadcrumb groupId={groupId} />
       {group.openFiles.length > 0 && group.activeFile ? (
-        <MonacoEditor groupId={groupId} />
+        group.activeFile === 'git-log://history' ? (
+          <GitLogViewer />
+        ) : group.activeFile.startsWith('git-diff://') ? (
+          <GitDiffViewer uri={group.activeFile} />
+        ) : (
+          <MonacoEditor groupId={groupId} />
+        )
       ) : (
         <WelcomePage />
       )}

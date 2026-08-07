@@ -1,133 +1,104 @@
-import json
 import httpx
-from typing import Any, AsyncGenerator
-from .base import AIProvider
-from config.settings import settings
+import json
+from typing import List, Dict, Any, AsyncGenerator
 
-class OllamaProvider(AIProvider):
-    def __init__(self, model_name: str = None):
-        self.model_name = model_name or settings.DEFAULT_MODEL
-        self.host = settings.OLLAMA_HOST
+from ..core.provider import ProviderInterface
+from ..core.config import ai_config
+from ..core.logger import logger
+from ..core.exceptions import ProviderError
 
-    async def generate_text(self, prompt: str, system_prompt: str = "") -> str:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        
+class OllamaProvider(ProviderInterface):
+    """
+    Ollama Provider Implementation.
+    Interfaces directly with the local Ollama API.
+    """
+    
+    def __init__(self):
+        self.base_url = ai_config.OLLAMA_HOST
+
+    async def _handle_response_error(self, response: httpx.Response):
+        if response.status_code >= 400:
+            error_text = response.text
+            logger.error(f"Ollama HTTP Error {response.status_code}: {error_text}")
+            raise ProviderError(f"Ollama error: {error_text}")
+
+    async def generate(self, messages: List[Dict[str, Any]], model_id: str, **kwargs) -> str:
+        """Generate a complete text response."""
         payload = {
-            "model": self.model_name,
+            "model": model_id,
             "messages": messages,
             "stream": False,
-            "options": {
-                "temperature": settings.TEMPERATURE,
-                "num_ctx": settings.MAX_TOKENS,
-                "top_p": settings.TOP_P
-            }
+            "options": kwargs.get("options", {})
         }
         
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Bypass-Tunnel-Reminder": "true",
-            "ngrok-skip-browser-warning": "true"
-        }
-        
-        async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
-            response = await client.post(f"{self.host}/api/chat", json=payload)
-            if response.status_code >= 400:
-                error_msg = response.text
-                try:
-                    error_msg = response.json().get("error", error_msg)
-                except:
-                    pass
-                raise ValueError(f"Ollama error ({response.status_code}): {error_msg}")
-            data = response.json()
-            return data.get("message", {}).get("content", "")
+        try:
+            async with httpx.AsyncClient(timeout=ai_config.DEFAULT_TIMEOUT) as client:
+                response = await client.post(f"{self.base_url}/api/chat", json=payload)
+                await self._handle_response_error(response)
+                
+                data = response.json()
+                return data.get("message", {}).get("content", "")
+        except httpx.TimeoutException:
+            logger.error(f"Ollama timeout during generate for {model_id}")
+            raise ProviderError("Ollama request timed out.")
+        except Exception as e:
+            logger.error(f"Ollama connection error: {str(e)}")
+            raise ProviderError(f"Ollama connection error: {str(e)}")
 
-    async def generate_stream(self, prompt: str, system_prompt: str = "") -> AsyncGenerator[str, None]:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        
+    async def stream(self, messages: List[Dict[str, Any]], model_id: str, **kwargs) -> AsyncGenerator[str, None]:
+        """Stream a text response."""
         payload = {
-            "model": self.model_name,
+            "model": model_id,
             "messages": messages,
             "stream": True,
-            "options": {
-                "temperature": settings.TEMPERATURE,
-                "num_ctx": settings.MAX_TOKENS,
-                "top_p": settings.TOP_P
-            }
+            "options": kwargs.get("options", {})
         }
         
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Bypass-Tunnel-Reminder": "true",
-            "ngrok-skip-browser-warning": "true"
-        }
-        
-        async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
-            async with client.stream("POST", f"{self.host}/api/chat", json=payload) as response:
-                if response.status_code >= 400:
-                    await response.aread()
-                    error_msg = response.text
-                    try:
-                        error_msg = response.json().get("error", error_msg)
-                    except:
-                        pass
-                    raise ValueError(f"Ollama error ({response.status_code}): {error_msg}")
-                    
-                async for line in response.aiter_lines():
-                    if line:
-                        try:
-                            data = json.loads(line)
-                            chunk = data.get("message", {}).get("content", "")
-                            if chunk:
-                                yield chunk
-                        except json.JSONDecodeError:
-                            pass
+        try:
+            async with httpx.AsyncClient(timeout=ai_config.DEFAULT_TIMEOUT) as client:
+                async with client.stream("POST", f"{self.base_url}/api/chat", json=payload) as response:
+                    await self._handle_response_error(response)
+                        
+                    async for line in response.aiter_lines():
+                        if line:
+                            try:
+                                data = json.loads(line)
+                                chunk = data.get("message", {}).get("content", "")
+                                if chunk:
+                                    yield chunk
+                            except json.JSONDecodeError:
+                                continue
+        except httpx.TimeoutException:
+            logger.error(f"Ollama streaming timeout for {model_id}")
+            raise ProviderError("Ollama streaming timed out.")
+        except Exception as e:
+            logger.error(f"Ollama streaming error: {str(e)}")
+            raise ProviderError(f"Ollama streaming error: {str(e)}")
 
-    async def generate_structured(self, prompt: str, schema: Any, system_prompt: str = "") -> Any:
-        messages = []
-        if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
-            
-        prompt_with_schema = f"{prompt}\n\nPlease output valid JSON matching this schema:\n{schema.schema_json()}"
-        messages.append({"role": "user", "content": prompt_with_schema})
-        
+    async def health_check(self) -> bool:
+        """Check if Ollama is running."""
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                response = await client.get(self.base_url)
+                return response.status_code == 200
+        except Exception:
+            return False
+
+    async def unload_model(self, model_id: str) -> bool:
+        """
+        Forces Ollama to unload the model from VRAM by setting keep_alive to 0.
+        """
         payload = {
-            "model": self.model_name,
-            "messages": messages,
-            "stream": False,
-            "format": "json",
-            "options": {
-                "temperature": 0.1,
-                "num_ctx": settings.MAX_TOKENS,
-            }
+            "model": model_id,
+            "keep_alive": 0
         }
-        
-        headers = {
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Bypass-Tunnel-Reminder": "true",
-            "ngrok-skip-browser-warning": "true"
-        }
-        
-        async with httpx.AsyncClient(timeout=120.0, headers=headers) as client:
-            response = await client.post(f"{self.host}/api/chat", json=payload)
-            if response.status_code >= 400:
-                error_msg = response.text
-                try:
-                    error_msg = response.json().get("error", error_msg)
-                except:
-                    pass
-                raise ValueError(f"Ollama error ({response.status_code}): {error_msg}")
-            data = response.json()
-            content = data.get("message", {}).get("content", "")
-            try:
-                return schema.parse_raw(content)
-            except Exception as e:
-                raise ValueError(f"Failed to parse structured output from Ollama: {e}\nRaw output: {content}")
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                # We can just hit /api/generate with an empty prompt and keep_alive=0
+                response = await client.post(f"{self.base_url}/api/generate", json=payload)
+                await self._handle_response_error(response)
+                logger.info(f"Successfully unloaded model: {model_id}")
+                return True
+        except Exception as e:
+            logger.error(f"Failed to unload model {model_id}: {str(e)}")
+            return False

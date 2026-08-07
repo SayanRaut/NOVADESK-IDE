@@ -58,10 +58,14 @@ type EditorContextType = {
   saveActiveFile: () => Promise<void>;
   saveAllFiles: () => Promise<void>;
   
+  chatContextFiles: string[];
+  setChatContextFiles: Dispatch<SetStateAction<string[]>>;
+  
   cursorPosition: CursorPosition;
   setCursorPosition: (position: CursorPosition) => void;
 
   expandedFolders: Set<string>;
+  setExpandedFolders: Dispatch<SetStateAction<Set<string>>>;
   toggleFolderExpanded: (path: string) => void;
 };
 
@@ -139,6 +143,7 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
 
   const [fileContents, setFileContents] = useState<Record<string, string>>({});
   const [dirtyFiles, setDirtyFiles] = useState<Set<string>>(() => new Set());
+  const [chatContextFiles, setChatContextFiles] = useState<string[]>([]);
   const [cursorPosition, setCursorPosition] = useState<CursorPosition>({ line: 1, column: 1 });
 
   // 1. Load initial global state
@@ -531,16 +536,19 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
       setFileDirty,
       saveActiveFile,
       saveAllFiles,
+      chatContextFiles,
+      setChatContextFiles,
       cursorPosition,
       setCursorPosition,
       expandedFolders,
+      setExpandedFolders,
       toggleFolderExpanded
     };
   }, [
     currentPath, recentWorkspaces, openWorkspace, closeWorkspace, fileTree, refreshVersion,
     refreshWorkspace, editorGroups, activeGroupId, setActiveGroup, splitState, openFile,
     closeFile, closeOthers, closeAll, pinFile, unpinFile, reorderTabs, splitGroup, closeGroup, fileContents, dirtyFiles, setFileDirty,
-    saveActiveFile, saveAllFiles, cursorPosition, expandedFolders, toggleFolderExpanded
+    saveActiveFile, saveAllFiles, chatContextFiles, cursorPosition, expandedFolders, toggleFolderExpanded
   ]);
 
   return <EditorContext.Provider value={value}>{children}</EditorContext.Provider>;

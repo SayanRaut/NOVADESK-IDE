@@ -11,7 +11,7 @@ import { useUI } from '../contexts/UIContext';
 import { http } from '../services/http';
 
 export function StatusBar() {
-  const { cursorPosition, editorGroups, activeGroupId } = useEditor();
+  const { cursorPosition, editorGroups, activeGroupId, openFile } = useEditor();
   const { problems } = useProblems();
   const { theme, setTheme } = useTheme();
   const { terminals } = useTerminal();
@@ -21,7 +21,8 @@ export function StatusBar() {
   const { zoomLevel, setZoomLevel } = useUI();
   
   const activeFile = editorGroups.find(g => g.id === activeGroupId)?.activeFile;
-  const [gitBranch, setGitBranch] = useState<string>('main');
+  const [gitBranch, setGitBranch] = useState<string>('');
+  const [lastCommitDate, setLastCommitDate] = useState<string>('');
   const [backendStatus, setBackendStatus] = useState<'connected' | 'offline'>('offline');
 
   const [showZoomMenu, setShowZoomMenu] = useState(false);
@@ -47,10 +48,26 @@ export function StatusBar() {
     const fetchGit = async () => {
       if (window.electronAPI) {
         try {
-          const branch = await window.electronAPI.gitStatus();
-          if (branch) setGitBranch(branch);
+          const branchesOut = await window.electronAPI.gitBranches();
+          if (branchesOut) {
+             const lines = branchesOut.split('\n');
+             const active = lines.find(l => l.startsWith('* '));
+             if (active) setGitBranch(active.substring(2));
+          } else {
+             setGitBranch('');
+          }
+          
+          const logOut = await window.electronAPI.gitLog(1);
+          if (logOut) {
+             const parts = logOut.split('|');
+             if (parts.length >= 4) {
+                 setLastCommitDate(parts[3]);
+             }
+          } else {
+             setLastCommitDate('');
+          }
         } catch (e) {
-          console.error('Git status error', e);
+          console.error('Git fetch error', e);
         }
       }
     };
@@ -95,10 +112,19 @@ export function StatusBar() {
     <div className="h-6 glass-panel bg-emerald-500/10 text-[var(--foreground)] border-t border-emerald-500/20 flex items-center justify-between px-2 text-[11px] select-none shrink-0 z-20 overflow-visible relative">
       {/* Left side */}
       <div className="flex items-center h-full gap-0.5 overflow-hidden flex-shrink min-w-0">
-        <button className="flex items-center h-full px-1.5 hover:bg-white/20 transition-colors gap-1.5 shrink-0 truncate">
-          <GitBranch className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate max-w-[100px]">{gitBranch}</span>
-        </button>
+        {gitBranch && (
+          <button 
+            onClick={() => openFile('git-log://history')} 
+            className="flex items-center h-full px-1.5 hover:bg-white/20 transition-colors gap-1.5 shrink-0 truncate"
+            title="View Git History"
+          >
+            <GitBranch className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate max-w-[100px] font-medium">{gitBranch}</span>
+            {lastCommitDate && (
+              <span className="text-slate-400 ml-1 text-[10px] hidden sm:inline">Last commit: {lastCommitDate}</span>
+            )}
+          </button>
+        )}
         
         <button className="flex items-center h-full px-1.5 hover:bg-white/20 transition-colors gap-1.5 shrink-0" title="Backend Status">
           {backendStatus === 'connected' ? (
