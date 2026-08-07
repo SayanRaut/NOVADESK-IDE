@@ -6,8 +6,19 @@ from auth.dependencies import get_current_user
 from database.models import User
 from ai.supervisor import supervisor_agent
 from ai.intent import intent_classifier
+from ai.manager import model_manager
 
 router = APIRouter(tags=["AI"])
+
+@router.get("/status")
+async def get_status():
+    """Returns the currently loaded model from VRAM."""
+    current_model = model_manager.get_current_model()
+    return {
+        "status": "online",
+        "vram_status": "loaded" if current_model else "empty",
+        "current_model": current_model or "None (Idle)"
+    }
 
 class ChatContext(BaseModel):
     active_file: str = ""
