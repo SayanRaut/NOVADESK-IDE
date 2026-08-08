@@ -6,7 +6,7 @@ from conversation.service import ConversationService
 from database.models import Conversation
 
 from ai.intent import intent_classifier
-from ai.router import model_router
+from ai.registry import model_registry
 from ai.manager import model_manager
 from ai.core.logger import logger
 
@@ -49,8 +49,7 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                 await websocket.send_json({"type": "progress", "status": "Classifying Intent..."})
                 intent_result = intent_classifier.classify(message, has_images=has_images)
                 
-                await websocket.send_json({"type": "progress", "status": f"Intent: {intent_result.intent}. Routing to appropriate model..."})
-                target_model = model_router.route(intent_result)
+                target_model = model_registry.get_unified_model()
                 
                 await websocket.send_json({"type": "progress", "status": f"Loading {target_model.name} into VRAM..."})
                 

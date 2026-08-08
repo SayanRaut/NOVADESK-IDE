@@ -28,6 +28,7 @@ class OllamaProvider(ProviderInterface):
             "model": model_id,
             "messages": messages,
             "stream": False,
+            "keep_alive": -1,  # V2: Keep unified model in VRAM indefinitely
             "options": kwargs.get("options", {})
         }
         
@@ -51,6 +52,7 @@ class OllamaProvider(ProviderInterface):
             "model": model_id,
             "messages": messages,
             "stream": True,
+            "keep_alive": -1,  # V2: Keep unified model in VRAM indefinitely
             "options": kwargs.get("options", {})
         }
         

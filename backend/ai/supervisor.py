@@ -2,7 +2,7 @@ from typing import Any
 from ai.core.logger import logger
 from ai.core.exceptions import AgentExecutionError
 from ai.intent import IntentResult
-from ai.router import model_router
+from ai.registry import model_registry
 from ai.manager import model_manager
 
 from .agents.specialized import (
@@ -13,20 +13,15 @@ from .agents.specialized import (
 class SupervisorAgent:
     """
     Coordinates sub-agents based on the classified intent.
-    Maintains shared state and ensures only the correct agent/model is invoked.
+    In V2, we strictly use the single unified model and differentiate behavior via Agent Prompts.
     """
     
     async def execute_task(self, intent_result: IntentResult, task: str, context: dict) -> Any:
         logger.info(f"Supervisor dispatching intent: {intent_result.intent}")
         
-        # Route to correct model metadata
-        target_model = model_router.route(intent_result)
+        # Get the unified model (qwen3-vl:8B)
+        target_model = model_registry.get_unified_model()
         model_id = target_model.id
-        
-        # We pass the singleton model_manager (which implements the ProviderInterface conceptually)
-        # Wait, the manager has generate/stream, but to implement the interface strictly we can adapt it or pass it.
-        # Since ModelManager has `generate` and `stream`, we can pass it directly if we ensure duck typing, 
-        # but to be strict, ModelManager wraps the provider.
         
         # Dispatch to the appropriate sub-agent
         if intent_result.intent == "planning":

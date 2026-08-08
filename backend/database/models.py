@@ -40,7 +40,7 @@ class Workspace(Base):
     __tablename__ = "workspaces"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
     name = Column(String)
     path = Column(String)
     recent_files = Column(JSON, default=list)
@@ -58,7 +58,7 @@ class Project(Base):
     __tablename__ = "projects"
     
     id = Column(Integer, primary_key=True, index=True)
-    workspace_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"))
+    workspace_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), index=True)
     name = Column(String)
     path = Column(String)
     last_opened = Column(DateTime, nullable=True)
@@ -75,7 +75,7 @@ class Conversation(Base):
     __tablename__ = "conversations"
     
     id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"))
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), index=True)
     title = Column(String)
     current_agent = Column(String, default="chat")
     summary = Column(String, nullable=True)
@@ -89,7 +89,7 @@ class Message(Base):
     __tablename__ = "messages"
     
     id = Column(Integer, primary_key=True, index=True)
-    conversation_id = Column(Integer, ForeignKey("conversations.id", ondelete="CASCADE"))
+    conversation_id = Column(Integer, ForeignKey("conversations.id", ondelete="CASCADE"), index=True)
     role = Column(String) # 'user' or 'model'
     content = Column(Text)
     is_pinned = Column(Boolean, default=False)

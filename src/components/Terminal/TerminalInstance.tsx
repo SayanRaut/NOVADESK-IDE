@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
-import { WebglAddon } from '@xterm/addon-webgl';
 import 'xterm/css/xterm.css';
 import { cn } from '../../utils/cn';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -112,12 +111,7 @@ export function TerminalInstance({ id, isActive }: Props) {
 
     term.open(terminalRef.current);
     
-    try {
-      const webglAddon = new WebglAddon();
-      term.loadAddon(webglAddon);
-    } catch (e) {
-      console.warn('WebGL addon could not be loaded, falling back to canvas/dom renderer', e);
-    }
+    // Using standard DOM renderer for maximum compatibility with Electron CSP
 
     xtermRef.current = term;
     fitAddonRef.current = fitAddon;
