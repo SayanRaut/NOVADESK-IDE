@@ -27,11 +27,11 @@ class ModelRegistry:
         self._initialize_default_models()
 
     def _initialize_default_models(self):
-        # The Single Unified Model (qwen3-vl:8B)
+        # The Single Unified Model (qwen3.5:9b)
         self.register_model(
             ModelMetadata(
-                id="qwen3-vl:8B",
-                name="Qwen3 VL (8B)",
+                id="qwen3.5:9b",
+                name="Qwen3.5 (9B)",
                 provider="ollama",
                 capabilities=ModelCapabilities(
                     vision_support=True,
@@ -48,7 +48,7 @@ class ModelRegistry:
 
     def get_unified_model(self) -> ModelMetadata:
         """Returns the single unified model for the V2 Architecture."""
-        return self._models["qwen3-vl:8B"]
+        return self._models["qwen3.5:9b"]
         
     def get_model(self, model_id: str) -> ModelMetadata:
         """Get model metadata by ID."""
