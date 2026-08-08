@@ -28,12 +28,16 @@ class OllamaProvider(ProviderInterface):
 
     async def generate(self, messages: List[Dict[str, Any]], model_id: str, **kwargs) -> str:
         """Generate a complete text response."""
+        options = kwargs.get("options", {})
+        if "num_ctx" not in options:
+            options["num_ctx"] = 4096  # Cap context window to prevent 6GB VRAM overflow
+            
         payload = {
             "model": model_id,
             "messages": messages,
             "stream": False,
             "keep_alive": -1,  # V2: Keep unified model in VRAM indefinitely
-            "options": kwargs.get("options", {})
+            "options": options
         }
         
         try:
@@ -52,12 +56,16 @@ class OllamaProvider(ProviderInterface):
 
     async def stream(self, messages: List[Dict[str, Any]], model_id: str, **kwargs) -> AsyncGenerator[str, None]:
         """Stream a text response."""
+        options = kwargs.get("options", {})
+        if "num_ctx" not in options:
+            options["num_ctx"] = 4096  # Cap context window to prevent 6GB VRAM overflow
+            
         payload = {
             "model": model_id,
             "messages": messages,
             "stream": True,
             "keep_alive": -1,  # V2: Keep unified model in VRAM indefinitely
-            "options": kwargs.get("options", {})
+            "options": options
         }
         
         try:
