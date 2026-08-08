@@ -18,7 +18,11 @@ class OllamaProvider(ProviderInterface):
 
     async def _handle_response_error(self, response: httpx.Response):
         if response.status_code >= 400:
-            error_text = response.text
+            try:
+                await response.aread()
+                error_text = response.text
+            except Exception:
+                error_text = "Unknown error (could not read response body)"
             logger.error(f"Ollama HTTP Error {response.status_code}: {error_text}")
             raise ProviderError(f"Ollama error: {error_text}")
 
