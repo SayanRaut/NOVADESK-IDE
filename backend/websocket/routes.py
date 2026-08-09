@@ -64,7 +64,7 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                     
                     try:
                         results = await dispatcher.run()
-                        await websocket.send_json({"type": "response.done"})
+                        await websocket.send_json({"type": "response.completed"})
                     except Exception as e:
                         await websocket.send_json({"type": "error", "message": f"Execution failed: {e}"})
                     continue
@@ -104,11 +104,16 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                             
                         markdown_content = "".join(md_chunks)
                         
-                        # Save the markdown plan to the workspace
-                        plan_id = str(uuid.uuid4())[:8]
-                        plan_path = f".novadesk/plans/plan_{plan_id}.md"
+                        # Save the markdown plan to the workspace root
+                        workspace_root = context.get("workspace_root")
+                        plan_filename = "Plan.md"
                         
-                        os.makedirs(".novadesk/plans", exist_ok=True)
+                        if workspace_root:
+                            plan_path = os.path.join(workspace_root, plan_filename)
+                        else:
+                            # Fallback if no workspace is opened
+                            plan_path = plan_filename
+                            
                         with open(plan_path, "w", encoding="utf-8") as f:
                             f.write(markdown_content)
                             
@@ -122,12 +127,12 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                         # The UI will automatically render the Proceed/Feedback buttons!
                         await websocket.send_json({
                             "type": "agent.artifact",
-                            "path": plan_path,
+                            "path": plan_filename,
                             "requestFeedback": True
                         })
                         
                         # We also send it as response text so it stays in chat history
-                        full_response.append(f"I have created the plan in `{plan_path}`. Please review it.")
+                        full_response.append(f"I have created the plan in `{plan_filename}`. Please review it.")
                         await websocket.send_json({"type": "response.delta", "delta": full_response[-1]})
                         
                     except Exception as e:
@@ -142,7 +147,7 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                         await websocket.send_json({"type": "response.delta", "delta": chunk})
                         full_response.append(chunk)
                     
-                await websocket.send_json({"type": "response.done"})
+                await websocket.send_json({"type": "response.completed"})
                 
                 if conversation_id and full_response:
                     async with AsyncSessionLocal() as db:

@@ -11,7 +11,7 @@ interface ChatInputProps {
 export const ChatInput = ({ compact = false }: ChatInputProps) => {
   const [input, setInput] = useState('');
   const { sendMessage, isStreaming, isThinking, stopStreaming } = useAI();
-  const { activeFile, fileContents, openFiles, chatContextFiles, setChatContextFiles } = useEditor();
+  const { activeFile, fileContents, openFiles, chatContextFiles, setChatContextFiles, currentPath } = useEditor();
   const { setActiveBottomPanel } = useUI();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -41,6 +41,7 @@ export const ChatInput = ({ compact = false }: ChatInputProps) => {
 
     sendMessage(promptText, {
       open_files: openFiles,
+      workspace_root: currentPath,
     });
   }, [input, isStreaming, isThinking, sendMessage, fileContents, openFiles, chatContextFiles]);
 
