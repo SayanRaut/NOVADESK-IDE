@@ -1,4 +1,4 @@
-from schema import Plan, Task
+from .schema import Plan, Task
 
 
 class PlanState:

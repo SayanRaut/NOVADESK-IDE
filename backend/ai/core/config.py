@@ -11,6 +11,6 @@ class AIConfig(BaseSettings):
     # Memory constraints
     MAX_VRAM_GB: float = Field(default=6.0)
     
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding='utf-8', extra='ignore')
 
 ai_config = AIConfig()
