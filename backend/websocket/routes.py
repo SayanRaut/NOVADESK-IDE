@@ -8,9 +8,19 @@ from database.models import Conversation
 from ai.intent import intent_classifier
 from ai.registry import model_registry
 from ai.manager import model_manager
+from ai.supervisor import supervisor_agent
 from ai.core.logger import logger
+from ai.planner.state import PlanState
+from ai.planner.dispatcher import Dispatcher
+import os
+import uuid
+import json
 
 router = APIRouter()
+
+# Global state for active plans in memory
+# Key: conversation_id, Value: dict containing plan and context
+active_plans = {}
 
 @router.websocket("/chat")
 async def websocket_chat(websocket: WebSocket, token: str = None):
@@ -39,6 +49,26 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                     await websocket.send_json({"type": "error", "code": "invalid_request", "message": "Message required."})
                     continue
 
+                if message.strip() == "/approve_plan":
+                    if conversation_id not in active_plans:
+                        await websocket.send_json({"type": "error", "message": "No active plan found to approve."})
+                        continue
+                        
+                    plan_data = active_plans[conversation_id]
+                    plan = plan_data["plan"]
+                    plan_context = plan_data["context"]
+                    
+                    await websocket.send_json({"type": "progress", "status": "Executing Approved Plan..."})
+                    plan_state = PlanState(plan)
+                    dispatcher = Dispatcher(state=plan_state, context=plan_context, websocket=websocket)
+                    
+                    try:
+                        results = await dispatcher.run()
+                        await websocket.send_json({"type": "response.done"})
+                    except Exception as e:
+                        await websocket.send_json({"type": "error", "message": f"Execution failed: {e}"})
+                    continue
+
                 if conversation_id:
                     async with AsyncSessionLocal() as db:
                         convo = await db.get(Conversation, conversation_id)
@@ -55,14 +85,62 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                 
                 # Context formatting
                 context_str = str(context) # Should ideally use context_engine
-                prompt = f"Task: {message}\nContext: {context_str}"
-                messages = [{"role": "user", "content": prompt}]
                 
                 full_response = []
-                # Stream the response using ModelManager to ensure strict VRAM limit
-                async for chunk in model_manager.stream(messages, target_model.id):
-                    await websocket.send_json({"type": "response.delta", "delta": chunk})
-                    full_response.append(chunk)
+                if intent_result.intent == "planning":
+                    await websocket.send_json({"type": "progress", "status": "Architecting Plan (JSON Mode)..."})
+                    try:
+                        # PlannerAgent returns a Pydantic Plan object
+                        plan = await supervisor_agent.execute_task(intent_result, message, context_str)
+                        
+                        # Generate Markdown
+                        md_chunks = [
+                            f"# 🎯 Goal: {plan.goal}\n\n",
+                            "Here is your step-by-step architectural plan:\n\n"
+                        ]
+                        for task in plan.tasks:
+                            deps = f" *(Depends on: {', '.join(task.depends_on)})*" if task.depends_on else ""
+                            md_chunks.append(f"- [ ] **Task {task.id}** ({task.agent.title()}): {task.description}{deps}\n")
+                            
+                        markdown_content = "".join(md_chunks)
+                        
+                        # Save the markdown plan to the workspace
+                        plan_id = str(uuid.uuid4())[:8]
+                        plan_path = f".novadesk/plans/plan_{plan_id}.md"
+                        
+                        os.makedirs(".novadesk/plans", exist_ok=True)
+                        with open(plan_path, "w", encoding="utf-8") as f:
+                            f.write(markdown_content)
+                            
+                        # Store in memory for /approve_plan
+                        active_plans[conversation_id] = {
+                            "plan": plan,
+                            "context": context_str
+                        }
+                        
+                        # Send the artifact event instead of just streaming the markdown
+                        # The UI will automatically render the Proceed/Feedback buttons!
+                        await websocket.send_json({
+                            "type": "agent.artifact",
+                            "path": plan_path,
+                            "requestFeedback": True
+                        })
+                        
+                        # We also send it as response text so it stays in chat history
+                        full_response.append(f"I have created the plan in `{plan_path}`. Please review it.")
+                        await websocket.send_json({"type": "response.delta", "delta": full_response[-1]})
+                        
+                    except Exception as e:
+                        error_msg = f"Planner failed: {str(e)}"
+                        await websocket.send_json({"type": "response.delta", "delta": error_msg})
+                        full_response.append(error_msg)
+                else:
+                    prompt = f"Task: {message}\nContext: {context_str}"
+                    messages = [{"role": "user", "content": prompt}]
+                    # Stream the response using ModelManager to ensure strict VRAM limit
+                    async for chunk in model_manager.stream(messages, target_model.id):
+                        await websocket.send_json({"type": "response.delta", "delta": chunk})
+                        full_response.append(chunk)
                     
                 await websocket.send_json({"type": "response.done"})
                 

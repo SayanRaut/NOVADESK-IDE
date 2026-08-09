@@ -39,6 +39,8 @@ class OllamaProvider(ProviderInterface):
             "keep_alive": -1,  # V2: Keep unified model in VRAM indefinitely
             "options": options
         }
+        if "format" in kwargs:
+            payload["format"] = kwargs["format"]
         
         try:
             async with httpx.AsyncClient(timeout=ai_config.DEFAULT_TIMEOUT) as client:
@@ -67,6 +69,8 @@ class OllamaProvider(ProviderInterface):
             "keep_alive": -1,  # V2: Keep unified model in VRAM indefinitely
             "options": options
         }
+        if "format" in kwargs:
+            payload["format"] = kwargs["format"]
         
         try:
             async with httpx.AsyncClient(timeout=ai_config.DEFAULT_TIMEOUT) as client:

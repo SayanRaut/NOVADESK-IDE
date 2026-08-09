@@ -52,7 +52,7 @@ class IntentClassifier:
                 
         # Default to chat if no strong signals
         best_intent = "chat"
-        best_score = 0.5
+        best_score = 0.1
         
         for intent, score in scores.items():
             if score > best_score:
