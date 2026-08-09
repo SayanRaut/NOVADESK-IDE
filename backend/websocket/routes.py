@@ -114,8 +114,12 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                             # Fallback if no workspace is opened
                             plan_path = plan_filename
                             
-                        with open(plan_path, "w", encoding="utf-8") as f:
-                            f.write(markdown_content)
+                        try:
+                            # Try to write locally if backend is running on the same machine
+                            with open(plan_path, "w", encoding="utf-8") as f:
+                                f.write(markdown_content)
+                        except Exception as e:
+                            logger.warning(f"Failed to write plan to local disk (likely cloud hosted): {e}")
                             
                         # Store in memory for /approve_plan
                         active_plans[conversation_id] = {
@@ -128,6 +132,7 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                         await websocket.send_json({
                             "type": "agent.artifact",
                             "path": plan_filename,
+                            "content": markdown_content,
                             "requestFeedback": True
                         })
                         

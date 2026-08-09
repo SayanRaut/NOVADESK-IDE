@@ -303,9 +303,23 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
           } else if (event.type === 'agent.artifact') {
             const artifactPath = event.path;
             const requestFeedback = event.requestFeedback;
-            if (currentPath && artifactPath) {
-              openFile(currentPath + "/" + artifactPath);
-            }
+            
+            const handleArtifact = async () => {
+              if (currentPath && artifactPath) {
+                const fullPath = currentPath + "/" + artifactPath;
+                if (event.content && window.electronAPI) {
+                  try {
+                    await window.electronAPI.writeFile(fullPath, event.content);
+                  } catch (e) {
+                    console.error("Failed to write artifact locally:", e);
+                  }
+                }
+                openFile(fullPath);
+              }
+            };
+            
+            void handleArtifact();
+            
             setMessages(prev => {
               const exists = prev.find(m => m.id === assistantId);
               if (exists) {
