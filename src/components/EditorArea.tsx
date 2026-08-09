@@ -5,6 +5,7 @@ import { EditorTabs } from './editor/EditorTabs';
 import { Breadcrumb } from './editor/Breadcrumb';
 import { MonacoEditor } from './editor/MonacoEditor';
 import { WelcomePage } from './editor/WelcomePage';
+import { PlanToolbar } from './editor/PlanToolbar';
 import { GitLogViewer } from './editor/GitLogViewer';
 import { GitDiffViewer } from './editor/GitDiffViewer';
 import { DebugToolbar } from './run-debug/DebugToolbar';
@@ -31,6 +32,9 @@ function EditorGroupView({ groupId }: { groupId: string }) {
     >
       <EditorTabs groupId={groupId} />
       <Breadcrumb groupId={groupId} />
+      
+      {group.activeFile?.endsWith('Plan.md') && <PlanToolbar />}
+
       {group.openFiles.length > 0 && group.activeFile ? (
         group.activeFile === 'git-log://history' ? (
           <GitLogViewer />

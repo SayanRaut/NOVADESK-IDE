@@ -147,20 +147,26 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
               <div className="text-sm text-slate-300 mb-3">
                 <span className="font-semibold text-[#c4f042]">Artifact Generated:</span> {message.artifact.path.split(/[\\/]/).pop()}
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => sendMessage('/approve_plan')}
-                  className="px-3 py-1.5 bg-[#c4f042] hover:bg-[#a3cc3b] text-black rounded text-xs font-medium transition-colors flex-1"
-                >
-                  Proceed
-                </button>
-                <button
-                  onClick={() => sendMessage('I want to make changes to the plan.')}
-                  className="px-3 py-1.5 glass-panel hover:bg-[#333] text-slate-300 rounded text-xs font-medium transition-colors flex-1"
-                >
-                  Feedback
-                </button>
-              </div>
+              {message.artifact.path.endsWith('Plan.md') ? (
+                <div className="text-xs text-slate-400 italic text-center p-2 bg-black/20 rounded">
+                  Please review the plan in the editor tab. You will find the Proceed and Feedback buttons there.
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => sendMessage('/approve_plan')}
+                    className="px-3 py-1.5 bg-[#c4f042] hover:bg-[#a3cc3b] text-black rounded text-xs font-medium transition-colors flex-1"
+                  >
+                    Proceed
+                  </button>
+                  <button
+                    onClick={() => sendMessage('I want to make changes to the plan.')}
+                    className="px-3 py-1.5 glass-panel hover:bg-[#333] text-slate-300 rounded text-xs font-medium transition-colors flex-1"
+                  >
+                    Feedback
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
