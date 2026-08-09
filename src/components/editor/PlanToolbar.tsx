@@ -1,5 +1,5 @@
 import { useAI } from '../../contexts/AIContext';
-import { Play, MessageSquareEdit } from 'lucide-react';
+import { Play, MessageSquare } from 'lucide-react';
 
 export function PlanToolbar() {
   const { sendMessage } = useAI();
@@ -16,7 +16,7 @@ export function PlanToolbar() {
           onClick={() => sendMessage('I want to make changes to the plan.')}
           className="flex items-center gap-2 px-3 py-1.5 rounded bg-[#2a2a2a] hover:bg-[#333] border border-[#444] text-slate-300 text-xs font-medium transition-colors"
         >
-          <MessageSquareEdit size={14} />
+          <MessageSquare size={14} />
           Feedback
         </button>
         <button
