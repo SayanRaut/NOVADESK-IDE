@@ -323,22 +323,46 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
             flushRender();
             const finalContent: string = event.content ?? streamBuffer;
             
-            // Auto-extract any code blocks with file definitions and save locally
-            if (currentPath && window.electronAPI) {
-              const filePattern = /(?:(?:###|\/\/|#)\s*File:\s*|File:\s*)([^\r\n]+)\r?\n+```[a-zA-Z0-9_\-\.]*\r?\n([\s\S]*?)```/gi;
-              let match;
-              let createdAny = false;
-              while ((match = filePattern.exec(finalContent)) !== null) {
-                const rel = match[1].trim().replace(/^[\\/]/, '');
-                const code = match[2];
-                const fp = `${currentPath.replace(/[\\/]$/, '')}/${rel}`;
-                void window.electronAPI.writeFile(fp, code).then(() => {
-                  refreshWorkspace();
-                  openFile(fp);
-                }).catch(() => {});
-                createdAny = true;
+            // Auto-extract any code blocks with file definitions and save locally to workspace
+            if (window.electronAPI) {
+              const targetRoot = currentPath || localStorage.getItem('novadesk:currentWorkspace') || '';
+              if (targetRoot) {
+                const fileHeaderPattern = /(?:(?:###|\/\/|#|\/\*)\s*File:\s*|File:\s*|Filename:\s*)([^\r\n*]+)(?:\*\/)?\r?\n+```[a-zA-Z0-9_\-\.]*\r?\n([\s\S]*?)```/gi;
+                let match;
+                let createdAny = false;
+                while ((match = fileHeaderPattern.exec(finalContent)) !== null) {
+                  const rel = match[1].trim().replace(/^[\\/]/, '');
+                  const code = match[2];
+                  if (rel) {
+                    const fp = `${targetRoot.replace(/[\\/]$/, '')}/${rel}`;
+                    void window.electronAPI.writeFile(fp, code).then(() => {
+                      refreshWorkspace();
+                      openFile(fp);
+                    }).catch(e => console.error("Failed to auto-save file:", fp, e));
+                    createdAny = true;
+                  }
+                }
+                
+                // Fallback: if user asked for a specific file e.g. "create Counter.tsx"
+                if (!createdAny) {
+                  const promptFileMatch = lastUserMessage.current.match(/([a-zA-Z0-9_\-\./\\]+\.(?:tsx|ts|jsx|js|py|html|css|json|md|rs|go|java|c|cpp|sql|sh))/i);
+                  const codeBlockMatch = finalContent.match(/```(?:[a-zA-Z0-9_\-\.]*)\r?\n([\s\S]*?)```/);
+                  if (promptFileMatch && codeBlockMatch) {
+                    const rel = promptFileMatch[1].trim().replace(/^[\\/]/, '');
+                    const code = codeBlockMatch[1];
+                    const fp = `${targetRoot.replace(/[\\/]$/, '')}/${rel}`;
+                    void window.electronAPI.writeFile(fp, code).then(() => {
+                      refreshWorkspace();
+                      openFile(fp);
+                    }).catch(e => console.error("Failed to auto-save file:", fp, e));
+                    createdAny = true;
+                  }
+                }
+
+                if (createdAny) {
+                  setTimeout(() => refreshWorkspace(), 100);
+                }
               }
-              if (createdAny) refreshWorkspace();
             }
 
             setMessages(prev => prev.map(m =>

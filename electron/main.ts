@@ -427,6 +427,7 @@ ipcMain.handle('workspace:readFile', async (_event, filePath: string) => {
 
 ipcMain.handle('workspace:writeFile', async (_event, filePath: string, content: string) => {
   if (!isInsideWorkspace(filePath)) throw new Error('File is outside the active workspace.');
+  await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
   await fs.promises.writeFile(filePath, content, 'utf-8');
   return { ok: true };
 });
@@ -439,6 +440,7 @@ ipcMain.handle('workspace:createFile', async (_event, parentPath: string, name: 
   }
   const targetPath = path.join(parentPath, cleanedName);
   if (!isInsideWorkspace(targetPath)) throw new Error('File is outside the active workspace.');
+  await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
   await fs.promises.writeFile(targetPath, content, { encoding: 'utf-8', flag: 'wx' });
   return targetPath;
 });

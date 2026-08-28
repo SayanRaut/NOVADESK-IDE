@@ -1,47 +1,28 @@
-import { createRequire } from "node:module";
-import { BrowserWindow, app, dialog, ipcMain, net, safeStorage, shell } from "electron";
-import { randomBytes, randomUUID } from "crypto";
-import { execFile } from "child_process";
-import { promisify } from "util";
-import * as fs$1 from "fs";
-import fs from "fs";
-import os from "os";
-import * as path$1 from "path";
-import path from "path";
-import { fileURLToPath } from "url";
-import { createRequire as createRequire$1 } from "module";
-import extract from "extract-zip";
+import { createRequire as e } from "node:module";
+import { BrowserWindow as t, app as n, dialog as r, ipcMain as i, net as a, safeStorage as o, shell as s } from "electron";
+import { randomBytes as c, randomUUID as l } from "crypto";
+import { execFile as u } from "child_process";
+import { promisify as d } from "util";
+import * as f from "fs";
+import p from "fs";
+import m from "os";
+import * as h from "path";
+import g from "path";
+import { fileURLToPath as _ } from "url";
+import { createRequire as ee } from "module";
+import v from "extract-zip";
 //#region \0rolldown/runtime.js
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __commonJSMin = (cb, mod) => () => (mod || (cb((mod = { exports: {} }).exports, mod), cb = null), mod.exports);
-var __copyProps = (to, from, except, desc) => {
-	if (from && typeof from === "object" || typeof from === "function") for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
-		key = keys[i];
-		if (!__hasOwnProp.call(to, key) && key !== except) __defProp(to, key, {
-			get: ((k) => from[k]).bind(null, key),
-			enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable
-		});
-	}
-	return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", {
-	value: mod,
-	enumerable: true
-}) : target, mod));
-var __require = /* #__PURE__ */ (() => createRequire(import.meta.url))();
-//#endregion
-//#region electron/extensions/OpenVSXClient.ts
-var import_main = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var fs$2 = __require("fs");
-	var path$2 = __require("path");
-	var os$1 = __require("os");
-	var crypto = __require("crypto");
-	var TIPS = [
+var y = Object.create, b = Object.defineProperty, x = Object.getOwnPropertyDescriptor, S = Object.getOwnPropertyNames, C = Object.getPrototypeOf, w = Object.prototype.hasOwnProperty, T = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), te = (e, t, n, r) => {
+	if (t && typeof t == "object" || typeof t == "function") for (var i = S(t), a = 0, o = i.length, s; a < o; a++) s = i[a], !w.call(e, s) && s !== n && b(e, s, {
+		get: ((e) => t[e]).bind(null, s),
+		enumerable: !(r = x(t, s)) || r.enumerable
+	});
+	return e;
+}, ne = (e, t, n) => (n = e == null ? {} : y(C(e)), te(t || !e || !e.__esModule ? b(n, "default", {
+	value: e,
+	enumerable: !0
+}) : n, e)), E = /* @__PURE__ */ e(import.meta.url), re = /* @__PURE__ */ ne((/* @__PURE__ */ T(((e, t) => {
+	var n = E("fs"), r = E("path"), i = E("os"), a = E("crypto"), o = [
 		"◈ encrypted .env [www.dotenvx.com]",
 		"◈ secrets for agents [www.dotenvx.com]",
 		"⌁ auth for agents [www.vestauth.com]",
@@ -51,338 +32,259 @@ var import_main = /* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((expor
 		"⌘ suppress logs { quiet: true }",
 		"⌘ multiple files { path: ['.env.local', '.env'] }"
 	];
-	function _getRandomTip() {
-		return TIPS[Math.floor(Math.random() * TIPS.length)];
+	function s() {
+		return o[Math.floor(Math.random() * o.length)];
 	}
-	function parseBoolean(value) {
-		if (typeof value === "string") return ![
+	function c(e) {
+		return typeof e == "string" ? ![
 			"false",
 			"0",
 			"no",
 			"off",
 			""
-		].includes(value.toLowerCase());
-		return Boolean(value);
+		].includes(e.toLowerCase()) : !!e;
 	}
-	function supportsAnsi() {
+	function l() {
 		return process.stdout.isTTY;
 	}
-	function dim(text) {
-		return supportsAnsi() ? `\x1b[2m${text}\x1b[0m` : text;
+	function u(e) {
+		return l() ? `\x1b[2m${e}\x1b[0m` : e;
 	}
-	var LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/gm;
-	function parse(src) {
-		const obj = {};
-		let lines = src.toString();
-		lines = lines.replace(/\r\n?/gm, "\n");
-		let match;
-		while ((match = LINE.exec(lines)) != null) {
-			const key = match[1];
-			let value = match[2] || "";
-			value = value.trim();
-			const maybeQuote = value[0];
-			value = value.replace(/^(['"`])([\s\S]*)\1$/gm, "$2");
-			if (maybeQuote === "\"") {
-				value = value.replace(/\\n/g, "\n");
-				value = value.replace(/\\r/g, "\r");
-			}
-			obj[key] = value;
+	var d = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/gm;
+	function f(e) {
+		let t = {}, n = e.toString();
+		n = n.replace(/\r\n?/gm, "\n");
+		let r;
+		for (; (r = d.exec(n)) != null;) {
+			let e = r[1], n = r[2] || "";
+			n = n.trim();
+			let i = n[0];
+			n = n.replace(/^(['"`])([\s\S]*)\1$/gm, "$2"), i === "\"" && (n = n.replace(/\\n/g, "\n"), n = n.replace(/\\r/g, "\r")), t[e] = n;
 		}
-		return obj;
+		return t;
 	}
-	function _parseVault(options) {
-		options = options || {};
-		const vaultPath = _vaultPath(options);
-		options.path = vaultPath;
-		const result = DotenvModule.configDotenv(options);
-		if (!result.parsed) {
-			const err = /* @__PURE__ */ new Error(`MISSING_DATA: Cannot parse ${vaultPath} for an unknown reason`);
-			err.code = "MISSING_DATA";
-			throw err;
+	function p(e) {
+		e ||= {};
+		let t = v(e);
+		e.path = t;
+		let n = T.configDotenv(e);
+		if (!n.parsed) {
+			let e = /* @__PURE__ */ Error(`MISSING_DATA: Cannot parse ${t} for an unknown reason`);
+			throw e.code = "MISSING_DATA", e;
 		}
-		const keys = _dotenvKey(options).split(",");
-		const length = keys.length;
-		let decrypted;
-		for (let i = 0; i < length; i++) try {
-			const attrs = _instructions(result, keys[i].trim());
-			decrypted = DotenvModule.decrypt(attrs.ciphertext, attrs.key);
+		let r = _(e).split(","), i = r.length, a;
+		for (let e = 0; e < i; e++) try {
+			let t = ee(n, r[e].trim());
+			a = T.decrypt(t.ciphertext, t.key);
 			break;
-		} catch (error) {
-			if (i + 1 >= length) throw error;
+		} catch (t) {
+			if (e + 1 >= i) throw t;
 		}
-		return DotenvModule.parse(decrypted);
+		return T.parse(a);
 	}
-	function _warn(message) {
-		console.error(`⚠ ${message}`);
+	function m(e) {
+		console.error(`⚠ ${e}`);
 	}
-	function _debug(message) {
-		console.log(`┆ ${message}`);
+	function h(e) {
+		console.log(`┆ ${e}`);
 	}
-	function _log(message) {
-		console.log(`◇ ${message}`);
+	function g(e) {
+		console.log(`◇ ${e}`);
 	}
-	function _dotenvKey(options) {
-		if (options && options.DOTENV_KEY && options.DOTENV_KEY.length > 0) return options.DOTENV_KEY;
-		if (process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0) return process.env.DOTENV_KEY;
-		return "";
+	function _(e) {
+		return e && e.DOTENV_KEY && e.DOTENV_KEY.length > 0 ? e.DOTENV_KEY : process.env.DOTENV_KEY && process.env.DOTENV_KEY.length > 0 ? process.env.DOTENV_KEY : "";
 	}
-	function _instructions(result, dotenvKey) {
-		let uri;
+	function ee(e, t) {
+		let n;
 		try {
-			uri = new URL(dotenvKey);
-		} catch (error) {
-			if (error.code === "ERR_INVALID_URL") {
-				const err = /* @__PURE__ */ new Error("INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development");
-				err.code = "INVALID_DOTENV_KEY";
-				throw err;
+			n = new URL(t);
+		} catch (e) {
+			if (e.code === "ERR_INVALID_URL") {
+				let e = /* @__PURE__ */ Error("INVALID_DOTENV_KEY: Wrong format. Must be in valid uri format like dotenv://:key_1234@dotenvx.com/vault/.env.vault?environment=development");
+				throw e.code = "INVALID_DOTENV_KEY", e;
 			}
-			throw error;
+			throw e;
 		}
-		const key = uri.password;
-		if (!key) {
-			const err = /* @__PURE__ */ new Error("INVALID_DOTENV_KEY: Missing key part");
-			err.code = "INVALID_DOTENV_KEY";
-			throw err;
+		let r = n.password;
+		if (!r) {
+			let e = /* @__PURE__ */ Error("INVALID_DOTENV_KEY: Missing key part");
+			throw e.code = "INVALID_DOTENV_KEY", e;
 		}
-		const environment = uri.searchParams.get("environment");
-		if (!environment) {
-			const err = /* @__PURE__ */ new Error("INVALID_DOTENV_KEY: Missing environment part");
-			err.code = "INVALID_DOTENV_KEY";
-			throw err;
+		let i = n.searchParams.get("environment");
+		if (!i) {
+			let e = /* @__PURE__ */ Error("INVALID_DOTENV_KEY: Missing environment part");
+			throw e.code = "INVALID_DOTENV_KEY", e;
 		}
-		const environmentKey = `DOTENV_VAULT_${environment.toUpperCase()}`;
-		const ciphertext = result.parsed[environmentKey];
-		if (!ciphertext) {
-			const err = /* @__PURE__ */ new Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${environmentKey} in your .env.vault file.`);
-			err.code = "NOT_FOUND_DOTENV_ENVIRONMENT";
-			throw err;
+		let a = `DOTENV_VAULT_${i.toUpperCase()}`, o = e.parsed[a];
+		if (!o) {
+			let e = /* @__PURE__ */ Error(`NOT_FOUND_DOTENV_ENVIRONMENT: Cannot locate environment ${a} in your .env.vault file.`);
+			throw e.code = "NOT_FOUND_DOTENV_ENVIRONMENT", e;
 		}
 		return {
-			ciphertext,
-			key
+			ciphertext: o,
+			key: r
 		};
 	}
-	function _vaultPath(options) {
-		let possibleVaultPath = null;
-		if (options && options.path && options.path.length > 0) if (Array.isArray(options.path)) {
-			for (const filepath of options.path) if (fs$2.existsSync(filepath)) possibleVaultPath = filepath.endsWith(".vault") ? filepath : `${filepath}.vault`;
-		} else possibleVaultPath = options.path.endsWith(".vault") ? options.path : `${options.path}.vault`;
-		else possibleVaultPath = path$2.resolve(process.cwd(), ".env.vault");
-		if (fs$2.existsSync(possibleVaultPath)) return possibleVaultPath;
-		return null;
+	function v(e) {
+		let t = null;
+		if (e && e.path && e.path.length > 0) if (Array.isArray(e.path)) for (let r of e.path) n.existsSync(r) && (t = r.endsWith(".vault") ? r : `${r}.vault`);
+		else t = e.path.endsWith(".vault") ? e.path : `${e.path}.vault`;
+		else t = r.resolve(process.cwd(), ".env.vault");
+		return n.existsSync(t) ? t : null;
 	}
-	function _resolveHome(envPath) {
-		return envPath[0] === "~" ? path$2.join(os$1.homedir(), envPath.slice(1)) : envPath;
+	function y(e) {
+		return e[0] === "~" ? r.join(i.homedir(), e.slice(1)) : e;
 	}
-	function _configVault(options) {
-		const debug = parseBoolean(process.env.DOTENV_CONFIG_DEBUG || options && options.debug);
-		const quiet = parseBoolean(process.env.DOTENV_CONFIG_QUIET || options && options.quiet);
-		if (debug || !quiet) _log("loading env from encrypted .env.vault");
-		const parsed = DotenvModule._parseVault(options);
-		let processEnv = process.env;
-		if (options && options.processEnv != null) processEnv = options.processEnv;
-		DotenvModule.populate(processEnv, parsed, options);
-		return { parsed };
+	function b(e) {
+		let t = c(process.env.DOTENV_CONFIG_DEBUG || e && e.debug), n = c(process.env.DOTENV_CONFIG_QUIET || e && e.quiet);
+		(t || !n) && g("loading env from encrypted .env.vault");
+		let r = T._parseVault(e), i = process.env;
+		return e && e.processEnv != null && (i = e.processEnv), T.populate(i, r, e), { parsed: r };
 	}
-	function configDotenv(options) {
-		const dotenvPath = path$2.resolve(process.cwd(), ".env");
-		let encoding = "utf8";
-		let processEnv = process.env;
-		if (options && options.processEnv != null) processEnv = options.processEnv;
-		let debug = parseBoolean(processEnv.DOTENV_CONFIG_DEBUG || options && options.debug);
-		let quiet = parseBoolean(processEnv.DOTENV_CONFIG_QUIET || options && options.quiet);
-		if (options && options.encoding) encoding = options.encoding;
-		else if (debug) _debug("no encoding is specified (UTF-8 is used by default)");
-		let optionPaths = [dotenvPath];
-		if (options && options.path) if (!Array.isArray(options.path)) optionPaths = [_resolveHome(options.path)];
+	function x(e) {
+		let t = r.resolve(process.cwd(), ".env"), i = "utf8", a = process.env;
+		e && e.processEnv != null && (a = e.processEnv);
+		let o = c(a.DOTENV_CONFIG_DEBUG || e && e.debug), l = c(a.DOTENV_CONFIG_QUIET || e && e.quiet);
+		e && e.encoding ? i = e.encoding : o && h("no encoding is specified (UTF-8 is used by default)");
+		let d = [t];
+		if (e && e.path) if (!Array.isArray(e.path)) d = [y(e.path)];
 		else {
-			optionPaths = [];
-			for (const filepath of options.path) optionPaths.push(_resolveHome(filepath));
+			d = [];
+			for (let t of e.path) d.push(y(t));
 		}
-		let lastError;
-		const parsedAll = {};
-		for (const path of optionPaths) try {
-			const parsed = DotenvModule.parse(fs$2.readFileSync(path, { encoding }));
-			DotenvModule.populate(parsedAll, parsed, options);
+		let f, p = {};
+		for (let t of d) try {
+			let r = T.parse(n.readFileSync(t, { encoding: i }));
+			T.populate(p, r, e);
 		} catch (e) {
-			if (debug) _debug(`failed to load ${path} ${e.message}`);
-			lastError = e;
+			o && h(`failed to load ${t} ${e.message}`), f = e;
 		}
-		const populated = DotenvModule.populate(processEnv, parsedAll, options);
-		debug = parseBoolean(processEnv.DOTENV_CONFIG_DEBUG || debug);
-		quiet = parseBoolean(processEnv.DOTENV_CONFIG_QUIET || quiet);
-		if (debug || !quiet) {
-			const keysCount = Object.keys(populated).length;
-			const shortPaths = [];
-			for (const filePath of optionPaths) try {
-				const relative = path$2.relative(process.cwd(), filePath);
-				shortPaths.push(relative);
-			} catch (e) {
-				if (debug) _debug(`failed to load ${filePath} ${e.message}`);
-				lastError = e;
+		let m = T.populate(a, p, e);
+		if (o = c(a.DOTENV_CONFIG_DEBUG || o), l = c(a.DOTENV_CONFIG_QUIET || l), o || !l) {
+			let e = Object.keys(m).length, t = [];
+			for (let e of d) try {
+				let n = r.relative(process.cwd(), e);
+				t.push(n);
+			} catch (t) {
+				o && h(`failed to load ${e} ${t.message}`), f = t;
 			}
-			_log(`injected env (${keysCount}) from ${shortPaths.join(",")} ${dim(`// tip: ${_getRandomTip()}`)}`);
+			g(`injected env (${e}) from ${t.join(",")} ${u(`// tip: ${s()}`)}`);
 		}
-		if (lastError) return {
-			parsed: parsedAll,
-			error: lastError
-		};
-		else return { parsed: parsedAll };
+		return f ? {
+			parsed: p,
+			error: f
+		} : { parsed: p };
 	}
-	function config(options) {
-		if (_dotenvKey(options).length === 0) return DotenvModule.configDotenv(options);
-		const vaultPath = _vaultPath(options);
-		if (!vaultPath) {
-			_warn(`you set DOTENV_KEY but you are missing a .env.vault file at ${vaultPath}`);
-			return DotenvModule.configDotenv(options);
-		}
-		return DotenvModule._configVault(options);
+	function S(e) {
+		if (_(e).length === 0) return T.configDotenv(e);
+		let t = v(e);
+		return t ? T._configVault(e) : (m(`you set DOTENV_KEY but you are missing a .env.vault file at ${t}`), T.configDotenv(e));
 	}
-	function decrypt(encrypted, keyStr) {
-		const key = Buffer.from(keyStr.slice(-64), "hex");
-		let ciphertext = Buffer.from(encrypted, "base64");
-		const nonce = ciphertext.subarray(0, 12);
-		const authTag = ciphertext.subarray(-16);
-		ciphertext = ciphertext.subarray(12, -16);
+	function C(e, t) {
+		let n = Buffer.from(t.slice(-64), "hex"), r = Buffer.from(e, "base64"), i = r.subarray(0, 12), o = r.subarray(-16);
+		r = r.subarray(12, -16);
 		try {
-			const aesgcm = crypto.createDecipheriv("aes-256-gcm", key, nonce);
-			aesgcm.setAuthTag(authTag);
-			return `${aesgcm.update(ciphertext)}${aesgcm.final()}`;
-		} catch (error) {
-			const isRange = error instanceof RangeError;
-			const invalidKeyLength = error.message === "Invalid key length";
-			const decryptionFailed = error.message === "Unsupported state or unable to authenticate data";
-			if (isRange || invalidKeyLength) {
-				const err = /* @__PURE__ */ new Error("INVALID_DOTENV_KEY: It must be 64 characters long (or more)");
-				err.code = "INVALID_DOTENV_KEY";
-				throw err;
-			} else if (decryptionFailed) {
-				const err = /* @__PURE__ */ new Error("DECRYPTION_FAILED: Please check your DOTENV_KEY");
-				err.code = "DECRYPTION_FAILED";
-				throw err;
-			} else throw error;
+			let e = a.createDecipheriv("aes-256-gcm", n, i);
+			return e.setAuthTag(o), `${e.update(r)}${e.final()}`;
+		} catch (e) {
+			let t = e instanceof RangeError, n = e.message === "Invalid key length", r = e.message === "Unsupported state or unable to authenticate data";
+			if (t || n) {
+				let e = /* @__PURE__ */ Error("INVALID_DOTENV_KEY: It must be 64 characters long (or more)");
+				throw e.code = "INVALID_DOTENV_KEY", e;
+			} else if (r) {
+				let e = /* @__PURE__ */ Error("DECRYPTION_FAILED: Please check your DOTENV_KEY");
+				throw e.code = "DECRYPTION_FAILED", e;
+			} else throw e;
 		}
 	}
-	function populate(processEnv, parsed, options = {}) {
-		const debug = Boolean(options && options.debug);
-		const override = Boolean(options && options.override);
-		const populated = {};
-		if (typeof parsed !== "object") {
-			const err = /* @__PURE__ */ new Error("OBJECT_REQUIRED: Please check the processEnv argument being passed to populate");
-			err.code = "OBJECT_REQUIRED";
-			throw err;
+	function w(e, t, n = {}) {
+		let r = !!(n && n.debug), i = !!(n && n.override), a = {};
+		if (typeof t != "object") {
+			let e = /* @__PURE__ */ Error("OBJECT_REQUIRED: Please check the processEnv argument being passed to populate");
+			throw e.code = "OBJECT_REQUIRED", e;
 		}
-		for (const key of Object.keys(parsed)) if (Object.prototype.hasOwnProperty.call(processEnv, key)) {
-			if (override === true) {
-				processEnv[key] = parsed[key];
-				populated[key] = parsed[key];
-			}
-			if (debug) if (override === true) _debug(`"${key}" is already defined and WAS overwritten`);
-			else _debug(`"${key}" is already defined and was NOT overwritten`);
-		} else {
-			processEnv[key] = parsed[key];
-			populated[key] = parsed[key];
-		}
-		return populated;
+		for (let n of Object.keys(t)) Object.prototype.hasOwnProperty.call(e, n) ? (i === !0 && (e[n] = t[n], a[n] = t[n]), r && h(i === !0 ? `"${n}" is already defined and WAS overwritten` : `"${n}" is already defined and was NOT overwritten`)) : (e[n] = t[n], a[n] = t[n]);
+		return a;
 	}
-	var DotenvModule = {
-		configDotenv,
-		_configVault,
-		_parseVault,
-		config,
-		decrypt,
-		parse,
-		populate
+	var T = {
+		configDotenv: x,
+		_configVault: b,
+		_parseVault: p,
+		config: S,
+		decrypt: C,
+		parse: f,
+		populate: w
 	};
-	module.exports.configDotenv = DotenvModule.configDotenv;
-	module.exports._configVault = DotenvModule._configVault;
-	module.exports._parseVault = DotenvModule._parseVault;
-	module.exports.config = DotenvModule.config;
-	module.exports.decrypt = DotenvModule.decrypt;
-	module.exports.parse = DotenvModule.parse;
-	module.exports.populate = DotenvModule.populate;
-	module.exports = DotenvModule;
-})))(), 1);
-var OpenVSXClient = class {
+	t.exports.configDotenv = T.configDotenv, t.exports._configVault = T._configVault, t.exports._parseVault = T._parseVault, t.exports.config = T.config, t.exports.decrypt = T.decrypt, t.exports.parse = T.parse, t.exports.populate = T.populate, t.exports = T;
+})))(), 1), D = class {
 	static BASE_URL = "https://open-vsx.org/api";
-	static async search(query = "", sortBy = "downloadCount", sortOrder = "desc", offset = 0, size = 20) {
-		const url = `${this.BASE_URL}/-/search?query=${encodeURIComponent(query)}&sortBy=${sortBy}&sortOrder=${sortOrder}&offset=${offset}&size=${size}`;
-		return new Promise((resolve, reject) => {
-			const request = net.request(url);
-			request.on("response", (response) => {
-				if (response.statusCode !== 200) {
-					reject(/* @__PURE__ */ new Error(`Open VSX API returned status ${response.statusCode}`));
+	static async search(e = "", t = "downloadCount", n = "desc", r = 0, i = 20) {
+		let o = `${this.BASE_URL}/-/search?query=${encodeURIComponent(e)}&sortBy=${t}&sortOrder=${n}&offset=${r}&size=${i}`;
+		return new Promise((e, t) => {
+			let n = a.request(o);
+			n.on("response", (n) => {
+				if (n.statusCode !== 200) {
+					t(/* @__PURE__ */ Error(`Open VSX API returned status ${n.statusCode}`));
 					return;
 				}
-				let body = "";
-				response.on("data", (chunk) => {
-					body += chunk.toString();
-				});
-				response.on("end", () => {
+				let r = "";
+				n.on("data", (e) => {
+					r += e.toString();
+				}), n.on("end", () => {
 					try {
-						resolve(JSON.parse(body));
+						e(JSON.parse(r));
 					} catch {
-						reject(/* @__PURE__ */ new Error("Failed to parse Open VSX response"));
+						t(/* @__PURE__ */ Error("Failed to parse Open VSX response"));
 					}
 				});
-			});
-			request.on("error", (error) => {
-				reject(error);
-			});
-			request.end();
+			}), n.on("error", (e) => {
+				t(e);
+			}), n.end();
 		});
 	}
-	static async getExtension(namespace, name) {
-		const url = `${this.BASE_URL}/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}`;
-		return new Promise((resolve, reject) => {
-			const request = net.request(url);
-			request.on("response", (response) => {
-				if (response.statusCode !== 200) {
-					reject(/* @__PURE__ */ new Error(`Open VSX API returned status ${response.statusCode}`));
+	static async getExtension(e, t) {
+		let n = `${this.BASE_URL}/${encodeURIComponent(e)}/${encodeURIComponent(t)}`;
+		return new Promise((e, t) => {
+			let r = a.request(n);
+			r.on("response", (n) => {
+				if (n.statusCode !== 200) {
+					t(/* @__PURE__ */ Error(`Open VSX API returned status ${n.statusCode}`));
 					return;
 				}
-				let body = "";
-				response.on("data", (chunk) => {
-					body += chunk.toString();
-				});
-				response.on("end", () => {
+				let r = "";
+				n.on("data", (e) => {
+					r += e.toString();
+				}), n.on("end", () => {
 					try {
-						resolve(JSON.parse(body));
+						e(JSON.parse(r));
 					} catch {
-						reject(/* @__PURE__ */ new Error("Failed to parse Open VSX response"));
+						t(/* @__PURE__ */ Error("Failed to parse Open VSX response"));
 					}
 				});
-			});
-			request.on("error", (error) => {
-				reject(error);
-			});
-			request.end();
+			}), r.on("error", (e) => {
+				t(e);
+			}), r.end();
 		});
 	}
-};
-//#endregion
-//#region electron/extensions/ExtensionRegistry.ts
-var ExtensionRegistry = class {
+}, O = new class {
 	registryPath;
 	installedExtensions;
 	constructor() {
-		const userDataPath = app.getPath("userData");
-		this.registryPath = path$1.join(userDataPath, "extensions.json");
-		this.installedExtensions = /* @__PURE__ */ new Map();
-		this.load();
+		let e = n.getPath("userData");
+		this.registryPath = h.join(e, "extensions.json"), this.installedExtensions = /* @__PURE__ */ new Map(), this.load();
 	}
 	load() {
-		if (fs$1.existsSync(this.registryPath)) try {
-			const data = fs$1.readFileSync(this.registryPath, "utf8");
-			JSON.parse(data).forEach((ext) => this.installedExtensions.set(ext.id, ext));
+		if (f.existsSync(this.registryPath)) try {
+			let e = f.readFileSync(this.registryPath, "utf8");
+			JSON.parse(e).forEach((e) => this.installedExtensions.set(e.id, e));
 		} catch (e) {
 			console.error("Failed to load extension registry", e);
 		}
 	}
 	save() {
 		try {
-			const data = Array.from(this.installedExtensions.values());
-			fs$1.writeFileSync(this.registryPath, JSON.stringify(data, null, 2), "utf8");
+			let e = Array.from(this.installedExtensions.values());
+			f.writeFileSync(this.registryPath, JSON.stringify(e, null, 2), "utf8");
 		} catch (e) {
 			console.error("Failed to save extension registry", e);
 		}
@@ -390,141 +292,91 @@ var ExtensionRegistry = class {
 	getInstalled() {
 		return Array.from(this.installedExtensions.values());
 	}
-	getExtension(id) {
-		return this.installedExtensions.get(id);
+	getExtension(e) {
+		return this.installedExtensions.get(e);
 	}
-	addExtension(ext) {
-		this.installedExtensions.set(ext.id, {
-			...ext,
-			enabled: true,
+	addExtension(e) {
+		this.installedExtensions.set(e.id, {
+			...e,
+			enabled: !0,
 			installedAt: Date.now()
-		});
-		this.save();
+		}), this.save();
 	}
-	removeExtension(id) {
-		if (this.installedExtensions.has(id)) {
-			this.installedExtensions.delete(id);
-			this.save();
-		}
+	removeExtension(e) {
+		this.installedExtensions.has(e) && (this.installedExtensions.delete(e), this.save());
 	}
-	toggleExtension(id, enabled) {
-		const ext = this.installedExtensions.get(id);
-		if (ext) {
-			ext.enabled = enabled;
-			this.save();
-		}
+	toggleExtension(e, t) {
+		let n = this.installedExtensions.get(e);
+		n && (n.enabled = t, this.save());
 	}
-};
-var extensionRegistry = new ExtensionRegistry();
-//#endregion
-//#region electron/extensions/VSIXInstaller.ts
-var VSIXInstaller = class {
-	static extensionsDir = path$1.join(app.getPath("userData"), "extensions");
-	static ensureDir(dir) {
-		if (!fs$1.existsSync(dir)) fs$1.mkdirSync(dir, { recursive: true });
+}(), k = class {
+	static extensionsDir = h.join(n.getPath("userData"), "extensions");
+	static ensureDir(e) {
+		f.existsSync(e) || f.mkdirSync(e, { recursive: !0 });
 	}
-	static async installFromOpenVSX(namespace, name) {
+	static async installFromOpenVSX(e, t) {
 		try {
-			const extInfo = await OpenVSXClient.getExtension(namespace, name);
-			const downloadUrl = extInfo.files.download;
-			const extensionId = `${namespace}.${name}`;
+			let n = await D.getExtension(e, t), r = n.files.download, i = `${e}.${t}`;
 			this.ensureDir(this.extensionsDir);
-			const installPath = path$1.join(this.extensionsDir, extensionId);
-			const tempZipPath = path$1.join(this.extensionsDir, `${extensionId}.temp.vsix`);
-			await new Promise((resolve, reject) => {
-				const request = net.request(downloadUrl);
-				const fileStream = fs$1.createWriteStream(tempZipPath);
-				request.on("response", (response) => {
-					if (response.statusCode !== 200) {
-						reject(/* @__PURE__ */ new Error(`Failed to download extension: HTTP ${response.statusCode}`));
+			let o = h.join(this.extensionsDir, i), s = h.join(this.extensionsDir, `${i}.temp.vsix`);
+			await new Promise((e, t) => {
+				let n = a.request(r), i = f.createWriteStream(s);
+				n.on("response", (n) => {
+					if (n.statusCode !== 200) {
+						t(/* @__PURE__ */ Error(`Failed to download extension: HTTP ${n.statusCode}`));
 						return;
 					}
-					response.on("data", (chunk) => {
-						fileStream.write(chunk);
+					n.on("data", (e) => {
+						i.write(e);
+					}), n.on("end", () => {
+						i.end(), e();
 					});
-					response.on("end", () => {
-						fileStream.end();
-						resolve();
-					});
-				});
-				request.on("error", (error) => {
-					fileStream.close();
-					fs$1.unlinkSync(tempZipPath);
-					reject(error);
-				});
-				request.end();
+				}), n.on("error", (e) => {
+					i.close(), f.unlinkSync(s), t(e);
+				}), n.end();
+			}), f.existsSync(o) && f.rmSync(o, {
+				recursive: !0,
+				force: !0
+			}), await v(s, { dir: o }), f.unlinkSync(s), O.addExtension({
+				id: i,
+				namespace: e,
+				name: t,
+				version: n.version,
+				displayName: n.displayName || t,
+				description: n.description || "",
+				publisher: n.publisher || e,
+				installPath: o,
+				iconUrl: n.files.icon || n.iconUrl
 			});
-			if (fs$1.existsSync(installPath)) fs$1.rmSync(installPath, {
-				recursive: true,
-				force: true
-			});
-			await extract(tempZipPath, { dir: installPath });
-			fs$1.unlinkSync(tempZipPath);
-			extensionRegistry.addExtension({
-				id: extensionId,
-				namespace,
-				name,
-				version: extInfo.version,
-				displayName: extInfo.displayName || name,
-				description: extInfo.description || "",
-				publisher: extInfo.publisher || namespace,
-				installPath,
-				iconUrl: extInfo.files.icon || extInfo.iconUrl
-			});
-		} catch (error) {
-			console.error(`Failed to install ${namespace}.${name}:`, error);
-			throw error;
+		} catch (n) {
+			throw console.error(`Failed to install ${e}.${t}:`, n), n;
 		}
 	}
-	static async uninstall(id) {
-		const ext = extensionRegistry.getExtension(id);
-		if (!ext) return;
-		if (fs$1.existsSync(ext.installPath)) fs$1.rmSync(ext.installPath, {
-			recursive: true,
-			force: true
-		});
-		extensionRegistry.removeExtension(id);
+	static async uninstall(e) {
+		let t = O.getExtension(e);
+		t && (f.existsSync(t.installPath) && f.rmSync(t.installPath, {
+			recursive: !0,
+			force: !0
+		}), O.removeExtension(e));
 	}
-};
-//#endregion
-//#region electron/extensions/ExtensionHostManager.ts
-var ExtensionHostManager = class {
+}, A = new class {
 	hostProcess = null;
 	start() {
 		console.log("[ExtensionHost] Starting extension host process skeleton...");
 	}
 	stop() {
-		if (this.hostProcess) {
-			this.hostProcess.kill();
-			this.hostProcess = null;
-		}
+		this.hostProcess &&= (this.hostProcess.kill(), null);
 	}
-};
-var extensionHostManager = new ExtensionHostManager();
-//#endregion
-//#region electron/main.ts
-var __dirname = path.dirname(fileURLToPath(import.meta.url));
-var require$1 = createRequire$1(import.meta.url);
-import_main.default.config({ path: path.join(__dirname, "../.env") });
-var pty = require$1("node-pty");
-var isDev = process.env.NODE_ENV === "development";
-var desktopScheme = "novadesk";
-var apiOrigin = process.env.VITE_NOVADESK_API_URL || process.env.NOVADESK_API_URL || "https://novadesk-ide.onrender.com";
-var mainWindow = null;
-var workspaceRoot = null;
-var ptyProcesses = /* @__PURE__ */ new Map();
-var terminalSubscribers = /* @__PURE__ */ new Set();
-var pendingAuthCallback = null;
-var execFileAsync = promisify(execFile);
-var aiConnectionPath = () => path.join(app.getPath("userData"), "ai-connection.json");
-var readAIConnection = () => {
+}(), j = g.dirname(_(import.meta.url)), ie = ee(import.meta.url);
+re.default.config({ path: g.join(j, "../.env") });
+var ae = ie("node-pty"), oe = process.env.NODE_ENV === "development", M = "novadesk", se = process.env.VITE_NOVADESK_API_URL || process.env.NOVADESK_API_URL || "https://novadesk-ide.onrender.com", N = null, P = null, F = /* @__PURE__ */ new Map(), I = /* @__PURE__ */ new Set(), L = null, R = d(u), z = () => g.join(n.getPath("userData"), "ai-connection.json"), B = () => {
 	try {
-		const parsed = JSON.parse(fs.readFileSync(aiConnectionPath(), "utf-8"));
+		let e = JSON.parse(p.readFileSync(z(), "utf-8"));
 		return {
-			provider: parsed.provider === "openai-compatible" ? "openai-compatible" : "novadesk",
-			baseUrl: typeof parsed.baseUrl === "string" ? parsed.baseUrl : "",
-			model: typeof parsed.model === "string" ? parsed.model : "",
-			encryptedApiKey: typeof parsed.encryptedApiKey === "string" ? parsed.encryptedApiKey : void 0
+			provider: e.provider === "openai-compatible" ? "openai-compatible" : "novadesk",
+			baseUrl: typeof e.baseUrl == "string" ? e.baseUrl : "",
+			model: typeof e.model == "string" ? e.model : "",
+			encryptedApiKey: typeof e.encryptedApiKey == "string" ? e.encryptedApiKey : void 0
 		};
 	} catch {
 		return {
@@ -533,35 +385,29 @@ var readAIConnection = () => {
 			model: ""
 		};
 	}
-};
-var publicAIConnection = (connection) => ({
-	provider: connection.provider,
-	baseUrl: connection.baseUrl,
-	model: connection.model,
-	hasApiKey: Boolean(connection.encryptedApiKey)
-});
-var getAPIKey = (connection) => {
-	if (!connection.encryptedApiKey) return "";
-	if (!safeStorage.isEncryptionAvailable()) throw new Error("Your operating system key store is unavailable. NovaDesk cannot safely unlock the AI key.");
-	return safeStorage.decryptString(Buffer.from(connection.encryptedApiKey, "base64"));
-};
-var normalizeAIBaseUrl = (value) => {
-	const parsed = new URL(value.trim());
-	if (!["http:", "https:"].includes(parsed.protocol)) throw new Error("The AI service URL must begin with http:// or https://.");
-	return parsed.toString().replace(/\/$/, "");
-};
-var isInsideWorkspace = (candidatePath) => {
-	if (!workspaceRoot) return true;
-	const normalCandidate = path.resolve(candidatePath);
-	const normalRoot = path.resolve(workspaceRoot);
+}, V = (e) => ({
+	provider: e.provider,
+	baseUrl: e.baseUrl,
+	model: e.model,
+	hasApiKey: !!e.encryptedApiKey
+}), H = (e) => {
+	if (!e.encryptedApiKey) return "";
+	if (!o.isEncryptionAvailable()) throw Error("Your operating system key store is unavailable. NovaDesk cannot safely unlock the AI key.");
+	return o.decryptString(Buffer.from(e.encryptedApiKey, "base64"));
+}, U = (e) => {
+	let t = new URL(e.trim());
+	if (!["http:", "https:"].includes(t.protocol)) throw Error("The AI service URL must begin with http:// or https://.");
+	return t.toString().replace(/\/$/, "");
+}, W = (e) => {
+	if (!P) return !0;
+	let t = g.resolve(e), n = g.resolve(P);
 	if (process.platform === "win32") {
-		const rel = path.relative(normalRoot.toLowerCase(), normalCandidate.toLowerCase());
-		return rel === "" || !rel.startsWith(`..${path.sep}`) && rel !== ".." && !path.isAbsolute(rel);
+		let e = g.relative(n.toLowerCase(), t.toLowerCase());
+		return e === "" || !e.startsWith(`..${g.sep}`) && e !== ".." && !g.isAbsolute(e);
 	}
-	const relative = path.relative(normalRoot, normalCandidate);
-	return relative === "" || !relative.startsWith(`..${path.sep}`) && relative !== ".." && !path.isAbsolute(relative);
-};
-var ignoredDirectoryNames = /* @__PURE__ */ new Set([
+	let r = g.relative(n, t);
+	return r === "" || !r.startsWith(`..${g.sep}`) && r !== ".." && !g.isAbsolute(r);
+}, G = /* @__PURE__ */ new Set([
 	".git",
 	"node_modules",
 	".venv",
@@ -569,69 +415,54 @@ var ignoredDirectoryNames = /* @__PURE__ */ new Set([
 	"build",
 	".next",
 	"__pycache__"
-]);
-var sendTerminalData = (id, data) => {
-	for (const subscriber of terminalSubscribers) if (!subscriber.isDestroyed()) subscriber.send("terminal:data", {
-		id,
-		data
+]), ce = (e, t) => {
+	for (let n of I) n.isDestroyed() || n.send("terminal:data", {
+		id: e,
+		data: t
 	});
-};
-var stopTerminal = (id) => {
-	const ptyProcess = ptyProcesses.get(id);
-	if (ptyProcess) {
-		ptyProcess.kill();
-		ptyProcesses.delete(id);
-	}
-};
-var createTerminal = (cwd) => {
-	const id = randomUUID();
-	let shell = "bash";
-	if (os.platform() === "win32") shell = "powershell.exe";
-	else if (process.env.SHELL) shell = process.env.SHELL;
-	const ptyProcess = pty.spawn(shell, [], {
+}, K = (e) => {
+	let t = F.get(e);
+	t && (t.kill(), F.delete(e));
+}, le = (e) => {
+	let t = l(), n = "bash";
+	m.platform() === "win32" ? n = "powershell.exe" : process.env.SHELL && (n = process.env.SHELL);
+	let r = ae.spawn(n, [], {
 		name: "xterm-color",
 		cols: 100,
 		rows: 30,
-		cwd: cwd || workspaceRoot || process.cwd(),
+		cwd: e || P || process.cwd(),
 		env: process.env
 	});
-	ptyProcess.onData((data) => sendTerminalData(id, data));
-	ptyProcess.onExit(() => {
-		ptyProcesses.delete(id);
-		for (const subscriber of terminalSubscribers) if (!subscriber.isDestroyed()) subscriber.send("terminal:exit", id);
-	});
-	ptyProcesses.set(id, ptyProcess);
-	return id;
-};
-var runGit = async (args) => {
-	if (!workspaceRoot) throw new Error("Open a workspace first.");
-	const { stdout, stderr } = await execFileAsync("git", args, {
-		cwd: workspaceRoot,
-		windowsHide: true,
+	return r.onData((e) => ce(t, e)), r.onExit(() => {
+		F.delete(t);
+		for (let e of I) e.isDestroyed() || e.send("terminal:exit", t);
+	}), F.set(t, r), t;
+}, q = async (e) => {
+	if (!P) throw Error("Open a workspace first.");
+	let { stdout: t, stderr: n } = await R("git", e, {
+		cwd: P,
+		windowsHide: !0,
 		maxBuffer: 50 * 1024 * 1024
 	});
 	return {
-		stdout,
-		stderr
+		stdout: t,
+		stderr: n
 	};
-};
-var makeProjectFiles = (template, name) => {
-	const packageName = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "novadesk-project";
-	if (template === "python") return {
+}, ue = (e, t) => {
+	let n = t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "novadesk-project";
+	return e === "python" ? {
 		"main.py": "def main():\n    print(\"Hello from NovaDesk!\")\n\n\nif __name__ == \"__main__\":\n    main()\n",
-		"README.md": `# ${name}\n\nA Python project created with NovaDesk.\n`,
+		"README.md": `# ${t}\n\nA Python project created with NovaDesk.\n`,
 		".gitignore": "__pycache__/\n.venv/\n.env\n"
-	};
-	if (template === "html") return {
-		"index.html": `<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>${name}</title>\n    <link rel="stylesheet" href="style.css" />\n  </head>\n  <body>\n    <main>\n      <h1>${name}</h1>\n      <p>Built with NovaDesk.</p>\n    </main>\n    <script src="script.js"><\/script>\n  </body>\n</html>\n`,
+	} : e === "html" ? {
+		"index.html": `<!doctype html>\n<html lang="en">\n  <head>\n    <meta charset="UTF-8" />\n    <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n    <title>${t}</title>\n    <link rel="stylesheet" href="style.css" />\n  </head>\n  <body>\n    <main>\n      <h1>${t}</h1>\n      <p>Built with NovaDesk.</p>\n    </main>\n    <script src="script.js"><\/script>\n  </body>\n</html>\n`,
 		"style.css": "body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: system-ui, sans-serif; background: #101827; color: #f8fafc; }\nmain { text-align: center; }\n",
 		"script.js": "console.log(\"NovaDesk project ready\");\n",
-		"README.md": `# ${name}\n\nOpen \`index.html\` in a browser to get started.\n`
-	};
-	return {
+		"README.md": `# ${t}\n\nOpen \`index.html\` in a browser to get started.\n`
+	} : {
 		"package.json": JSON.stringify({
-			name: packageName,
-			private: true,
+			name: n,
+			private: !0,
 			version: "0.1.0",
 			type: "module",
 			scripts: {
@@ -641,65 +472,45 @@ var makeProjectFiles = (template, name) => {
 			devDependencies: { vite: "^8.0.0" }
 		}, null, 2) + "\n",
 		"index.html": "<!doctype html>\n<html lang=\"en\">\n  <head><meta charset=\"UTF-8\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><title>NovaDesk App</title></head>\n  <body><div id=\"app\"></div><script type=\"module\" src=\"/src/main.js\"><\/script></body>\n</html>\n",
-		"src/main.js": `import './style.css';\n\ndocument.querySelector('#app').innerHTML = \`<main><h1>${name}</h1><p>Your NovaDesk project is ready.</p></main>\`;\n`,
+		"src/main.js": `import './style.css';\n\ndocument.querySelector('#app').innerHTML = \`<main><h1>${t}</h1><p>Your NovaDesk project is ready.</p></main>\`;\n`,
 		"src/style.css": "body { margin: 0; min-height: 100vh; display: grid; place-items: center; font-family: Inter, system-ui, sans-serif; background: #0f172a; color: #f8fafc; }\nmain { text-align: center; }\n",
 		".gitignore": "node_modules/\ndist/\n.env\n",
-		"README.md": `# ${name}\n\nRun \`npm install\` then \`npm run dev\`.\n`
+		"README.md": `# ${t}\n\nRun \`npm install\` then \`npm run dev\`.\n`
 	};
-};
-var forwardAuthCallback = (urlString) => {
-	console.log("[Main Process] forwardAuthCallback called with:", urlString);
+}, J = (e) => {
+	console.log("[Main Process] forwardAuthCallback called with:", e);
 	try {
-		const url = new URL(urlString);
-		if (url.protocol !== `${desktopScheme}:` || url.hostname !== "auth" || url.pathname !== "/callback") {
+		let t = new URL(e);
+		if (t.protocol !== `${M}:` || t.hostname !== "auth" || t.pathname !== "/callback") {
 			console.log("[Main Process] URL is not an auth callback. Ignoring.");
 			return;
 		}
-		const ticket = url.searchParams.get("ticket");
-		const state = url.searchParams.get("state");
-		const error = url.searchParams.get("error");
-		const refresh = url.searchParams.get("refresh");
-		console.log("[Main Process] Extracted ticket, state, error, refresh:", {
-			ticket,
-			state,
-			error,
-			refresh: !!refresh
-		});
-		if (error) {
-			pendingAuthCallback = {
+		let n = t.searchParams.get("ticket"), r = t.searchParams.get("state"), i = t.searchParams.get("error"), a = t.searchParams.get("refresh");
+		if (console.log("[Main Process] Extracted ticket, state, error, refresh:", {
+			ticket: n,
+			state: r,
+			error: i,
+			refresh: !!a
+		}), i) {
+			L = {
 				ticket: "",
 				state: "",
-				error
-			};
-			if (mainWindow) {
-				if (mainWindow.isMinimized()) mainWindow.restore();
-				mainWindow.show();
-				mainWindow.focus();
-				mainWindow.webContents.send("auth:callback", pendingAuthCallback);
-				pendingAuthCallback = null;
-			}
+				error: i
+			}, N && (N.isMinimized() && N.restore(), N.show(), N.focus(), N.webContents.send("auth:callback", L), L = null);
 			return;
 		}
-		if (!ticket || !state) return;
-		pendingAuthCallback = {
-			ticket,
-			state,
-			refresh_token: refresh
-		};
-		if (mainWindow) {
-			console.log("[Main Process] mainWindow exists, waking up and sending auth:callback IPC");
-			if (mainWindow.isMinimized()) mainWindow.restore();
-			mainWindow.show();
-			mainWindow.focus();
-			mainWindow.webContents.send("auth:callback", pendingAuthCallback);
-			pendingAuthCallback = null;
-		} else console.log("[Main Process] mainWindow does not exist yet. Saved as pending.");
-	} catch (err) {
-		console.error("[Main Process] Error parsing deep link:", err);
+		if (!n || !r) return;
+		L = {
+			ticket: n,
+			state: r,
+			refresh_token: a
+		}, N ? (console.log("[Main Process] mainWindow exists, waking up and sending auth:callback IPC"), N.isMinimized() && N.restore(), N.show(), N.focus(), N.webContents.send("auth:callback", L), L = null) : console.log("[Main Process] mainWindow does not exist yet. Saved as pending.");
+	} catch (e) {
+		console.error("[Main Process] Error parsing deep link:", e);
 	}
 };
-function createWindow() {
-	mainWindow = new BrowserWindow({
+function Y() {
+	N = new t({
 		width: 1440,
 		height: 920,
 		minWidth: 1e3,
@@ -711,447 +522,322 @@ function createWindow() {
 			height: 32
 		},
 		webPreferences: {
-			preload: path.join(__dirname, "preload.mjs"),
-			nodeIntegration: false,
-			contextIsolation: true,
-			sandbox: true
+			preload: g.join(j, "preload.mjs"),
+			nodeIntegration: !1,
+			contextIsolation: !0,
+			sandbox: !0
 		}
-	});
-	mainWindow.webContents.once("did-finish-load", () => {
+	}), N.webContents.once("did-finish-load", () => {
 		console.log("[Main Process] did-finish-load triggered");
-	});
-	if (isDev) mainWindow.loadURL("http://localhost:5173");
-	else mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+	}), oe ? N.loadURL("http://localhost:5173") : N.loadFile(g.join(j, "../dist/index.html"));
 }
-var setupProtocolHandler = () => {
-	if (process.defaultApp && process.argv.length >= 2) app.setAsDefaultProtocolClient(desktopScheme, process.execPath, [path.resolve(process.argv[1])]);
-	else app.setAsDefaultProtocolClient(desktopScheme);
+var de = () => {
+	process.defaultApp && process.argv.length >= 2 ? n.setAsDefaultProtocolClient(M, process.execPath, [g.resolve(process.argv[1])]) : n.setAsDefaultProtocolClient(M);
 };
-if (!app.requestSingleInstanceLock()) {
-	console.log("[Main Process] Second instance detected. Quitting.");
-	app.quit();
-} else app.on("second-instance", (_event, commandLine) => {
-	console.log("[Main Process] second-instance event fired with args:", commandLine);
-	const deepLink = commandLine.find((argument) => argument.startsWith(`${desktopScheme}://`));
-	if (deepLink) forwardAuthCallback(deepLink);
-});
-app.on("open-url", (event, url) => {
-	console.log("[Main Process] open-url event fired with:", url);
-	event.preventDefault();
-	forwardAuthCallback(url);
-});
-app.whenReady().then(() => {
-	setupProtocolHandler();
-	createWindow();
-	extensionHostManager.start();
-	console.log("[Main Process] App ready. Checking process.argv for initial deep link:", process.argv);
-	const launchLink = process.argv.find((argument) => argument.startsWith(`${desktopScheme}://`));
-	if (launchLink) forwardAuthCallback(launchLink);
-	app.on("activate", () => {
-		if (BrowserWindow.getAllWindows().length === 0) createWindow();
+n.requestSingleInstanceLock() ? n.on("second-instance", (e, t) => {
+	console.log("[Main Process] second-instance event fired with args:", t);
+	let n = t.find((e) => e.startsWith(`${M}://`));
+	n && J(n);
+}) : (console.log("[Main Process] Second instance detected. Quitting."), n.quit()), n.on("open-url", (e, t) => {
+	console.log("[Main Process] open-url event fired with:", t), e.preventDefault(), J(t);
+}), n.whenReady().then(() => {
+	de(), Y(), A.start(), console.log("[Main Process] App ready. Checking process.argv for initial deep link:", process.argv);
+	let e = process.argv.find((e) => e.startsWith(`${M}://`));
+	e && J(e), n.on("activate", () => {
+		t.getAllWindows().length === 0 && Y();
 	});
-});
-app.on("window-all-closed", () => {
-	if (process.platform !== "darwin") app.quit();
-});
-app.on("before-quit", () => {
-	for (const id of ptyProcesses.keys()) stopTerminal(id);
-	extensionHostManager.stop();
-});
-ipcMain.handle("window:control", (event, action) => {
-	const window = BrowserWindow.fromWebContents(event.sender);
-	if (!window) return;
-	if (action === "minimize") window.minimize();
-	if (action === "maximize") if (window.isMaximized()) window.unmaximize();
-	else window.maximize();
-	if (action === "close") window.close();
-});
-ipcMain.handle("window:setZoom", (event, zoomFactor) => {
-	event.sender.setZoomFactor(zoomFactor);
-});
-ipcMain.handle("window:setTheme", (event, theme) => {
-	const window = BrowserWindow.fromWebContents(event.sender);
-	if (!window) return;
-	let color = "#141414";
-	let symbolColor = "#ffffff";
-	switch (theme) {
+}), n.on("window-all-closed", () => {
+	process.platform !== "darwin" && n.quit();
+}), n.on("before-quit", () => {
+	for (let e of F.keys()) K(e);
+	A.stop();
+}), i.handle("window:control", (e, n) => {
+	let r = t.fromWebContents(e.sender);
+	r && (n === "minimize" && r.minimize(), n === "maximize" && (r.isMaximized() ? r.unmaximize() : r.maximize()), n === "close" && r.close());
+}), i.handle("window:setZoom", (e, t) => {
+	e.sender.setZoomFactor(t);
+}), i.handle("window:setTheme", (e, n) => {
+	let r = t.fromWebContents(e.sender);
+	if (!r) return;
+	let i = "#141414", a = "#ffffff";
+	switch (n) {
 		case "light":
-			color = "#f9fafb";
-			symbolColor = "#111111";
+			i = "#f9fafb", a = "#111111";
 			break;
 		case "abyss":
-			color = "#000c18";
-			symbolColor = "#6688cc";
+			i = "#000c18", a = "#6688cc";
 			break;
 		case "tomorrow-night-blue":
-			color = "#002451";
-			symbolColor = "#ffffff";
+			i = "#002451", a = "#ffffff";
 			break;
 		case "hc-black":
-			color = "#000000";
-			symbolColor = "#ffffff";
+			i = "#000000", a = "#ffffff";
 			break;
 		case "hc-light":
-			color = "#ffffff";
-			symbolColor = "#000000";
+			i = "#ffffff", a = "#000000";
 			break;
 		default:
-			color = "#141414";
-			symbolColor = "#ffffff";
+			i = "#141414", a = "#ffffff";
 			break;
 	}
-	window.setTitleBarOverlay({
-		color,
-		symbolColor
+	r.setTitleBarOverlay({
+		color: i,
+		symbolColor: a
 	});
 });
-var workspaceWatcher = null;
-var startWorkspaceWatcher = (rootPath) => {
-	if (workspaceWatcher) {
-		workspaceWatcher.close();
-		workspaceWatcher = null;
-	}
+var X = null, Z = (e) => {
+	X &&= (X.close(), null);
 	try {
-		workspaceWatcher = fs.watch(rootPath, { recursive: true }, (eventType, filename) => {
-			if (filename && mainWindow) mainWindow.webContents.send("workspace:fileChanged", {
-				eventType,
-				filename,
-				fullPath: path.join(rootPath, filename)
+		X = p.watch(e, { recursive: !0 }, (t, n) => {
+			n && N && N.webContents.send("workspace:fileChanged", {
+				eventType: t,
+				filename: n,
+				fullPath: g.join(e, n)
 			});
 		});
-	} catch (err) {
-		console.error("[Main Process] Failed to start workspace watcher:", err);
+	} catch (e) {
+		console.error("[Main Process] Failed to start workspace watcher:", e);
 	}
 };
-ipcMain.handle("workspace:openFolder", async () => {
-	const { canceled, filePaths } = await (mainWindow ? dialog.showOpenDialog(mainWindow, { properties: ["openDirectory"] }) : dialog.showOpenDialog({ properties: ["openDirectory"] }));
-	if (canceled || !filePaths[0]) return null;
-	workspaceRoot = path.resolve(filePaths[0]);
-	startWorkspaceWatcher(workspaceRoot);
-	return workspaceRoot;
-});
-ipcMain.handle("workspace:setWorkspace", async (_event, rootPath) => {
-	if (!rootPath) return { ok: false };
-	workspaceRoot = path.resolve(rootPath);
-	startWorkspaceWatcher(workspaceRoot);
-	return { ok: true };
-});
-ipcMain.handle("workspace:chooseFolder", async () => {
-	const { canceled, filePaths } = await (mainWindow ? dialog.showOpenDialog(mainWindow, { properties: ["openDirectory", "createDirectory"] }) : dialog.showOpenDialog({ properties: ["openDirectory", "createDirectory"] }));
-	return canceled || !filePaths[0] ? null : path.resolve(filePaths[0]);
-});
-ipcMain.handle("workspace:showSaveDialog", async (_event, defaultPath) => {
-	const options = {
+i.handle("workspace:openFolder", async () => {
+	let { canceled: e, filePaths: t } = await (N ? r.showOpenDialog(N, { properties: ["openDirectory"] }) : r.showOpenDialog({ properties: ["openDirectory"] }));
+	return e || !t[0] ? null : (P = g.resolve(t[0]), Z(P), P);
+}), i.handle("workspace:setWorkspace", async (e, t) => t ? (P = g.resolve(t), Z(P), { ok: !0 }) : { ok: !1 }), i.handle("workspace:chooseFolder", async () => {
+	let { canceled: e, filePaths: t } = await (N ? r.showOpenDialog(N, { properties: ["openDirectory", "createDirectory"] }) : r.showOpenDialog({ properties: ["openDirectory", "createDirectory"] }));
+	return e || !t[0] ? null : g.resolve(t[0]);
+}), i.handle("workspace:showSaveDialog", async (e, t) => {
+	let n = {
 		title: "Save As",
-		defaultPath
-	};
-	const { canceled, filePath } = await (mainWindow ? dialog.showSaveDialog(mainWindow, options) : dialog.showSaveDialog(options));
-	return canceled || !filePath ? null : path.resolve(filePath);
-});
-ipcMain.handle("workspace:readDirectory", async (_event, directoryPath) => {
-	if (!workspaceRoot) {
-		workspaceRoot = path.resolve(directoryPath);
-		startWorkspaceWatcher(workspaceRoot);
-	}
-	if (!isInsideWorkspace(directoryPath)) throw new Error("Directory is outside the active workspace.");
-	return fs.readdirSync(directoryPath, { withFileTypes: true }).filter((entry) => !ignoredDirectoryNames.has(entry.name)).map((entry) => ({
-		name: entry.name,
-		isDirectory: entry.isDirectory(),
-		path: path.join(directoryPath, entry.name)
-	})).sort((a, b) => Number(b.isDirectory) - Number(a.isDirectory) || a.name.localeCompare(b.name));
-});
-ipcMain.handle("workspace:readFile", async (_event, filePath) => {
-	if (!isInsideWorkspace(filePath)) throw new Error("File is outside the active workspace.");
-	return fs.promises.readFile(filePath, "utf-8");
-});
-ipcMain.handle("workspace:writeFile", async (_event, filePath, content) => {
-	if (!isInsideWorkspace(filePath)) throw new Error("File is outside the active workspace.");
-	await fs.promises.writeFile(filePath, content, "utf-8");
-	return { ok: true };
-});
-ipcMain.handle("workspace:createFile", async (_event, parentPath, name, content = "") => {
-	if (!isInsideWorkspace(parentPath)) throw new Error("Directory is outside the active workspace.");
-	const cleanedName = name.trim();
-	if (!cleanedName || cleanedName.includes("/") || cleanedName.includes("\\") || cleanedName === "." || cleanedName === "..") throw new Error("Enter a valid file name.");
-	const targetPath = path.join(parentPath, cleanedName);
-	if (!isInsideWorkspace(targetPath)) throw new Error("File is outside the active workspace.");
-	await fs.promises.writeFile(targetPath, content, {
+		defaultPath: t
+	}, { canceled: i, filePath: a } = await (N ? r.showSaveDialog(N, n) : r.showSaveDialog(n));
+	return i || !a ? null : g.resolve(a);
+}), i.handle("workspace:readDirectory", async (e, t) => {
+	if (P || (P = g.resolve(t), Z(P)), !W(t)) throw Error("Directory is outside the active workspace.");
+	return p.readdirSync(t, { withFileTypes: !0 }).filter((e) => !G.has(e.name)).map((e) => ({
+		name: e.name,
+		isDirectory: e.isDirectory(),
+		path: g.join(t, e.name)
+	})).sort((e, t) => Number(t.isDirectory) - Number(e.isDirectory) || e.name.localeCompare(t.name));
+}), i.handle("workspace:readFile", async (e, t) => {
+	if (!W(t)) throw Error("File is outside the active workspace.");
+	return p.promises.readFile(t, "utf-8");
+}), i.handle("workspace:writeFile", async (e, t, n) => {
+	if (!W(t)) throw Error("File is outside the active workspace.");
+	return await p.promises.writeFile(t, n, "utf-8"), { ok: !0 };
+}), i.handle("workspace:createFile", async (e, t, n, r = "") => {
+	if (!W(t)) throw Error("Directory is outside the active workspace.");
+	let i = n.trim();
+	if (!i || i.includes("/") || i.includes("\\") || i === "." || i === "..") throw Error("Enter a valid file name.");
+	let a = g.join(t, i);
+	if (!W(a)) throw Error("File is outside the active workspace.");
+	return await p.promises.writeFile(a, r, {
 		encoding: "utf-8",
 		flag: "wx"
-	});
-	return targetPath;
-});
-ipcMain.handle("workspace:createFolder", async (_event, parentPath, name) => {
-	if (!isInsideWorkspace(parentPath)) throw new Error("Directory is outside the active workspace.");
-	const cleanedName = name.trim();
-	if (!cleanedName || cleanedName.includes("/") || cleanedName.includes("\\") || cleanedName === "." || cleanedName === "..") throw new Error("Enter a valid folder name.");
-	const targetPath = path.join(parentPath, cleanedName);
-	if (!isInsideWorkspace(targetPath)) throw new Error("Folder is outside the active workspace.");
-	await fs.promises.mkdir(targetPath);
-	return targetPath;
-});
-ipcMain.handle("workspace:rename", async (_event, oldPath, newName) => {
-	if (!isInsideWorkspace(oldPath)) throw new Error("File is outside the active workspace.");
-	const cleanedName = newName.trim();
-	if (!cleanedName || cleanedName.includes("/") || cleanedName.includes("\\") || cleanedName === "." || cleanedName === "..") throw new Error("Enter a valid name.");
-	const parentPath = path.dirname(oldPath);
-	const newPath = path.join(parentPath, cleanedName);
-	if (!isInsideWorkspace(newPath)) throw new Error("Destination is outside the active workspace.");
-	await fs.promises.rename(oldPath, newPath);
-	return newPath;
-});
-ipcMain.handle("workspace:delete", async (_event, targetPath) => {
-	if (!isInsideWorkspace(targetPath)) throw new Error("File is outside the active workspace.");
-	await fs.promises.rm(targetPath, {
-		recursive: true,
-		force: true
-	});
-	return { ok: true };
-});
-ipcMain.handle("workspace:duplicate", async (_event, targetPath) => {
-	if (!isInsideWorkspace(targetPath)) throw new Error("File is outside the active workspace.");
-	const ext = path.extname(targetPath);
-	const base = path.basename(targetPath, ext);
-	const dir = path.dirname(targetPath);
-	let newName = `${base} copy${ext}`;
-	let newPath = path.join(dir, newName);
-	let counter = 1;
-	while (fs.existsSync(newPath)) {
-		newName = `${base} copy ${counter}${ext}`;
-		newPath = path.join(dir, newName);
-		counter++;
-	}
-	if ((await fs.promises.stat(targetPath)).isDirectory()) await fs.promises.cp(targetPath, newPath, { recursive: true });
-	else await fs.promises.copyFile(targetPath, newPath);
-	return newPath;
-});
-ipcMain.handle("workspace:reveal", async (_event, targetPath) => {
-	if (!isInsideWorkspace(targetPath)) throw new Error("File is outside the active workspace.");
-	shell.showItemInFolder(targetPath);
-	return { ok: true };
-});
-ipcMain.handle("workspace:search", async (_event, query) => {
-	if (!workspaceRoot) return [];
-	const normalizedQuery = query.trim().toLowerCase();
-	if (!normalizedQuery) return [];
-	const matches = [];
-	const visit = async (directoryPath) => {
-		if (matches.length >= 200) return;
-		const entries = await fs.promises.readdir(directoryPath, { withFileTypes: true });
-		for (const entry of entries) {
-			if (matches.length >= 200) break;
-			if (ignoredDirectoryNames.has(entry.name)) continue;
-			const entryPath = path.join(directoryPath, entry.name);
-			if (entry.isDirectory()) {
-				await visit(entryPath);
+	}), a;
+}), i.handle("workspace:createFolder", async (e, t, n) => {
+	if (!W(t)) throw Error("Directory is outside the active workspace.");
+	let r = n.trim();
+	if (!r || r.includes("/") || r.includes("\\") || r === "." || r === "..") throw Error("Enter a valid folder name.");
+	let i = g.join(t, r);
+	if (!W(i)) throw Error("Folder is outside the active workspace.");
+	return await p.promises.mkdir(i), i;
+}), i.handle("workspace:rename", async (e, t, n) => {
+	if (!W(t)) throw Error("File is outside the active workspace.");
+	let r = n.trim();
+	if (!r || r.includes("/") || r.includes("\\") || r === "." || r === "..") throw Error("Enter a valid name.");
+	let i = g.dirname(t), a = g.join(i, r);
+	if (!W(a)) throw Error("Destination is outside the active workspace.");
+	return await p.promises.rename(t, a), a;
+}), i.handle("workspace:delete", async (e, t) => {
+	if (!W(t)) throw Error("File is outside the active workspace.");
+	return await p.promises.rm(t, {
+		recursive: !0,
+		force: !0
+	}), { ok: !0 };
+}), i.handle("workspace:duplicate", async (e, t) => {
+	if (!W(t)) throw Error("File is outside the active workspace.");
+	let n = g.extname(t), r = g.basename(t, n), i = g.dirname(t), a = `${r} copy${n}`, o = g.join(i, a), s = 1;
+	for (; p.existsSync(o);) a = `${r} copy ${s}${n}`, o = g.join(i, a), s++;
+	return (await p.promises.stat(t)).isDirectory() ? await p.promises.cp(t, o, { recursive: !0 }) : await p.promises.copyFile(t, o), o;
+}), i.handle("workspace:reveal", async (e, t) => {
+	if (!W(t)) throw Error("File is outside the active workspace.");
+	return s.showItemInFolder(t), { ok: !0 };
+}), i.handle("workspace:search", async (e, t) => {
+	if (!P) return [];
+	let n = t.trim().toLowerCase();
+	if (!n) return [];
+	let r = [], i = async (e) => {
+		if (r.length >= 200) return;
+		let t = await p.promises.readdir(e, { withFileTypes: !0 });
+		for (let a of t) {
+			if (r.length >= 200) break;
+			if (G.has(a.name)) continue;
+			let t = g.join(e, a.name);
+			if (a.isDirectory()) {
+				await i(t);
 				continue;
 			}
-			if (!entry.isFile()) continue;
-			try {
-				if ((await fs.promises.stat(entryPath)).size > 1e6) continue;
-				(await fs.promises.readFile(entryPath, "utf-8")).split(/\r?\n/).forEach((line, index) => {
-					if (matches.length < 200 && line.toLowerCase().includes(normalizedQuery)) matches.push({
-						path: entryPath,
-						line: index + 1,
-						preview: line.trim().slice(0, 180)
+			if (a.isFile()) try {
+				if ((await p.promises.stat(t)).size > 1e6) continue;
+				(await p.promises.readFile(t, "utf-8")).split(/\r?\n/).forEach((e, i) => {
+					r.length < 200 && e.toLowerCase().includes(n) && r.push({
+						path: t,
+						line: i + 1,
+						preview: e.trim().slice(0, 180)
 					});
 				});
 			} catch {}
 		}
 	};
-	await visit(workspaceRoot);
-	return matches;
-});
-ipcMain.handle("workspace:createProject", async (_event, parentDirectory, name, template) => {
-	const cleanedName = name.trim();
-	if (!cleanedName || /[\\/:*?"<>|]/.test(cleanedName) || cleanedName === "." || cleanedName === "..") throw new Error("Enter a valid project name.");
-	const projectRoot = path.join(parentDirectory, cleanedName);
-	if (fs.existsSync(projectRoot)) throw new Error("A folder with that name already exists.");
-	await fs.promises.mkdir(projectRoot, { recursive: true });
-	const files = makeProjectFiles(template, cleanedName);
-	await Promise.all(Object.entries(files).map(async ([relativePath, contents]) => {
-		const targetPath = path.join(projectRoot, relativePath);
-		await fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
-		await fs.promises.writeFile(targetPath, contents, "utf-8");
-	}));
-	workspaceRoot = projectRoot;
-	startWorkspaceWatcher(workspaceRoot);
-	return projectRoot;
-});
-ipcMain.handle("workspace:cloneRepository", async (_event, repositoryUrl, parentDirectory, name) => {
-	const cleanedName = name.trim();
-	if (!/^https?:\/\/|^git@/.test(repositoryUrl.trim())) throw new Error("Enter a valid HTTPS or SSH repository URL.");
-	if (!cleanedName || /[\\/:*?"<>|]/.test(cleanedName)) throw new Error("Enter a valid folder name.");
-	const projectRoot = path.join(parentDirectory, cleanedName);
-	if (fs.existsSync(projectRoot)) throw new Error("A folder with that name already exists.");
-	await execFileAsync("git", [
+	return await i(P), r;
+}), i.handle("workspace:createProject", async (e, t, n, r) => {
+	let i = n.trim();
+	if (!i || /[\\/:*?"<>|]/.test(i) || i === "." || i === "..") throw Error("Enter a valid project name.");
+	let a = g.join(t, i);
+	if (p.existsSync(a)) throw Error("A folder with that name already exists.");
+	await p.promises.mkdir(a, { recursive: !0 });
+	let o = ue(r, i);
+	return await Promise.all(Object.entries(o).map(async ([e, t]) => {
+		let n = g.join(a, e);
+		await p.promises.mkdir(g.dirname(n), { recursive: !0 }), await p.promises.writeFile(n, t, "utf-8");
+	})), P = a, Z(P), a;
+}), i.handle("workspace:cloneRepository", async (e, t, n, r) => {
+	let i = r.trim();
+	if (!/^https?:\/\/|^git@/.test(t.trim())) throw Error("Enter a valid HTTPS or SSH repository URL.");
+	if (!i || /[\\/:*?"<>|]/.test(i)) throw Error("Enter a valid folder name.");
+	let a = g.join(n, i);
+	if (p.existsSync(a)) throw Error("A folder with that name already exists.");
+	return await R("git", [
 		"clone",
-		repositoryUrl.trim(),
-		projectRoot
-	], { windowsHide: true });
-	workspaceRoot = projectRoot;
-	startWorkspaceWatcher(workspaceRoot);
-	return projectRoot;
-});
-ipcMain.handle("git:status", async () => {
+		t.trim(),
+		a
+	], { windowsHide: !0 }), P = a, Z(P), a;
+}), i.handle("git:status", async () => {
 	try {
-		const { stdout } = await runGit([
+		let { stdout: e } = await q([
 			"status",
 			"--porcelain=v1",
 			"--branch"
 		]);
-		return stdout;
+		return e;
 	} catch {
 		return null;
 	}
-});
-ipcMain.handle("git:init", async () => {
-	const { stdout, stderr } = await runGit(["init"]);
-	return stdout || stderr || "Initialized empty Git repository.";
-});
-ipcMain.handle("git:log", async (_event, maxCount) => {
+}), i.handle("git:init", async () => {
+	let { stdout: e, stderr: t } = await q(["init"]);
+	return e || t || "Initialized empty Git repository.";
+}), i.handle("git:log", async (e, t) => {
 	try {
-		const { stdout } = await runGit([
+		let { stdout: e } = await q([
 			"log",
 			"--pretty=format:%H|%s|%an|%ar",
 			"-n",
-			(maxCount || 50).toString()
+			(t || 50).toString()
 		]);
-		return stdout;
+		return e;
 	} catch {
 		return null;
 	}
-});
-ipcMain.handle("git:branches", async () => {
+}), i.handle("git:branches", async () => {
 	try {
-		const { stdout } = await runGit(["branch", "-a"]);
-		return stdout;
+		let { stdout: e } = await q(["branch", "-a"]);
+		return e;
 	} catch {
 		return null;
 	}
-});
-ipcMain.handle("git:add", async (_event, filePath) => {
-	await runGit(["add", filePath]);
-	return true;
-});
-ipcMain.handle("git:unstage", async (_event, filePath) => {
-	await runGit([
-		"reset",
-		"HEAD",
-		filePath
-	]);
-	return true;
-});
-ipcMain.handle("git:commit", async (_event, message) => {
+}), i.handle("git:add", async (e, t) => (await q(["add", t]), !0)), i.handle("git:unstage", async (e, t) => (await q([
+	"reset",
+	"HEAD",
+	t
+]), !0)), i.handle("git:commit", async (e, t) => {
 	try {
-		await runGit([
+		return await q([
 			"commit",
 			"-m",
-			message
-		]);
-		return true;
-	} catch (error) {
-		throw new Error(error.stderr || error.message || "Commit failed");
+			t
+		]), !0;
+	} catch (e) {
+		throw Error(e.stderr || e.message || "Commit failed");
 	}
-});
-ipcMain.handle("git:remoteAdd", async (_event, url) => {
+}), i.handle("git:remoteAdd", async (e, t) => {
 	try {
 		try {
-			await runGit([
+			await q([
 				"remote",
 				"add",
 				"origin",
-				url
+				t
 			]);
 		} catch (e) {
-			if (e.stderr && e.stderr.includes("already exists")) await runGit([
+			if (e.stderr && e.stderr.includes("already exists")) await q([
 				"remote",
 				"set-url",
 				"origin",
-				url
+				t
 			]);
 			else throw e;
 		}
 		try {
-			await runGit(["fetch", "origin"]);
+			await q(["fetch", "origin"]);
 		} catch (e) {
 			console.warn("Fetch failed after remote add:", e.stderr || e.message);
 		}
-		return true;
-	} catch (error) {
-		throw new Error(error.stderr || error.message || "Failed to add remote");
+		return !0;
+	} catch (e) {
+		throw Error(e.stderr || e.message || "Failed to add remote");
 	}
-});
-ipcMain.handle("git:remoteRemove", async () => {
+}), i.handle("git:remoteRemove", async () => {
 	try {
-		await runGit([
+		return await q([
 			"remote",
 			"remove",
 			"origin"
-		]);
-		return true;
+		]), !0;
 	} catch {
-		return false;
+		return !1;
 	}
-});
-ipcMain.handle("git:remoteUrl", async () => {
+}), i.handle("git:remoteUrl", async () => {
 	try {
-		const { stdout } = await runGit([
+		let { stdout: e } = await q([
 			"config",
 			"--get",
 			"remote.origin.url"
 		]);
-		return stdout.trim();
+		return e.trim();
 	} catch {
 		return null;
 	}
-});
-ipcMain.handle("system:openExternal", async (_event, url) => {
-	await shell.openExternal(url);
-	return true;
-});
-ipcMain.handle("git:addAll", async () => {
-	await runGit(["add", "."]);
-	return true;
-});
-ipcMain.handle("git:diffBranches", async (_event, base, compare) => {
+}), i.handle("system:openExternal", async (e, t) => (await s.openExternal(t), !0)), i.handle("git:addAll", async () => (await q(["add", "."]), !0)), i.handle("git:diffBranches", async (e, t, n) => {
 	try {
-		const { stdout } = await runGit(["diff", `${base}..${compare}`]);
-		return stdout;
-	} catch (error) {
-		console.error("git diff failed:", error);
-		return null;
+		let { stdout: e } = await q(["diff", `${t}..${n}`]);
+		return e;
+	} catch (e) {
+		return console.error("git diff failed:", e), null;
 	}
-});
-ipcMain.handle("git:push", async (_event, branch) => {
+}), i.handle("git:push", async (e, t) => {
 	try {
-		await runGit([
+		return await q([
 			"push",
 			"-u",
 			"origin",
-			branch
-		]);
-		return true;
-	} catch (error) {
-		throw new Error(error.stderr || error.message || "Push failed");
+			t
+		]), !0;
+	} catch (e) {
+		throw Error(e.stderr || e.message || "Push failed");
 	}
-});
-ipcMain.handle("git:checkout", async (_event, branch, isNew) => {
+}), i.handle("git:checkout", async (e, t, n) => {
 	try {
-		if (isNew) await runGit([
+		return n ? await q([
 			"checkout",
 			"-b",
-			branch
-		]);
-		else await runGit(["checkout", branch]);
-		return true;
-	} catch (error) {
-		throw new Error(error.stderr || error.message || "Checkout failed");
+			t
+		]) : await q(["checkout", t]), !0;
+	} catch (e) {
+		throw Error(e.stderr || e.message || "Checkout failed");
 	}
-});
-ipcMain.handle("git:addFromDialog", async () => {
-	if (!mainWindow || !workspaceRoot) return false;
-	const result = await dialog.showOpenDialog(mainWindow, {
+}), i.handle("git:addFromDialog", async () => {
+	if (!N || !P) return !1;
+	let e = await r.showOpenDialog(N, {
 		title: "Select files or folders to stage",
 		properties: [
 			"openFile",
@@ -1159,187 +845,139 @@ ipcMain.handle("git:addFromDialog", async () => {
 			"multiSelections"
 		]
 	});
-	if (!result.canceled && result.filePaths.length > 0) try {
-		await runGit(["add", ...result.filePaths]);
-		return true;
-	} catch (error) {
-		throw new Error(error.stderr || error.message || "Add failed");
+	if (!e.canceled && e.filePaths.length > 0) try {
+		return await q(["add", ...e.filePaths]), !0;
+	} catch (e) {
+		throw Error(e.stderr || e.message || "Add failed");
 	}
-	return false;
-});
-ipcMain.handle("ai:getConnection", () => publicAIConnection(readAIConnection()));
-ipcMain.handle("ai:saveConnection", (_event, payload) => {
-	const previous = readAIConnection();
-	const provider = payload.provider === "openai-compatible" ? "openai-compatible" : "novadesk";
-	const baseUrl = payload.baseUrl?.trim() ? normalizeAIBaseUrl(payload.baseUrl) : "";
-	const model = payload.model?.trim() ?? "";
-	if (provider === "openai-compatible" && (!baseUrl || !model)) throw new Error("AI service URL and model are required.");
-	let encryptedApiKey = previous.encryptedApiKey;
-	if (payload.apiKey?.trim()) {
-		if (!safeStorage.isEncryptionAvailable()) throw new Error("Your operating system key store is unavailable, so NovaDesk cannot safely save an AI key.");
-		encryptedApiKey = safeStorage.encryptString(payload.apiKey.trim()).toString("base64");
+	return !1;
+}), i.handle("ai:getConnection", () => V(B())), i.handle("ai:saveConnection", (e, t) => {
+	let n = B(), r = t.provider === "openai-compatible" ? "openai-compatible" : "novadesk", i = t.baseUrl?.trim() ? U(t.baseUrl) : "", a = t.model?.trim() ?? "";
+	if (r === "openai-compatible" && (!i || !a)) throw Error("AI service URL and model are required.");
+	let s = n.encryptedApiKey;
+	if (t.apiKey?.trim()) {
+		if (!o.isEncryptionAvailable()) throw Error("Your operating system key store is unavailable, so NovaDesk cannot safely save an AI key.");
+		s = o.encryptString(t.apiKey.trim()).toString("base64");
 	}
-	const connection = {
-		provider,
-		baseUrl,
-		model,
-		encryptedApiKey: provider === "openai-compatible" ? encryptedApiKey : void 0
+	let c = {
+		provider: r,
+		baseUrl: i,
+		model: a,
+		encryptedApiKey: r === "openai-compatible" ? s : void 0
 	};
-	if (provider === "openai-compatible" && !connection.encryptedApiKey) throw new Error("Enter an API key for the selected AI service.");
-	fs.writeFileSync(aiConnectionPath(), JSON.stringify(connection), "utf-8");
-	return publicAIConnection(connection);
-});
-ipcMain.handle("ai:clearConnection", () => {
+	if (r === "openai-compatible" && !c.encryptedApiKey) throw Error("Enter an API key for the selected AI service.");
+	return p.writeFileSync(z(), JSON.stringify(c), "utf-8"), V(c);
+}), i.handle("ai:clearConnection", () => {
 	try {
-		fs.unlinkSync(aiConnectionPath());
-	} catch (error) {
-		if (error.code !== "ENOENT") throw error;
+		p.unlinkSync(z());
+	} catch (e) {
+		if (e.code !== "ENOENT") throw e;
 	}
-	return publicAIConnection(readAIConnection());
-});
-ipcMain.handle("ai:testConnection", async () => {
-	const connection = readAIConnection();
-	if (connection.provider !== "openai-compatible") throw new Error("Select an OpenAI-compatible AI service first.");
-	const apiKey = getAPIKey(connection);
-	const response = await fetch(`${normalizeAIBaseUrl(connection.baseUrl)}/models`, { headers: { Authorization: `Bearer ${apiKey}` } });
-	if (!response.ok) {
-		const body = await response.json().catch(() => ({}));
-		throw new Error(body.error?.message ?? body.message ?? `AI service returned ${response.status}.`);
+	return V(B());
+}), i.handle("ai:testConnection", async () => {
+	let e = B();
+	if (e.provider !== "openai-compatible") throw Error("Select an OpenAI-compatible AI service first.");
+	let t = H(e), n = await fetch(`${U(e.baseUrl)}/models`, { headers: { Authorization: `Bearer ${t}` } });
+	if (!n.ok) {
+		let e = await n.json().catch(() => ({}));
+		throw Error(e.error?.message ?? e.message ?? `AI service returned ${n.status}.`);
 	}
 	return {
-		ok: true,
-		message: `Connected to ${connection.baseUrl}.`
+		ok: !0,
+		message: `Connected to ${e.baseUrl}.`
 	};
-});
-ipcMain.handle("ai:chat", async (_event, payload) => {
-	const connection = readAIConnection();
-	if (connection.provider !== "openai-compatible") throw new Error("No direct AI service is configured.");
-	const apiKey = getAPIKey(connection);
-	const messages = [{
+}), i.handle("ai:chat", async (e, t) => {
+	let n = B();
+	if (n.provider !== "openai-compatible") throw Error("No direct AI service is configured.");
+	let r = H(n), i = [{
 		role: "system",
-		content: payload.context?.activeFile ? `You are NovaDesk, a practical coding assistant. The active file is ${payload.context.activeFile}.\n\n${payload.context.activeFileContent ? `Active file contents:\n${payload.context.activeFileContent.slice(0, 3e4)}` : ""}` : "You are NovaDesk, a practical coding assistant. Help the user build and understand software."
-	}, ...payload.messages.slice(-14).map((message) => ({
-		role: message.role === "model" ? "assistant" : "user",
-		content: message.content
-	}))];
-	const response = await fetch(`${normalizeAIBaseUrl(connection.baseUrl)}/chat/completions`, {
+		content: t.context?.activeFile ? `You are NovaDesk, a practical coding assistant. The active file is ${t.context.activeFile}.\n\n${t.context.activeFileContent ? `Active file contents:\n${t.context.activeFileContent.slice(0, 3e4)}` : ""}` : "You are NovaDesk, a practical coding assistant. Help the user build and understand software."
+	}, ...t.messages.slice(-14).map((e) => ({
+		role: e.role === "model" ? "assistant" : "user",
+		content: e.content
+	}))], a = await fetch(`${U(n.baseUrl)}/chat/completions`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${apiKey}`
+			Authorization: `Bearer ${r}`
 		},
 		body: JSON.stringify({
-			model: connection.model,
-			messages,
-			stream: false
+			model: n.model,
+			messages: i,
+			stream: !1
 		})
-	});
-	const body = await response.json().catch(() => ({}));
-	if (!response.ok) throw new Error(body.error?.message ?? body.message ?? `AI service returned ${response.status}.`);
-	const content = body.choices?.[0]?.message?.content;
-	if (!content) throw new Error("The AI service returned an empty response.");
+	}), o = await a.json().catch(() => ({}));
+	if (!a.ok) throw Error(o.error?.message ?? o.message ?? `AI service returned ${a.status}.`);
+	let s = o.choices?.[0]?.message?.content;
+	if (!s) throw Error("The AI service returned an empty response.");
 	return {
-		content,
-		model: connection.model
+		content: s,
+		model: n.model
 	};
-});
-ipcMain.on("terminal:subscribe", (event) => {
-	terminalSubscribers.add(event.sender);
-	event.sender.once("destroyed", () => terminalSubscribers.delete(event.sender));
-});
-ipcMain.handle("terminal:create", (_event, cwd) => {
-	return createTerminal(cwd);
-});
-ipcMain.handle("terminal:kill", (_event, id) => {
-	stopTerminal(id);
-});
-ipcMain.on("terminal:write", (_event, id, data) => {
-	ptyProcesses.get(id)?.write(data);
-});
-ipcMain.on("terminal:resize", (_event, id, cols, rows) => {
-	if (cols > 0 && rows > 0) ptyProcesses.get(id)?.resize(cols, rows);
-});
-ipcMain.handle("tasks:spawn", (_event, _command) => {
-	return randomUUID();
-});
-ipcMain.handle("tasks:kill", (_event, _taskId) => {});
-ipcMain.handle("auth:startGoogleLogin", async () => {
+}), i.on("terminal:subscribe", (e) => {
+	I.add(e.sender), e.sender.once("destroyed", () => I.delete(e.sender));
+}), i.handle("terminal:create", (e, t) => le(t)), i.handle("terminal:kill", (e, t) => {
+	K(t);
+}), i.on("terminal:write", (e, t, n) => {
+	F.get(t)?.write(n);
+}), i.on("terminal:resize", (e, t, n, r) => {
+	n > 0 && r > 0 && F.get(t)?.resize(n, r);
+}), i.handle("tasks:spawn", (e, t) => l()), i.handle("tasks:kill", (e, t) => {}), i.handle("auth:startGoogleLogin", async () => {
 	console.log("[Main Process] Starting Google Login...");
-	const state = randomBytes(32).toString("base64url");
-	const url = new URL("/api/auth/google/start", apiOrigin);
-	url.searchParams.set("state", state);
-	await shell.openExternal(url.toString());
-	return state;
+	let e = c(32).toString("base64url"), t = new URL("/api/auth/google/start", se);
+	return t.searchParams.set("state", e), await s.openExternal(t.toString()), e;
+}), i.handle("auth:checkPending", () => {
+	console.log("[Main Process] React requested pending auth callback. Current pending:", L);
+	let e = L;
+	return L = null, e;
 });
-ipcMain.handle("auth:checkPending", () => {
-	console.log("[Main Process] React requested pending auth callback. Current pending:", pendingAuthCallback);
-	const payload = pendingAuthCallback;
-	pendingAuthCallback = null;
-	return payload;
-});
-var getTokensPath = () => path.join(app.getPath("userData"), "auth_tokens.json");
-ipcMain.handle("auth:saveTokens", (_event, tokens) => {
-	if (!safeStorage.isEncryptionAvailable()) {
-		console.error("safeStorage is not available. Saving unencrypted (not recommended).");
-		fs.writeFileSync(getTokensPath(), JSON.stringify(tokens), "utf-8");
+var Q = () => g.join(n.getPath("userData"), "auth_tokens.json");
+i.handle("auth:saveTokens", (e, t) => {
+	if (!o.isEncryptionAvailable()) {
+		console.error("safeStorage is not available. Saving unencrypted (not recommended)."), p.writeFileSync(Q(), JSON.stringify(t), "utf-8");
 		return;
 	}
-	const data = JSON.stringify(tokens);
-	const encrypted = safeStorage.encryptString(data);
-	fs.writeFileSync(getTokensPath(), encrypted);
-});
-ipcMain.handle("auth:getTokens", () => {
+	let n = JSON.stringify(t), r = o.encryptString(n);
+	p.writeFileSync(Q(), r);
+}), i.handle("auth:getTokens", () => {
 	try {
-		const data = fs.readFileSync(getTokensPath());
-		if (safeStorage.isEncryptionAvailable()) {
-			const decrypted = safeStorage.decryptString(data);
-			return JSON.parse(decrypted);
-		} else return JSON.parse(data.toString("utf-8"));
+		let e = p.readFileSync(Q());
+		if (o.isEncryptionAvailable()) {
+			let t = o.decryptString(e);
+			return JSON.parse(t);
+		} else return JSON.parse(e.toString("utf-8"));
 	} catch {
 		return null;
 	}
-});
-ipcMain.handle("auth:clearTokens", () => {
+}), i.handle("auth:clearTokens", () => {
 	try {
-		fs.unlinkSync(getTokensPath());
+		p.unlinkSync(Q());
 	} catch {}
 });
-var getApiConfigPath = () => path.join(app.getPath("userData"), "api_config.json");
-ipcMain.handle("api:saveConfig", (_event, config) => {
-	if (!safeStorage.isEncryptionAvailable()) {
-		console.warn("safeStorage is not available. Saving API config unencrypted.");
-		fs.writeFileSync(getApiConfigPath(), JSON.stringify(config), "utf-8");
+var $ = () => g.join(n.getPath("userData"), "api_config.json");
+i.handle("api:saveConfig", (e, t) => {
+	if (!o.isEncryptionAvailable()) {
+		console.warn("safeStorage is not available. Saving API config unencrypted."), p.writeFileSync($(), JSON.stringify(t), "utf-8");
 		return;
 	}
-	const data = JSON.stringify(config);
-	const encrypted = safeStorage.encryptString(data);
-	fs.writeFileSync(getApiConfigPath(), encrypted);
-});
-ipcMain.handle("api:getConfig", () => {
+	let n = JSON.stringify(t), r = o.encryptString(n);
+	p.writeFileSync($(), r);
+}), i.handle("api:getConfig", () => {
 	try {
-		const data = fs.readFileSync(getApiConfigPath());
-		if (safeStorage.isEncryptionAvailable()) {
-			const decrypted = safeStorage.decryptString(data);
-			return JSON.parse(decrypted);
-		} else return JSON.parse(data.toString("utf-8"));
+		let e = p.readFileSync($());
+		if (o.isEncryptionAvailable()) {
+			let t = o.decryptString(e);
+			return JSON.parse(t);
+		} else return JSON.parse(e.toString("utf-8"));
 	} catch {
 		return null;
 	}
-});
-ipcMain.handle("extensions:search", async (_event, query, sortBy, sortOrder, offset) => {
-	return OpenVSXClient.search(query, sortBy, sortOrder, offset);
-});
-ipcMain.handle("extensions:install", async (_event, namespace, name) => {
-	await VSIXInstaller.installFromOpenVSX(namespace, name);
-});
-ipcMain.handle("extensions:uninstall", async (_event, id) => {
-	await VSIXInstaller.uninstall(id);
-});
-ipcMain.handle("extensions:getInstalled", () => {
-	return extensionRegistry.getInstalled();
-});
-ipcMain.handle("extensions:toggle", (_event, id, enabled) => {
-	extensionRegistry.toggleExtension(id, enabled);
+}), i.handle("extensions:search", async (e, t, n, r, i) => D.search(t, n, r, i)), i.handle("extensions:install", async (e, t, n) => {
+	await k.installFromOpenVSX(t, n);
+}), i.handle("extensions:uninstall", async (e, t) => {
+	await k.uninstall(t);
+}), i.handle("extensions:getInstalled", () => O.getInstalled()), i.handle("extensions:toggle", (e, t, n) => {
+	O.toggleExtension(t, n);
 });
 //#endregion
 export {};
