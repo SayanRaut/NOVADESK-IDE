@@ -45,8 +45,6 @@ export type AIConnection = {
   hasApiKey: boolean;
 };
 
-
-
 type ChatContextType = {
   // Conversations
   conversations: Conversation[];
@@ -67,7 +65,6 @@ type ChatContextType = {
   setIsThinking: (v: boolean) => void;
   isLoadingHistory: boolean;
 
-
   agentMode: 'chat' | 'planner' | 'coding' | 'auto';
   setAgentMode: (mode: 'chat' | 'planner' | 'coding' | 'auto') => void;
   activeAgent: string | null;
@@ -75,8 +72,6 @@ type ChatContextType = {
 
   selectedModel: string;
   setSelectedModel: (model: string) => void;
-
-
 
   // Actions
   sendMessage: (text: string, context?: Record<string, unknown>) => void;
@@ -98,7 +93,7 @@ const generateId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export const AIProvider = ({ children }: { children: ReactNode }) => {
   const { accessToken } = useAuth();
-  const { openFile, currentPath } = useEditor();
+  const { openFile, currentPath, refreshWorkspace } = useEditor();
 
   // Conversations
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -111,7 +106,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [isThinking, setIsThinking] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const lastUserMessage = useRef<string>('');
-
 
   const [agentMode, setAgentMode] = useState<'chat' | 'planner' | 'coding' | 'auto'>('chat');
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
@@ -129,8 +123,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const abortRef = useRef(false);
   const messageListenerRef = useRef<((evt: MessageEvent) => void) | null>(null);
   const errorListenerRef = useRef<((evt: Event) => void) | null>(null);
-
-
 
   // ─── Load conversations ─────────────────────────────────────────────────
 
@@ -151,25 +143,41 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => { void refreshConnection().catch(() => undefined); }, [refreshConnection]);
 
-  // ─── Conversation management ────────────────────────────────────────────
+  // ─── Conversation management (Optimistic & Lag-Free) ────────────────────
 
   const createNewConversation = useCallback(async (title = 'New Chat'): Promise<Conversation | null> => {
-    if (!accessToken || accessToken === 'local') return null;
+    // 1. Immediate optimistic creation (0ms UI lag)
+    const optimisticId = Date.now();
+    const optimisticConvo: Conversation = {
+      id: optimisticId,
+      project_id: 1,
+      title: title,
+      current_agent: 'chat',
+      created_at: new Date().toISOString(),
+    };
+    setConversations(prev => [optimisticConvo, ...prev]);
+    setActiveConversation(optimisticConvo);
+    setMessages([]);
+    setIsThinking(false);
+    setIsStreaming(false);
+
+    if (!accessToken || accessToken === 'local') return optimisticConvo;
+
+    // 2. Background server sync
     try {
-      const convo = await createConversation(title);
-      setConversations(prev => [convo, ...prev]);
-      setActiveConversation(convo);
-      setMessages([]);
-      return convo;
+      const serverConvo = await createConversation(title);
+      setConversations(prev => prev.map(c => c.id === optimisticId ? serverConvo : c));
+      setActiveConversation(prev => prev?.id === optimisticId ? serverConvo : prev);
+      return serverConvo;
     } catch {
-      return null;
+      return optimisticConvo;
     }
   }, [accessToken]);
 
   const selectConversation = useCallback(async (id: number) => {
     const convo = conversations.find(c => c.id === id) ?? null;
     setActiveConversation(convo);
-    setMessages([]); // Clear messages immediately to prevent UI delay
+    setMessages([]); // Clear messages immediately (0ms lag)
     if (!convo || !accessToken || accessToken === 'local') {
       return;
     }
@@ -190,23 +198,23 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   }, [conversations, accessToken]);
 
   const removeConversation = useCallback(async (id: number) => {
+    setConversations(prev => prev.filter(c => c.id !== id));
+    if (activeConversation?.id === id) {
+      setActiveConversation(null);
+      setMessages([]);
+    }
     if (!accessToken || accessToken === 'local') return;
     try {
       await deleteConversation(id);
-      setConversations(prev => prev.filter(c => c.id !== id));
-      if (activeConversation?.id === id) {
-        setActiveConversation(null);
-        setMessages([]);
-      }
     } catch {}
   }, [accessToken, activeConversation]);
 
   const renameActiveConversation = useCallback(async (id: number, title: string) => {
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, title } : c));
+    if (activeConversation?.id === id) setActiveConversation(prev => prev ? { ...prev, title } : null);
     if (!accessToken || accessToken === 'local') return;
     try {
-      const updated = await renameConversation(id, title);
-      setConversations(prev => prev.map(c => c.id === id ? updated : c));
-      if (activeConversation?.id === id) setActiveConversation(updated);
+      await renameConversation(id, title);
     } catch {}
   }, [accessToken, activeConversation]);
 
@@ -245,23 +253,54 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
     // Use WebSocket if available and token is real
     if (accessToken && accessToken !== 'local') {
       const wsUrl = chatSocketUrl(accessToken);
-      // Reuse existing open socket or open a new one
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED || wsRef.current.readyState === WebSocket.CLOSING) {
         wsRef.current = new WebSocket(wsUrl);
       }
       const ws = wsRef.current;
-      let assistantId = generateId();
+      const assistantId = generateId();
       let streamBuffer = '';
+      let lastRender = 0;
 
-      const handleOpen = () => {
-        ws.send(JSON.stringify({
-          message: text,
-          model_id: selectedModel,
-          mode: agentMode,
-          conversation_id: targetConversationId,
-          context,
-        }));
+      const flushRender = () => {
+        setStreamingContent(streamBuffer);
+        setMessages(prev => {
+          const exists = prev.find(m => m.id === assistantId);
+          if (exists) {
+            return prev.map(m => m.id === assistantId
+              ? { ...m, content: streamBuffer, isStreaming: true }
+              : m
+            );
+          }
+          return [...prev, {
+            id: assistantId,
+            role: 'model',
+            content: streamBuffer,
+            isStreaming: true,
+            timestamp: Date.now(),
+          }];
+        });
       };
+
+      const sendPayload = () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            message: text,
+            model_id: selectedModel,
+            mode: agentMode,
+            conversation_id: targetConversationId,
+            context: {
+              ...context,
+              workspace_root: currentPath || '',
+            },
+          }));
+        }
+      };
+
+      if (ws.readyState === WebSocket.OPEN) {
+        sendPayload();
+      } else {
+        ws.onopen = () => sendPayload();
+      }
 
       const handleMessage = (evt: MessageEvent) => {
         try {
@@ -273,26 +312,35 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
             streamBuffer += delta;
             setIsThinking(false);
             setIsStreaming(true);
-            setStreamingContent(streamBuffer);
-            // Upsert the streaming message
-            setMessages(prev => {
-              const exists = prev.find(m => m.id === assistantId);
-              if (exists) {
-                return prev.map(m => m.id === assistantId
-                  ? { ...m, content: streamBuffer, isStreaming: true }
-                  : m
-                );
-              }
-              return [...prev, {
-                id: assistantId,
-                role: 'model',
-                content: streamBuffer,
-                isStreaming: true,
-                timestamp: Date.now(),
-              }];
-            });
+
+            // Throttle UI re-renders to 40ms to eliminate typing stutter/lag
+            const now = Date.now();
+            if (now - lastRender > 40) {
+              lastRender = now;
+              flushRender();
+            }
           } else if (event.type === 'response.completed') {
+            flushRender();
             const finalContent: string = event.content ?? streamBuffer;
+            
+            // Auto-extract any code blocks with file definitions and save locally
+            if (currentPath && window.electronAPI) {
+              const filePattern = /(?:(?:###|\/\/|#)\s*File:\s*|File:\s*)([^\r\n]+)\r?\n+```[a-zA-Z0-9_\-\.]*\r?\n([\s\S]*?)```/gi;
+              let match;
+              let createdAny = false;
+              while ((match = filePattern.exec(finalContent)) !== null) {
+                const rel = match[1].trim().replace(/^[\\/]/, '');
+                const code = match[2];
+                const fp = `${currentPath.replace(/[\\/]$/, '')}/${rel}`;
+                void window.electronAPI.writeFile(fp, code).then(() => {
+                  refreshWorkspace();
+                  openFile(fp);
+                }).catch(() => {});
+                createdAny = true;
+              }
+              if (createdAny) refreshWorkspace();
+            }
+
             setMessages(prev => prev.map(m =>
               m.id === assistantId
                 ? { ...m, content: finalContent, isStreaming: false }
@@ -301,29 +349,19 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
             setStreamingContent('');
             setIsStreaming(false);
             setIsThinking(false);
-
-            // Reset for next turn
-            assistantId = generateId();
-            streamBuffer = '';
           } else if (event.type === 'agent.artifact') {
             const artifactPath = event.path;
             const requestFeedback = event.requestFeedback;
             
-            const handleArtifact = async () => {
-              if (currentPath && artifactPath) {
-                const fullPath = currentPath + "/" + artifactPath;
-                if (event.content && window.electronAPI) {
-                  try {
-                    await window.electronAPI.writeFile(fullPath, event.content);
-                  } catch (e) {
-                    console.error("Failed to write artifact locally:", e);
-                  }
-                }
-                openFile(fullPath);
+            if (currentPath && artifactPath) {
+              const fullPath = `${currentPath.replace(/[\\/]$/, '')}/${artifactPath.replace(/^[\\/]/, '')}`;
+              if (event.content && window.electronAPI) {
+                void window.electronAPI.writeFile(fullPath, event.content).then(() => {
+                  refreshWorkspace();
+                  openFile(fullPath);
+                }).catch(e => console.error("Failed to write artifact locally:", e));
               }
-            };
-            
-            void handleArtifact();
+            }
             
             setMessages(prev => {
               const exists = prev.find(m => m.id === assistantId);
@@ -379,46 +417,29 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       if (errorListenerRef.current) {
         ws.removeEventListener('error', errorListenerRef.current);
       }
-
       messageListenerRef.current = handleMessage;
       errorListenerRef.current = handleError;
-
-      if (ws.readyState === WebSocket.CONNECTING) {
-        ws.addEventListener('open', handleOpen, { once: true });
-      } else if (ws.readyState === WebSocket.OPEN) {
-        handleOpen();
-      } else {
-        // Re-create socket
-        wsRef.current = new WebSocket(wsUrl);
-        wsRef.current.addEventListener('open', handleOpen, { once: true });
-        wsRef.current.addEventListener('message', handleMessage);
-        wsRef.current.addEventListener('error', handleError);
-        return;
-      }
-
       ws.addEventListener('message', handleMessage);
-      ws.addEventListener('error', handleError, { once: true });
-    } else {
-      // Local mode
-      setTimeout(() => {
-        setMessages(prev => [...prev, {
-          id: generateId(),
-          role: 'model',
-          content: 'Local workspace mode is active. Sign in with Google to use NovaDesk Cloud AI.',
-          timestamp: Date.now(),
-        }]);
-        setIsThinking(false);
-      }, 600);
+      ws.addEventListener('error', handleError);
     }
-  }, [isStreaming, accessToken, agentMode, activeConversation]);
+  }, [
+    activeConversation,
+    accessToken,
+    selectedModel,
+    agentMode,
+    currentPath,
+    openFile,
+    refreshWorkspace,
+    isStreaming,
+  ]);
 
   const stopStreaming = useCallback(() => {
     abortRef.current = true;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'cancel' }));
+    }
     setIsStreaming(false);
     setIsThinking(false);
-    setStreamingContent('');
-    // Mark any streaming message as complete
-    setMessages(prev => prev.map(m => m.isStreaming ? { ...m, isStreaming: false } : m));
   }, []);
 
   const clearMessages = useCallback(() => {
@@ -430,46 +451,47 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
   const regenerate = useCallback(() => {
     if (!lastUserMessage.current) return;
-    // Remove last assistant message and resend
     setMessages(prev => {
-      const last = [...prev].reverse().find(m => m.role === 'model' || m.role === 'error');
-      if (!last) return prev;
-      return prev.filter(m => m.id !== last.id);
+      let lastUserIdx = -1;
+      for (let i = prev.length - 1; i >= 0; i--) {
+        if (prev[i].role === 'user') { lastUserIdx = i; break; }
+      }
+      return lastUserIdx >= 0 ? prev.slice(0, lastUserIdx) : prev;
     });
-    sendMessage(lastUserMessage.current);
+    void sendMessage(lastUserMessage.current);
   }, [sendMessage]);
 
   return (
-    <ChatContext.Provider value={{
-      conversations,
-      activeConversation,
-      createNewConversation,
-      selectConversation,
-      removeConversation,
-      renameActiveConversation,
-      messages,
-      setMessages,
-      streamingContent,
-      isStreaming,
-      isThinking,
-      setIsThinking,
-      isLoadingHistory,
-
-      agentMode,
-      setAgentMode,
-      activeAgent,
-      setActiveAgent,
-      selectedModel,
-      setSelectedModel,
-
-      sendMessage,
-      stopStreaming,
-      clearMessages,
-      regenerate,
-      wsRef,
-      connection,
-      refreshConnection,
-    }}>
+    <ChatContext.Provider
+      value={{
+        conversations,
+        activeConversation,
+        createNewConversation,
+        selectConversation,
+        removeConversation,
+        renameActiveConversation,
+        messages,
+        setMessages,
+        streamingContent,
+        isStreaming,
+        isThinking,
+        setIsThinking,
+        isLoadingHistory,
+        agentMode,
+        setAgentMode,
+        activeAgent,
+        setActiveAgent,
+        selectedModel,
+        setSelectedModel,
+        sendMessage,
+        stopStreaming,
+        clearMessages,
+        regenerate,
+        wsRef,
+        connection,
+        refreshConnection,
+      }}
+    >
       {children}
     </ChatContext.Provider>
   );
@@ -477,6 +499,6 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAI = () => {
   const context = useContext(ChatContext);
-  if (context === undefined) throw new Error('useAI must be used within an AIProvider');
+  if (!context) throw new Error('useAI must be used within an AIProvider');
   return context;
 };

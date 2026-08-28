@@ -43,7 +43,7 @@ export const ChatInput = ({ compact = false }: ChatInputProps) => {
       open_files: openFiles,
       workspace_root: currentPath,
     });
-  }, [input, isStreaming, isThinking, sendMessage, fileContents, openFiles, chatContextFiles]);
+  }, [input, isStreaming, isThinking, sendMessage, fileContents, openFiles, chatContextFiles, currentPath]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

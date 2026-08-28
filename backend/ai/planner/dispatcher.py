@@ -19,10 +19,9 @@ from ai.tools.checkpoint import checkpoint_manager
 def save_generated_files(text: str, workspace_root: str, task_desc: str = "") -> list[dict]:
     """
     Extracts code blocks and target filenames from text and writes them to workspace_root.
+    Returns list of dicts with {"path": rel_path, "lines": count, "content": code_content}
     """
     saved_files = []
-    if not workspace_root or not os.path.exists(workspace_root):
-        return saved_files
 
     # 1. Matches: ### File: path/to/file.ext or // File: path/to/file.ext
     pattern1 = re.compile(
@@ -34,15 +33,22 @@ def save_generated_files(text: str, workspace_root: str, task_desc: str = "") ->
         clean_path = file_path_str.strip().replace('\\', '/')
         if clean_path.startswith('/'):
             clean_path = clean_path[1:]
-        full_path = os.path.join(workspace_root, clean_path)
-        try:
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            with open(full_path, "w", encoding="utf-8") as f:
-                f.write(code_content)
-            saved_files.append({"path": clean_path, "lines": len(code_content.splitlines())})
-            logger.info(f"Dispatcher successfully created/updated: {clean_path}")
-        except Exception as e:
-            logger.error(f"Dispatcher failed to write file {clean_path}: {e}")
+        
+        if workspace_root and os.path.exists(workspace_root):
+            full_path = os.path.join(workspace_root, clean_path)
+            try:
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                with open(full_path, "w", encoding="utf-8") as f:
+                    f.write(code_content)
+                logger.info(f"Dispatcher successfully created/updated: {clean_path}")
+            except Exception as e:
+                logger.error(f"Dispatcher failed to write file {clean_path}: {e}")
+
+        saved_files.append({
+            "path": clean_path, 
+            "lines": len(code_content.splitlines()),
+            "content": code_content
+        })
 
     # 2. If no header matched, check if task description specified a filename and code block exists
     if not saved_files:
@@ -53,15 +59,22 @@ def save_generated_files(text: str, workspace_root: str, task_desc: str = "") ->
             if clean_path.startswith('/'):
                 clean_path = clean_path[1:]
             code_content = code_blocks[0]
-            full_path = os.path.join(workspace_root, clean_path)
-            try:
-                os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                with open(full_path, "w", encoding="utf-8") as f:
-                    f.write(code_content)
-                saved_files.append({"path": clean_path, "lines": len(code_content.splitlines())})
-                logger.info(f"Dispatcher created file from task match: {clean_path}")
-            except Exception as e:
-                logger.error(f"Dispatcher failed to write inferred file {clean_path}: {e}")
+            
+            if workspace_root and os.path.exists(workspace_root):
+                full_path = os.path.join(workspace_root, clean_path)
+                try:
+                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                    with open(full_path, "w", encoding="utf-8") as f:
+                        f.write(code_content)
+                    logger.info(f"Dispatcher created file from task match: {clean_path}")
+                except Exception as e:
+                    logger.error(f"Dispatcher failed to write inferred file {clean_path}: {e}")
+
+            saved_files.append({
+                "path": clean_path, 
+                "lines": len(code_content.splitlines()),
+                "content": code_content
+            })
 
     return saved_files
 
@@ -120,6 +133,15 @@ class Dispatcher:
                     if saved:
                         saved_summary = ", ".join([f"`{f['path']}` ({f['lines']} lines)" for f in saved])
                         file_notice = f"\n\n📂 **Generated & Saved Files:** {saved_summary}"
+                        # Notify frontend over websocket to write locally & refresh file explorer
+                        if self.websocket:
+                            for f in saved:
+                                await self.websocket.send_json({
+                                    "type": "agent.artifact",
+                                    "path": f["path"],
+                                    "content": f.get("content", ""),
+                                    "requestFeedback": False
+                                })
                     else:
                         file_notice = ""
                     
