@@ -110,7 +110,14 @@ class CodingAgent(BaseAgent):
     def get_system_prompt(self) -> str:
         return (
             "You are NovaDesk's Senior Coding Agent. Your task is to write clean, maintainable, "
-            "production-grade code. Return targeted changes and clear, concise explanations."
+            "production-grade code.\n\n"
+            "CRITICAL FORMATTING INSTRUCTION:\n"
+            "When creating or editing files, you MUST specify the target file path on its own line above each code block, formatted exactly as:\n"
+            "### File: path/to/filename.ext\n"
+            "```language\n"
+            "// complete, runnable code goes here\n"
+            "```\n"
+            "Always include complete code with proper file extensions and all necessary imports."
         )
 
     async def run(self, state: AgentState, context: AgentContext) -> AgentResult:
@@ -124,15 +131,44 @@ class CodingAgent(BaseAgent):
         code_response = await self.invoke_model(prompt)
         events.append(self.create_event("agent_finished", "Code generated"))
 
+        # If workspace is present, write files
+        workspace_root = context.workspace or ""
+        created_files = []
+        if workspace_root and os.path.exists(workspace_root):
+            file_matches = re.findall(
+                r'(?:###\s*File:?|//\s*File:?|#\s*File:?|File:|Filename:)\s*[`\'"]?([a-zA-Z0-9_\-\./\\]+)[`\'"]?\s*\r?\n+```[a-zA-Z0-9_\-\.]*\r?\n([\s\S]*?)```',
+                code_response,
+                re.IGNORECASE
+            )
+            for rel_path, content in file_matches:
+                clean_path = rel_path.strip().replace('\\', '/')
+                if clean_path.startswith('/'):
+                    clean_path = clean_path[1:]
+                target_file = os.path.join(workspace_root, clean_path)
+                try:
+                    os.makedirs(os.path.dirname(target_file), exist_ok=True)
+                    with open(target_file, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    created_files.append(clean_path)
+                    logger.info(f"CodingAgent wrote file to workspace: {clean_path}")
+                except Exception as e:
+                    logger.error(f"CodingAgent failed to write file {clean_path}: {e}")
+
+        summary = f"Created/Updated {len(created_files)} files: {', '.join(created_files)}" if created_files else "Code generation completed."
+
         return AgentResult(
             status="success",
-            message="Code generation completed.",
+            message=summary,
             data=code_response,
             events=events
         )
 
     async def execute(self, task: str, context: Any) -> str:
         ctx = AgentContext(user_request=task)
+        if isinstance(context, dict):
+            ctx.workspace = context.get("workspace_root", "")
+        elif isinstance(context, str):
+            ctx.terminal_output = context
         state = AgentState(request=task, context=ctx)
         res = await self.run(state, ctx)
         return res.data or res.message
