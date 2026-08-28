@@ -29,6 +29,18 @@ class BaseAgent(ABC):
         """Executes the agent logic given the current state and shared context."""
         pass
 
+    async def execute(self, task_description: str, task_context: Any = "") -> str:
+        """Compatibility wrapper to execute a single task with string context."""
+        ctx = AgentContext(user_request=task_description)
+        if isinstance(task_context, dict):
+            ctx.workspace = task_context.get("workspace_root", "")
+            ctx.metadata = task_context
+        elif isinstance(task_context, str):
+            ctx.terminal_output = task_context
+        state = AgentState(request=task_description, context=ctx)
+        result = await self.run(state, ctx)
+        return result.message or str(result.data or "")
+
     async def invoke_model(self, prompt: str, system_prompt: Optional[str] = None, **kwargs) -> str:
         """Helper to invoke the centralized LLM provider."""
         sys_prompt = system_prompt or self.get_system_prompt()

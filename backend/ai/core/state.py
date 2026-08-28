@@ -32,6 +32,10 @@ class Task(BaseModel):
     result: Optional[str] = None
     error: Optional[str] = None
 
+    @property
+    def depends_on(self) -> List[str]:
+        return self.dependencies
+
     @model_validator(mode="before")
     @classmethod
     def normalize_fields(cls, data: Any) -> Any:
@@ -68,6 +72,12 @@ class Plan(BaseModel):
             if t.id == task_id:
                 return t
         return None
+
+    def get(self, task_id: str) -> Task:
+        t = self.get_task(task_id)
+        if t:
+            return t
+        raise KeyError(f"No task with id {task_id}")
 
     def validate_graph(self) -> tuple[bool, str]:
         """Validates unique IDs and absence of circular dependencies."""

@@ -333,7 +333,7 @@ var OpenVSXClient = class {
 		});
 	}
 	static async getExtension(namespace, name) {
-		const url = `${this.BASE_URL}/-/item/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}`;
+		const url = `${this.BASE_URL}/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}`;
 		return new Promise((resolve, reject) => {
 			const request = net.request(url);
 			request.on("response", (response) => {
