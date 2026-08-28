@@ -9,7 +9,9 @@
     "build": "tsc -b && vite build",
     "start": "electron .",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "package": "npm run build && electron-builder --win",
+    "package:dir": "npm run build && electron-builder --dir"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -51,6 +53,7 @@
     "concurrently": "^10.0.3",
     "cross-env": "^10.1.0",
     "electron": "^43.1.0",
+    "electron-builder": "^24.13.3",
     "oxlint": "^1.71.0",
     "prisma": "^7.9.1",
     "tailwindcss": "^4.3.2",
