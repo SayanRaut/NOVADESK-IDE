@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField, model_validator
 
 class RiskLevel(str, Enum):
     LOW = "LOW"
@@ -20,22 +20,43 @@ class ToolCategory(str, Enum):
     EXECUTE = "EXECUTE"
     GIT = "GIT"
 
-AgentName = Literal[
-    "planner", "coding", "search", "review", 
-    "debug", "testing", "git", "vision", "chat"
-]
-
 TaskStatus = Literal["pending", "running", "done", "failed", "skipped"]
 
 class Task(BaseModel):
     id: str
-    title: str
+    title: str = ""
     description: str = ""
-    agent: AgentName
+    agent: str = "coding"
     dependencies: List[str] = PydanticField(default_factory=list)
     status: TaskStatus = "pending"
     result: Optional[str] = None
     error: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            # Handle title / description alias
+            if not data.get("title") and data.get("description"):
+                data["title"] = data["description"]
+            elif not data.get("description") and data.get("title"):
+                data["description"] = data["title"]
+            # Handle dependencies / depends_on alias
+            if "depends_on" in data and not data.get("dependencies"):
+                data["dependencies"] = data["depends_on"]
+            # Normalize agent names
+            agent = data.get("agent", "coding").lower()
+            if agent in ["coder", "code"]:
+                data["agent"] = "coding"
+            elif agent in ["debugger", "fix"]:
+                data["agent"] = "debug"
+            elif agent in ["reviewer", "qa"]:
+                data["agent"] = "review"
+            elif agent in ["tester", "tests"]:
+                data["agent"] = "testing"
+            elif agent in ["planner", "plan"]:
+                data["agent"] = "planner"
+        return data
 
 class Plan(BaseModel):
     goal: str

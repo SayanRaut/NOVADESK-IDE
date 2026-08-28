@@ -4,7 +4,7 @@ Follows Master Plan Section 13 (Phase 19 — Supervisor Agent) and Section 33.
 Coordinates the full lifecycle: Understand -> Plan -> Approve -> Checkpoint -> Execute -> Review -> Test -> Recover -> Finish.
 """
 
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 from ai.core.logger import logger
 from ai.core.exceptions import AgentExecutionError
 from ai.core.state import AgentState, AgentContext, AgentResult, AgentEvent
@@ -45,7 +45,7 @@ class SupervisorAgent:
         self,
         intent_result: IntentResult,
         task: str,
-        context: dict,
+        context: Union[dict, str, AgentContext, None] = None,
         conversation_id: Optional[str] = None
     ) -> Any:
         logger.info(f"Supervisor dispatching intent: {intent_result.intent} (confidence: {intent_result.confidence})")
@@ -54,16 +54,21 @@ class SupervisorAgent:
         model_id = target_model.id
         
         from ai.context import context_engine
-        agent_context = context_engine.build_agent_context(
-            user_request=task,
-            workspace_root=context.get("workspace_root", ""),
-            active_file=context.get("active_file", ""),
-            active_file_content=context.get("active_file_content", ""),
-            selected_code=context.get("selected_code", ""),
-            open_files=context.get("open_files", []),
-            project_tree=context.get("project_tree", ""),
-            git_status=context.get("git_status", "")
-        )
+        if isinstance(context, dict):
+            agent_context = context_engine.build_agent_context(
+                user_request=task,
+                workspace_root=context.get("workspace_root", ""),
+                active_file=context.get("active_file", ""),
+                active_file_content=context.get("active_file_content", ""),
+                selected_code=context.get("selected_code", ""),
+                open_files=context.get("open_files", []),
+                project_tree=context.get("project_tree", ""),
+                git_status=context.get("git_status", "")
+            )
+        elif isinstance(context, AgentContext):
+            agent_context = context
+        else:
+            agent_context = AgentContext(user_request=task)
 
         state = self.active_states.get(conversation_id) if conversation_id else None
         if not state:

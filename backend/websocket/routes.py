@@ -42,7 +42,6 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                 if data.get("type") == "cancel":
                     # Handle cancellation if running
                     logger.info("Cancellation requested via WebSocket.")
-                    # Future implementation could interrupt the async stream generator
                     continue
 
                 if not message:
@@ -83,15 +82,12 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                 
                 await websocket.send_json({"type": "progress", "status": f"Loading {target_model.name} into VRAM..."})
                 
-                # Context formatting
-                context_str = str(context) # Should ideally use context_engine
-                
                 full_response = []
                 if intent_result.intent == "planning":
                     await websocket.send_json({"type": "progress", "status": "Architecting Plan (JSON Mode)..."})
                     try:
                         # PlannerAgent returns a Pydantic Plan object
-                        plan = await supervisor_agent.execute_task(intent_result, message, context_str)
+                        plan = await supervisor_agent.execute_task(intent_result, message, context, conversation_id)
                         
                         # Generate Markdown
                         md_chunks = [
@@ -99,13 +95,14 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                             "Here is your step-by-step architectural plan:\n\n"
                         ]
                         for task in plan.tasks:
-                            deps = f" *(Depends on: {', '.join(task.depends_on)})*" if task.depends_on else ""
-                            md_chunks.append(f"- [ ] **Task {task.id}** ({task.agent.title()}): {task.description}{deps}\n")
+                            deps = f" *(Depends on: {', '.join(task.dependencies)})*" if task.dependencies else ""
+                            desc = task.title or task.description
+                            md_chunks.append(f"- [ ] **Task {task.id}** ({task.agent.title()}): {desc}{deps}\n")
                             
                         markdown_content = "".join(md_chunks)
                         
                         # Save the markdown plan to the workspace root
-                        workspace_root = context.get("workspace_root")
+                        workspace_root = context.get("workspace_root") if isinstance(context, dict) else ""
                         plan_filename = "Plan.md"
                         
                         if workspace_root:
@@ -124,7 +121,7 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                         # Store in memory for /approve_plan
                         active_plans[conversation_id] = {
                             "plan": plan,
-                            "context": context_str
+                            "context": context
                         }
                         
                         # Send the artifact event instead of just streaming the markdown
@@ -142,9 +139,11 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                         
                     except Exception as e:
                         error_msg = f"Planner failed: {str(e)}"
+                        logger.error(error_msg)
                         await websocket.send_json({"type": "response.delta", "delta": error_msg})
                         full_response.append(error_msg)
                 else:
+                    context_str = str(context)
                     prompt = f"Task: {message}\nContext: {context_str}"
                     messages = [{"role": "user", "content": prompt}]
                     # Stream the response using ModelManager to ensure strict VRAM limit
