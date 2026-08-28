@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     
     # AI Providers
     OLLAMA_HOST: str = "http://localhost:11434"
-    DEFAULT_MODEL: str = "deepseek-r1:5b"
+    DEFAULT_MODEL: str = "qwen3.5:4b"
     TEMPERATURE: float = 0.2
     MAX_TOKENS: int = 32768
     TOP_P: float = 0.95

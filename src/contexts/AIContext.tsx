@@ -115,7 +115,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
 
   const [agentMode, setAgentMode] = useState<'chat' | 'planner' | 'coding' | 'auto'>('chat');
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>('deepseek-r1:1.5b');
+  const [selectedModel, setSelectedModel] = useState<string>('qwen3.5:4b');
 
   // connection
   const [connection, setConnection] = useState<AIConnection>({
