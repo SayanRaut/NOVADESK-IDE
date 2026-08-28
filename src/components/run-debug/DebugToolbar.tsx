@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDebug } from '../../contexts/DebugContext';
 import { Play, Pause, Square, RotateCcw, ArrowDownToLine, StepForward, ArrowUpFromLine } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

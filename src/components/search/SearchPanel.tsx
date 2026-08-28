@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
-import { Search, ChevronDown, ChevronRight, File as FileIcon, Replace, ReplaceAll, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, ChevronRight, File as FileIcon, Replace, ReplaceAll, RefreshCw } from 'lucide-react';
 import { useEditor } from '../../contexts/EditorContext';
-import { cn } from '../../utils/cn';
 import { motion, AnimatePresence } from 'framer-motion';
 import { create } from 'zustand';
 
@@ -43,7 +42,7 @@ const useSearchStore = create<SearchState>((set) => ({
 
 export function SearchPanel() {
   const { query, setQuery, replaceQuery, setReplaceQuery, isReplaceExpanded, setIsReplaceExpanded, results, setResults, expandedFiles, setExpandedFiles } = useSearchStore();
-  const [isSearching, setIsSearching] = React.useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const { openFile, setCursorPosition } = useEditor();
 
   const handleSearch = async () => {

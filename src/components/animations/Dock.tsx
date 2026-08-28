@@ -1,10 +1,12 @@
-import { motion, useMotionValue, useSpring, useTransform, AnimatePresence, MotionValue } from 'framer-motion';
-import { Children, cloneElement, useEffect, useMemo, useRef, useState, ReactElement } from 'react';
+import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
+import type { MotionValue } from 'framer-motion';
+import { Children, cloneElement, useEffect, useMemo, useRef, useState, isValidElement } from 'react';
+import type { ReactNode, ReactElement } from 'react';
 
 import './Dock.css';
 
 interface DockItemProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   onClick?: () => void;
   mouseX: MotionValue<number>;
@@ -57,12 +59,17 @@ function DockItem({ children, className = '', onClick, mouseX, spring, distance,
       aria-label={label}
       onKeyDown={handleKeyDown}
     >
-      {Children.map(children, child => cloneElement(child as ReactElement, { isHovered, isActive }))}
+      {Children.map(children, child => {
+        if (isValidElement(child)) {
+          return cloneElement(child as ReactElement<any>, { isActive });
+        }
+        return child;
+      })}
     </motion.div>
   );
 }
 
-function DockLabel({ children, className = '', ...rest }: { children: React.ReactNode, className?: string, isHovered?: MotionValue<number> }) {
+function DockLabel({ children, className = '', ...rest }: { children: ReactNode, className?: string, isHovered?: MotionValue<number> }) {
   const { isHovered } = rest;
   const [isVisible, setIsVisible] = useState(false);
 
@@ -93,7 +100,7 @@ function DockLabel({ children, className = '', ...rest }: { children: React.Reac
   );
 }
 
-function DockIcon({ children, className = '', isActive }: { children: React.ReactNode, className?: string, isActive?: boolean }) {
+function DockIcon({ children, className = '', isActive }: { children: ReactNode, className?: string, isActive?: boolean }) {
   return (
     <div className={`dock-icon ${isActive ? 'text-[#c4f042]' : 'text-slate-400'} ${className}`}>
       {children}
@@ -104,7 +111,7 @@ function DockIcon({ children, className = '', isActive }: { children: React.Reac
 export interface DockProps {
   items: Array<{
     id?: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     label: string;
     onClick?: () => void;
     className?: string;
@@ -137,7 +144,7 @@ export default function Dock({
     [magnification, dockHeight]
   );
   const heightRow = useTransform(isHovered, [0, 1], [panelHeight, maxHeight]);
-  const height = useSpring(heightRow, spring);
+  useSpring(heightRow, spring);
 
   return (
     <motion.div style={{ height: panelHeight, scrollbarWidth: 'none' }} className="dock-outer">

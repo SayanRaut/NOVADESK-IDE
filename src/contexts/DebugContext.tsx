@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, type ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, type ReactNode, useCallback } from 'react';
 
 export type DebugState = 'idle' | 'running' | 'paused';
 
@@ -40,7 +40,7 @@ export function DebugProvider({ children }: { children: ReactNode }) {
     setBreakpoints([]);
   }, []);
 
-  const startDebugging = useCallback((filePath: string, command: string) => {
+  const startDebugging = useCallback((_filePath: string, _command: string) => {
     setDebugState('running');
     // Actual launch logic will be wired where this is called
   }, []);

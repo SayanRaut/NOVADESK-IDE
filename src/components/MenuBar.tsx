@@ -1,4 +1,3 @@
-import React from 'react';
 import { IDEMenuBar } from './menubar/MenuBar';
 
 export const MenuBar = () => {

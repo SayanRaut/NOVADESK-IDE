@@ -1,6 +1,6 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { MoreHorizontal, PanelLeftClose } from 'lucide-react';
+import { PanelLeftClose } from 'lucide-react';
 import { useSidebar } from '../contexts/SidebarContext';
 import { useLayout } from '../contexts/LayoutContext';
 import type { ActivityItem } from '../contexts/SidebarContext';

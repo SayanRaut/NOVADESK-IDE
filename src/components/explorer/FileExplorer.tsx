@@ -260,7 +260,7 @@ const FileTreeItem = ({ item, level = 0 }: { item: FileTree, level?: number }) =
 };
 
 export const FileExplorer = () => {
-  const { activeFile, currentPath, fileTree, setFileTree, refreshVersion, refreshWorkspace, openFile, splitGroup, activeGroupId, setChatContextFiles } = useEditor();
+  const { currentPath, fileTree, setFileTree, refreshVersion, refreshWorkspace, openFile, splitGroup, activeGroupId, setChatContextFiles } = useEditor();
   const { setAISidebarOpen, setBottomPanelOpen } = useLayout();
   const { setActiveTab } = usePanel();
   const { newTerminal } = useTerminal();

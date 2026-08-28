@@ -4,7 +4,7 @@ import { useAI } from '../../../contexts/AIContext';
 import { ChatMessage } from './ChatMessage';
 
 export const MessageList = () => {
-  const { messages, isThinking } = useAI();
+  const { messages, isThinking, isLoadingHistory } = useAI();
   const endRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
@@ -32,6 +32,23 @@ export const MessageList = () => {
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
   }, []);
+
+  if (isLoadingHistory) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 gap-4 p-8">
+        <div className="flex gap-3">
+          <div className="w-7 h-7 rounded-full bg-[#c4f042]/20 border border-[#c4f042]/30 flex items-center justify-center shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-pulse" />
+          </div>
+          <div className="flex items-center gap-1.5 h-7 text-[#c4f042]/70 text-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" />
+            <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce [animation-delay:150ms]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce [animation-delay:300ms]" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (messages.length === 0 && !isThinking) {
     return (

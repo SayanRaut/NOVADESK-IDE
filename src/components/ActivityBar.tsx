@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Dock from './animations/Dock';
 import { Files, Search, GitBranch, Play, Blocks, Sparkles, Settings, UserCircle, LogOut } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useSidebar } from '../contexts/SidebarContext';
 import type { ActivityItem } from '../contexts/SidebarContext';
 import { useLayout } from '../contexts/LayoutContext';
@@ -8,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../utils/cn';
 import { useState, useRef, useEffect } from 'react';
 
-const topItems: { id: ActivityItem; icon: React.ElementType; label: string }[] = [
+const topItems: { id: ActivityItem; icon: LucideIcon; label: string }[] = [
   { id: 'explorer', icon: Files, label: 'Explorer' },
   { id: 'search', icon: Search, label: 'Search' },
   { id: 'source-control', icon: GitBranch, label: 'Source Control' },
@@ -17,7 +18,7 @@ const topItems: { id: ActivityItem; icon: React.ElementType; label: string }[] =
   { id: 'ai', icon: Sparkles, label: 'AI Workspace' },
 ];
 
-const bottomItems: { id: ActivityItem | 'profile'; icon: React.ElementType; label: string }[] = [
+const bottomItems: { id: ActivityItem | 'profile'; icon: LucideIcon; label: string }[] = [
   { id: 'profile', icon: UserCircle, label: 'Profile' },
   { id: 'settings', icon: Settings, label: 'Settings' },
 ];
@@ -60,7 +61,7 @@ export function ActivityBar() {
     }
   };
 
-  const ActivityIcon = ({ id, icon: Icon, label }: { id: ActivityItem | 'profile'; icon: React.ElementType; label: string }) => {
+  const ActivityIcon = ({ id, icon: Icon, label }: { id: ActivityItem | 'profile'; icon: LucideIcon; label: string }) => {
     const isActive = id === 'profile' ? isProfileOpen : activeActivity === id && (id === 'ai' ? isAISidebarOpen : isSidebarOpen);
     
     return (

@@ -1,8 +1,8 @@
-import React, { useRef, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-interface ParticleSystemProps {
+export interface ParticleSystemProps {
   particleCount?: number;
   particleSpread?: number;
   speed?: number;
@@ -13,6 +13,7 @@ interface ParticleSystemProps {
   particleBaseSize?: number;
   sizeRandomness?: number;
   disableRotation?: boolean;
+  cameraDistance?: number;
 }
 
 const ParticleSystem = ({
@@ -62,7 +63,7 @@ const ParticleSystem = ({
 
   const { pointer } = useThree();
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (!points.current) return;
     
     if (!disableRotation) {
@@ -154,17 +155,17 @@ const ParticleSystem = ({
   return (
     <points ref={points} material={shaderMaterial}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={colors.length / 3} array={colors} itemSize={3} />
-        <bufferAttribute attach="attributes-size" count={sizes.length} array={sizes} itemSize={1} />
-        <bufferAttribute attach="attributes-phase" count={phases.length} array={phases} itemSize={1} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
+        <bufferAttribute attach="attributes-phase" args={[phases, 1]} />
       </bufferGeometry>
     </points>
   );
 };
 
 export default function BackgroundParticles(props: ParticleSystemProps & { blurAmount?: string }) {
-  const { blurAmount = "20px", cameraDistance = 35, ...systemProps } = props as any;
+  const { blurAmount = "20px", cameraDistance = 35, ...systemProps } = props;
   return (
     <div 
       className="absolute inset-0 z-0 pointer-events-auto"

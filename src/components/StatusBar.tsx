@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { GitBranch, XCircle, AlertTriangle, Bell, Palette, Terminal as TerminalIcon, Server, ServerOff, LogIn, Check, ZoomIn, ZoomOut, RotateCcw, MoreHorizontal, Search, Settings, Minus, Plus } from 'lucide-react';
+import { GitBranch, XCircle, AlertTriangle, Bell, Palette, Terminal as TerminalIcon, Server, ServerOff, LogIn, Check, MoreHorizontal, Search, Minus, Plus } from 'lucide-react';
 import { useEditor } from '../contexts/EditorContext';
 import { useProblems } from '../contexts/ProblemsContext';
 import { useTheme } from '../contexts/ThemeContext';

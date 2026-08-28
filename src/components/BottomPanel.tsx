@@ -1,6 +1,6 @@
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PanelBottomClose, Terminal, AlertCircle, ListTree, Bug, Activity, XCircle, AlertTriangle } from 'lucide-react';
+import { PanelBottomClose, Terminal, AlertCircle, ListTree, XCircle, AlertTriangle } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useLayout } from '../contexts/LayoutContext';
 import { usePanel } from '../contexts/PanelContext';
 import { useEditor } from '../contexts/EditorContext';
@@ -11,7 +11,7 @@ import { useResize } from '../hooks/useResize';
 import { TerminalPanel } from './Terminal/TerminalPanel';
 import { cn } from '../utils/cn';
 
-const tabs: { id: BottomPanelTab; label: string; icon?: React.ElementType }[] = [
+const tabs: { id: BottomPanelTab; label: string; icon?: LucideIcon }[] = [
   { id: 'problems', label: 'PROBLEMS', icon: AlertCircle },
   { id: 'output', label: 'OUTPUT', icon: ListTree },
   { id: 'terminal', label: 'TERMINAL', icon: Terminal },
@@ -66,6 +66,7 @@ export function BottomPanel() {
               <div className="flex h-full gap-4">
                 {tabs.map(tab => {
                   const isActive = activeTab === tab.id;
+                  const Icon = tab.icon;
                   return (
                     <div 
                       key={tab.id}
@@ -77,10 +78,10 @@ export function BottomPanel() {
                           : "border-transparent hover:text-slate-200"
                       )}
                     >
-                      {tab.icon && <tab.icon className="w-3.5 h-3.5" />}
+                      {Icon && <Icon className="w-3.5 h-3.5" />}
                       <span>{tab.label}</span>
                     </div>
-                  )
+                  );
                 })}
               </div>
               

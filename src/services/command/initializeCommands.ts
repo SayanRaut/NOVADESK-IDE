@@ -141,7 +141,7 @@ export function initializeCommands() {
   CommandRegistry.registerCommand({
     id: 'view.runAndDebug',
     title: 'Run and Debug',
-    execute: () => window.dispatchEvent(new CustomEvent('ide:toggleRunDebug'))
+    execute: () => { window.dispatchEvent(new CustomEvent('ide:toggleRunDebug')); }
   });
 
   // AI Commands

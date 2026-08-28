@@ -1,5 +1,4 @@
 import { useEditor } from '../contexts/EditorContext';
-import { cn } from '../utils/cn';
 import { Layers, Lock } from 'lucide-react';
 
 export function TitleBar() {

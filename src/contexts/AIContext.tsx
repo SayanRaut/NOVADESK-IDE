@@ -65,6 +65,7 @@ type ChatContextType = {
   isStreaming: boolean;
   isThinking: boolean;
   setIsThinking: (v: boolean) => void;
+  isLoadingHistory: boolean;
 
 
   agentMode: 'chat' | 'planner' | 'coding' | 'auto';
@@ -108,6 +109,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const [streamingContent, setStreamingContent] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const lastUserMessage = useRef<string>('');
 
 
@@ -167,10 +169,11 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
   const selectConversation = useCallback(async (id: number) => {
     const convo = conversations.find(c => c.id === id) ?? null;
     setActiveConversation(convo);
+    setMessages([]); // Clear messages immediately to prevent UI delay
     if (!convo || !accessToken || accessToken === 'local') {
-      setMessages([]);
       return;
     }
+    setIsLoadingHistory(true);
     try {
       const msgs = await getConversationMessages(id);
       setMessages(msgs.map(m => ({
@@ -181,6 +184,8 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       })));
     } catch {
       setMessages([]);
+    } finally {
+      setIsLoadingHistory(false);
     }
   }, [conversations, accessToken]);
 
@@ -448,6 +453,7 @@ export const AIProvider = ({ children }: { children: ReactNode }) => {
       isStreaming,
       isThinking,
       setIsThinking,
+      isLoadingHistory,
 
       agentMode,
       setAgentMode,

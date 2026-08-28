@@ -1,4 +1,5 @@
-import { useRef, useEffect, useState, ReactNode } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import './GooeyNav.css';
 import { cn } from '../../utils/cn';
 
@@ -122,9 +123,16 @@ export const GooeyNav = ({
     if (liEl) updateEffectPosition(liEl);
 
     if (filterRef.current) {
-      const particles = filterRef.current.querySelectorAll('.particle');
-      particles.forEach(p => filterRef.current.removeChild(p));
-      makeParticles(filterRef.current);
+      const currentSpan = filterRef.current;
+      const particles = currentSpan.querySelectorAll('.particle');
+      particles.forEach(p => {
+        try {
+          currentSpan.removeChild(p);
+        } catch {
+          // ignore
+        }
+      });
+      makeParticles(currentSpan);
     }
   };
 

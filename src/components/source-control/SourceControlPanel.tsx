@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Minus, Check, GitBranch, RefreshCw, GitCompare, Link, Unlink, Upload, FolderPlus, ChevronDown } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useEditor } from '../../contexts/EditorContext';
 
 interface GitFileStatus {
@@ -281,7 +282,7 @@ export function SourceControlPanel() {
     );
   }
 
-  const FileItem = ({ item, actionIcon: ActionIcon, onAction }: { item: GitFileStatus, actionIcon: React.ElementType, onAction: () => void }) => {
+  const FileItem = ({ item, actionIcon: ActionIcon, onAction }: { item: GitFileStatus, actionIcon: LucideIcon, onAction: () => void }) => {
     const filename = item.path.split(/[/\\]/).pop();
     const folder = item.path.substring(0, item.path.length - (filename?.length || 0) - 1);
     

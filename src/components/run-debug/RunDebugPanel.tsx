@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Play, Settings, ChevronRight, ChevronDown, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEditor } from '../../contexts/EditorContext';
 import { useTerminal } from '../../contexts/TerminalContext';
 import { useDebug } from '../../contexts/DebugContext';
 import { usePanel } from '../../contexts/PanelContext';
+import { useLayout } from '../../contexts/LayoutContext';
 
 type SectionState = {
   variables: boolean;
@@ -17,7 +18,8 @@ export function RunDebugPanel() {
   const { editorGroups, activeGroupId } = useEditor();
   const { activeTerminalId, newTerminal } = useTerminal();
   const { debugState, startDebugging, breakpoints, clearBreakpoints } = useDebug();
-  const { setBottomPanelOpen, setActiveBottomPanel } = usePanel();
+  const { setActiveTab } = usePanel();
+  const { setBottomPanelOpen } = useLayout();
 
   const [sections, setSections] = useState<SectionState>({
     variables: true,
@@ -40,7 +42,7 @@ export function RunDebugPanel() {
     }
 
     startDebugging(activeGroup.activeFile, '');
-    setActiveBottomPanel('terminal');
+    setActiveTab('terminal');
     setBottomPanelOpen(true);
     
     if (window.electronAPI && terminalId) {

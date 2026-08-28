@@ -50,7 +50,28 @@ const waitForFonts = async font => {
   await document.fonts.ready;
 };
 
-const ParticleText = ({
+export interface ParticleTextProps {
+  text?: string;
+  particleSize?: number;
+  density?: number;
+  color?: string;
+  highlightColor?: string;
+  scatter?: number;
+  gatherDuration?: number;
+  stagger?: number;
+  pointerRepel?: number;
+  repelRadius?: number;
+  idleDrift?: number;
+  trigger?: string;
+  fontSize?: string | number;
+  fontWeight?: string | number;
+  fontFamily?: string;
+  glow?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+const ParticleText: React.FC<ParticleTextProps> = ({
   text = 'React Bits',
   particleSize = 2,
   density = 4,
@@ -68,7 +89,7 @@ const ParticleText = ({
   fontFamily = 'inherit',
   glow = true,
   className = '',
-  style
+  style = {}
 }) => {
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
