@@ -82,10 +82,9 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
       <div className="flex-1 min-w-0">
         <div className="text-sm text-slate-200 leading-relaxed">
           {isStreaming && !message.content ? (
-            <div className="flex items-center gap-1 h-6 text-slate-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-bounce" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-bounce [animation-delay:150ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#c4f042] animate-bounce [animation-delay:300ms]" />
+            <div className="flex items-center gap-2 h-7 text-xs text-[#c4f042] bg-[#c4f042]/10 border border-[#c4f042]/20 px-3 py-1 rounded-full w-fit">
+              <span className="w-2 h-2 rounded-full bg-[#c4f042] animate-ping shrink-0" />
+              <span className="font-medium">Generating code for workspace...</span>
             </div>
           ) : (
             <ReactMarkdown

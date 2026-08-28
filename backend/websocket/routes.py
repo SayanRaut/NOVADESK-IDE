@@ -144,12 +144,26 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                         full_response.append(error_msg)
                 else:
                     context_str = str(context)
-                    prompt = f"Task: {message}\nContext: {context_str}"
+                    prompt = (
+                        f"Task: {message}\nContext: {context_str}\n\n"
+                        "Note: If you generate code for files, specify the file path above each block formatted as `### File: path/to/filename.ext`."
+                    )
                     messages = [{"role": "user", "content": prompt}]
                     # Stream the response using ModelManager to ensure strict VRAM limit
                     async for chunk in model_manager.stream(messages, target_model.id):
                         await websocket.send_json({"type": "response.delta", "delta": chunk})
                         full_response.append(chunk)
+
+                    # Auto-save any generated files directly to the workspace folder
+                    workspace_root = context.get("workspace_root") if isinstance(context, dict) else ""
+                    if workspace_root:
+                        from ai.planner.dispatcher import save_generated_files
+                        saved_files = save_generated_files("".join(full_response), workspace_root, message)
+                        if saved_files:
+                            saved_list = ", ".join([f"`{f['path']}`" for f in saved_files])
+                            notice = f"\n\n📂 **Saved to workspace:** {saved_list}"
+                            await websocket.send_json({"type": "response.delta", "delta": notice})
+                            full_response.append(notice)
                     
                 await websocket.send_json({"type": "response.completed"})
                 

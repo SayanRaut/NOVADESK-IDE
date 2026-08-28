@@ -76,8 +76,16 @@ const normalizeAIBaseUrl = (value: string) => {
 };
 
 const isInsideWorkspace = (candidatePath: string) => {
-  if (!workspaceRoot) return false;
-  const relative = path.relative(workspaceRoot, path.resolve(candidatePath));
+  if (!workspaceRoot) return true;
+  const normalCandidate = path.resolve(candidatePath);
+  const normalRoot = path.resolve(workspaceRoot);
+  
+  if (process.platform === 'win32') {
+    const rel = path.relative(normalRoot.toLowerCase(), normalCandidate.toLowerCase());
+    return rel === '' || (!rel.startsWith(`..${path.sep}`) && rel !== '..' && !path.isAbsolute(rel));
+  }
+  
+  const relative = path.relative(normalRoot, normalCandidate);
   return relative === '' || (!relative.startsWith(`..${path.sep}`) && relative !== '..' && !path.isAbsolute(relative));
 };
 
