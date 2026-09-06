@@ -70,39 +70,63 @@ function ensureTerminalSocket(): Promise<WebSocket> {
 
 // Workspace File Watcher WebSocket state
 let workspaceSocket: WebSocket | null = null;
+let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+let reconnectAttempts = 0;
 const workspaceFileCallbacks = new Set<(payload: { eventType: string; filename: string; fullPath: string }) => void>();
 
 function ensureWorkspaceSocket() {
-  if (workspaceSocket && workspaceSocket.readyState === WebSocket.OPEN) return;
+  if (typeof window === 'undefined') return;
+  // Only connect if there are active subscribers to watch events
+  if (workspaceFileCallbacks.size === 0) return;
+  if (workspaceSocket && (workspaceSocket.readyState === WebSocket.OPEN || workspaceSocket.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
 
-  const apiBase = getApiBaseUrl();
-  const wsUrl = apiBase.replace(/^http/, 'ws') + '/ws/workspace';
-  const ws = new WebSocket(wsUrl);
+  try {
+    const apiBase = getApiBaseUrl();
+    const wsUrl = apiBase.replace(/^http/, 'ws') + '/ws/workspace';
+    const ws = new WebSocket(wsUrl);
 
-  ws.onopen = () => {
-    workspaceSocket = ws;
-    // Send heartbeat
-    setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) ws.send('ping');
-    }, 15000);
-  };
+    let heartbeatTimer: any = null;
 
-  ws.onmessage = (event) => {
-    try {
-      if (event.data === 'pong') return;
-      const msg = JSON.parse(event.data);
-      if (msg.eventType && msg.fullPath) {
-        workspaceFileCallbacks.forEach((cb) => cb(msg));
+    ws.onopen = () => {
+      workspaceSocket = ws;
+      reconnectAttempts = 0;
+      // Send heartbeat ping
+      heartbeatTimer = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) ws.send('ping');
+      }, 15000);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        if (event.data === 'pong') return;
+        const msg = JSON.parse(event.data);
+        if (msg.eventType && msg.fullPath) {
+          workspaceFileCallbacks.forEach((cb) => cb(msg));
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
-  };
+    };
 
-  ws.onclose = () => {
-    workspaceSocket = null;
-    setTimeout(ensureWorkspaceSocket, 3000);
-  };
+    ws.onerror = () => {
+      // Suppress unhandled noisy console crashes when backend is starting or offline
+    };
+
+    ws.onclose = () => {
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      workspaceSocket = null;
+      if (workspaceFileCallbacks.size > 0) {
+        reconnectAttempts++;
+        const delay = Math.min(30000, 1000 * Math.pow(1.5, Math.min(reconnectAttempts, 8)));
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectTimeout = setTimeout(ensureWorkspaceSocket, delay);
+      }
+    };
+  } catch {
+    // ignore
+  }
 }
 
 async function fetchJson<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -140,10 +164,7 @@ async function fetchJson<T>(endpoint: string, options: RequestInit = {}): Promis
 export function initWebIdeApi() {
   if (typeof window === 'undefined') return;
 
-  // Initialize workspace watcher WebSocket
-  ensureWorkspaceSocket();
-
-  // Create the polyfill implementation matching ElectronAPI
+  // Polyfill window.electronAPI with web adapter implementation
   const webApi = {
     // Window Controls
     windowControl: async (action: 'minimize' | 'maximize' | 'close') => {
@@ -273,8 +294,21 @@ export function initWebIdeApi() {
 
     onWorkspaceFileChanged: (callback: (payload: { eventType: string; filename: string; fullPath: string }) => void) => {
       workspaceFileCallbacks.add(callback);
+      ensureWorkspaceSocket();
       return () => {
         workspaceFileCallbacks.delete(callback);
+        if (workspaceFileCallbacks.size === 0) {
+          if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+          }
+          if (workspaceSocket) {
+            try {
+              workspaceSocket.close();
+            } catch {}
+            workspaceSocket = null;
+          }
+        }
       };
     },
 

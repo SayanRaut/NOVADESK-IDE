@@ -47,6 +47,13 @@ const extractData = async <T>(promise: Promise<import('axios').AxiosResponse<T>>
     const response = await promise;
     return response.data;
   } catch (error: any) {
+    if (error.code === 'ERR_NETWORK' || error.message === 'Network Error' || !error.response) {
+      const targetUrl = error.config?.url || 'API';
+      const targetMethod = error.config?.method?.toUpperCase() || 'POST';
+      throw new Error(
+        `Unable to reach NovaDesk backend server (${targetMethod} ${targetUrl}). Please ensure the backend is running on port 8000.`
+      );
+    }
     let detail = `The NovaDesk service returned an unexpected error.`;
     if (error.config?.url) {
       detail += ` (${error.config.method?.toUpperCase()} ${error.config.url})`;

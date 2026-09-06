@@ -394,7 +394,6 @@ export default function HomePage() {{
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-8 md:p-16 max-w-6xl mx-auto">
-      {/* Top Banner */}
       <div className="z-10 w-full flex items-center justify-between font-mono text-sm border-b border-white/10 pb-6">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-lime-400 to-emerald-500 flex items-center justify-center text-black font-bold">
@@ -409,10 +408,9 @@ export default function HomePage() {{
         </div>
       </div>
 
-      {/* Hero */}
       <div className="relative flex flex-col items-center text-center my-16 gap-6">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-lime-400 backdrop-blur-md">
-          <Sparkles size={14} />
+          <Sparkles size={{14}} />
           <span>Synthesized by NovaDesk AI</span>
         </div>
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white max-w-3xl">
@@ -429,16 +427,15 @@ export default function HomePage() {{
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-500 text-black font-semibold text-xs shadow-lg shadow-lime-500/20 hover:scale-[1.02] transition"
           >
             <span>Test API Route</span>
-            <ArrowUpRight size={14} />
+            <ArrowUpRight size={{14}} />
           </a>
           <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold text-xs border border-white/10 transition">
-            <Terminal size={14} />
+            <Terminal size={{14}} />
             <span>npm run dev</span>
           </button>
         </div>
       </div>
 
-      {/* Feature Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
         {{features.map((f, i) => (
           <div key={{i}} className="p-6 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-lime-400/30 transition-all flex flex-col justify-between gap-4">
@@ -450,14 +447,13 @@ export default function HomePage() {{
               <p className="text-xs text-slate-400 leading-relaxed">{{f.desc}}</p>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium pt-2 border-t border-white/5">
-              <CheckCircle2 size={13} />
+              <CheckCircle2 size={{13}} />
               <span>Operational</span>
             </div>
           </div>
         ))}}
       </div>
 
-      {/* Footer */}
       <footer className="mt-16 text-xs text-slate-500 flex items-center justify-between w-full border-t border-white/5 pt-6">
         <span>Prompt: "{prompt}"</span>
         <span>NovaDesk AI Cloud Architecture</span>

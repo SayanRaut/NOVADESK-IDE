@@ -199,7 +199,7 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
 
   // File Watching (Auto Reload if changed externally)
   useEffect(() => {
-    if (!window.electronAPI) return;
+    if (!window.electronAPI || !currentPath) return;
     return window.electronAPI.onWorkspaceFileChanged(async (payload) => {
       // If we have it in contents and it's NOT dirty, auto reload it.
       if (fileContents[payload.fullPath] !== undefined && !dirtyFiles.has(payload.fullPath)) {
@@ -211,7 +211,7 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     });
-  }, [fileContents, dirtyFiles]);
+  }, [currentPath, fileContents, dirtyFiles]);
 
   // Auto Save Loop (debounce 1s)
   useEffect(() => {
