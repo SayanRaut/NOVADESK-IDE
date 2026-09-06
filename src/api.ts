@@ -32,6 +32,13 @@ export type Conversation = {
 
 
 
+export type OTPResponse = {
+  success: boolean;
+  message: string;
+  email: string;
+  requires_otp: boolean;
+};
+
 import { http } from './services/http';
 import { getApiBaseUrl } from './config/api';
 
@@ -50,6 +57,11 @@ const extractData = async <T>(promise: Promise<import('axios').AxiosResponse<T>>
       } else if (typeof error.response.data.message === 'string') {
         detail = error.response.data.message;
       }
+      const customErr = new Error(detail) as any;
+      customErr.requires_verification = Boolean(error.response.data.requires_verification);
+      customErr.email = error.response.data.email;
+      customErr.status = error.response.status;
+      throw customErr;
     } else {
       detail += ` - ${error.message}`;
     }
@@ -63,8 +75,28 @@ export const loginWithEmail = async (email: string, password: string): Promise<A
   return extractData(http.post<AuthSession>('/api/auth/login', { email, password }));
 };
 
-export const registerWithEmail = async (name: string, email: string, password: string): Promise<AuthSession> => {
-  return extractData(http.post<AuthSession>('/api/auth/register', { display_name: name, email, password }));
+export const registerWithEmail = async (
+  name: string,
+  email: string,
+  password: string,
+  confirmPassword?: string
+): Promise<OTPResponse> => {
+  return extractData(
+    http.post<OTPResponse>('/api/auth/register', {
+      display_name: name,
+      email,
+      password,
+      confirm_password: confirmPassword,
+    })
+  );
+};
+
+export const verifyOtp = async (email: string, otp: string): Promise<AuthSession> => {
+  return extractData(http.post<AuthSession>('/api/auth/verify-otp', { email, otp }));
+};
+
+export const resendOtp = async (email: string): Promise<{ success: boolean; message: string }> => {
+  return extractData(http.post<{ success: boolean; message: string }>('/api/auth/resend-otp', { email }));
 };
 
 export const getCurrentUser = async (token: string): Promise<NovaDeskUser> => {

@@ -25,9 +25,11 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     GOOGLE_REDIRECT_URI: str = "https://novadesk-ide.onrender.com/api/auth/google/callback"
     
-    # AI Providers
+    # AI Providers - Google Gemini Primary
+    GEMINI_API_KEY: Optional[str] = None
+    DEFAULT_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODELS: str = "gemini-2.5-flash,gemini-2.5-pro,gemini-2.0-flash"
     OLLAMA_HOST: str = "http://localhost:11434"
-    DEFAULT_MODEL: str = "qwen3.5:4b"
     TEMPERATURE: float = 0.2
     MAX_TOKENS: int = 32768
     TOP_P: float = 0.95

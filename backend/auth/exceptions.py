@@ -25,3 +25,11 @@ class TicketExpiredError(AuthError):
 class InvalidStateError(AuthError):
     """Raised when the OAuth state parameter is invalid."""
     pass
+
+class UserUnverifiedError(AuthError):
+    """Raised when user account is not yet email/OTP verified."""
+    pass
+
+class OTPVerificationError(AuthError):
+    """Raised when OTP verification fails or expires."""
+    pass

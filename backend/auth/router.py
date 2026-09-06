@@ -6,11 +6,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.database import get_db
 from database.models import User
 from auth.dependencies import get_current_user
-from auth.schemas import UserCreate, UserLogin, AuthResponse, RefreshTokenRequest, LogoutRequest
-from auth.exceptions import AuthError, UserCreationError
+from auth.schemas import (
+    UserCreate, UserLogin, AuthResponse, RefreshTokenRequest, LogoutRequest,
+    VerifyOTPRequest, ResendOTPRequest, OTPResponse
+)
+from auth.exceptions import AuthError, UserCreationError, UserUnverifiedError, OTPVerificationError
 from auth.services.jwt_service import create_access_token
 from auth.services.session_service import SessionService
-from auth.services.user_service import get_user_by_id, format_user_payload, create_user, authenticate_user
+from auth.services.user_service import (
+    get_user_by_id, format_user_payload, create_user, authenticate_user,
+    verify_user_otp, resend_user_otp
+)
 from auth.services.oauth_service import GoogleOAuthService
 from auth.exceptions import OAuthExchangeError, InvalidStateError, GoogleTokenError
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -31,18 +37,15 @@ def _handle_auth_error(exc: AuthError) -> JSONResponse:
         }
     )
 
-@router.post("/register")
+@router.post("/register", response_model=OTPResponse)
 async def register(req: UserCreate, db: AsyncSession = Depends(get_db)):
     try:
-        user = await create_user(db, req)
-        access_token = create_access_token(data={"sub": str(user.id)})
-        refresh_token = await SessionService.create_refresh_token(db, user.id)
-        
+        user, otp = await create_user(db, req)
         return {
-            "access_token": access_token, 
-            "refresh_token": refresh_token,
-            "token_type": "bearer", 
-            "user": format_user_payload(user)
+            "success": True,
+            "message": "Verification code has been sent to your email. Please verify to activate your account.",
+            "email": user.email,
+            "requires_otp": True
         }
     except AuthError as exc:
         return _handle_auth_error(exc)
@@ -50,25 +53,71 @@ async def register(req: UserCreate, db: AsyncSession = Depends(get_db)):
         logger.error(f"Unexpected error in register: {repr(exc)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An unexpected error occurred: {repr(exc)}")
 
+@router.post("/verify-otp")
+async def verify_otp(req: VerifyOTPRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        user = await verify_user_otp(db, req.email, req.otp)
+        access_token = create_access_token(data={"sub": str(user.id)})
+        refresh_token = await SessionService.create_refresh_token(db, user.id)
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": format_user_payload(user),
+            "success": True,
+            "message": "Account verified successfully! Welcome to NovaDesk."
+        }
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except Exception as exc:
+        logger.error(f"Unexpected error in verify_otp: {repr(exc)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+
+@router.post("/resend-otp")
+async def resend_otp(req: ResendOTPRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        await resend_user_otp(db, req.email)
+        return {
+            "success": True,
+            "message": f"A new 6-digit verification code has been dispatched to {req.email}."
+        }
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except Exception as exc:
+        logger.error(f"Unexpected error in resend_otp: {repr(exc)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+
 @router.post("/login")
 async def login(req: UserLogin, db: AsyncSession = Depends(get_db)):
-    user = await authenticate_user(db, req.email, req.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    try:
+        user = await authenticate_user(db, req.email, req.password)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        access_token = create_access_token(data={"sub": str(user.id)})
+        refresh_token = await SessionService.create_refresh_token(db, user.id)
         
-    access_token = create_access_token(data={"sub": str(user.id)})
-    refresh_token = await SessionService.create_refresh_token(db, user.id)
-    
-    return {
-        "access_token": access_token, 
-        "refresh_token": refresh_token,
-        "token_type": "bearer", 
-        "user": format_user_payload(user)
-    }
+        return {
+            "access_token": access_token, 
+            "refresh_token": refresh_token, 
+            "token_type": "bearer", 
+            "user": format_user_payload(user)
+        }
+    except UserUnverifiedError as exc:
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "detail": str(exc),
+                "requires_verification": True,
+                "email": req.email.strip().lower()
+            }
+        )
+    except AuthError as exc:
+        return _handle_auth_error(exc)
 
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):

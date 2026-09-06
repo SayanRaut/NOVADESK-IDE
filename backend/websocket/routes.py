@@ -80,11 +80,11 @@ async def websocket_chat(websocket: WebSocket, token: str = None):
                 
                 target_model = model_registry.get_unified_model()
                 
-                await websocket.send_json({"type": "progress", "status": f"Loading {target_model.name} into VRAM..."})
+                await websocket.send_json({"type": "progress", "status": f"Connecting to {target_model.name}..."})
                 
                 full_response = []
                 if intent_result.intent == "planning":
-                    await websocket.send_json({"type": "progress", "status": "Architecting Plan (JSON Mode)..."})
+                    await websocket.send_json({"type": "progress", "status": f"Architecting Plan with {target_model.name}..."})
                     try:
                         # PlannerAgent returns a Pydantic Plan object
                         plan = await supervisor_agent.execute_task(intent_result, message, context, conversation_id)

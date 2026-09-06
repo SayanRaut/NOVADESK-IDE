@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import electron from 'vite-plugin-electron/simple'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
@@ -8,26 +7,28 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    electron({
-      main: {
-        entry: 'electron/main.ts',
-        vite: {
-          build: {
-            rollupOptions: {
-              external: ['node-pty', 'extract-zip']
-            },
-            rolldownOptions: {
-              external: ['node-pty', 'extract-zip']
-            }
-          }
-        }
-      },
-      preload: {
-        input: 'electron/preload.ts',
-      },
-      renderer: {},
-    }),
   ],
+  server: {
+    port: 5173,
+    watch: {
+      ignored: [
+        '**/server_workspaces/**',
+        '**/backend/**',
+        '**/*.db',
+        '**/*.db-journal',
+      ],
+    },
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'ws://127.0.0.1:8000',
+        ws: true,
+      },
+    },
+  },
   optimizeDeps: {
     include: ['monaco-editor', '@monaco-editor/react']
   }

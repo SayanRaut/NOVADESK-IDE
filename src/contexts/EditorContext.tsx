@@ -274,6 +274,17 @@ export const EditorProvider = ({ children }: { children: ReactNode }) => {
     setRefreshVersion((version) => version + 1);
   }, []);
 
+  useEffect(() => {
+    const handleOpenWorkspaceEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ path: string; name?: string }>;
+      if (customEvent.detail?.path) {
+        openWorkspace(customEvent.detail.path);
+      }
+    };
+    window.addEventListener('novadesk:openWorkspace', handleOpenWorkspaceEvent);
+    return () => window.removeEventListener('novadesk:openWorkspace', handleOpenWorkspaceEvent);
+  }, [openWorkspace]);
+
   const closeWorkspace = useCallback(() => {
     setCurrentPath(null);
     setFileTree([]);

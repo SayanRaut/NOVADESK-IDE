@@ -15,6 +15,12 @@ class User(Base):
     last_login = Column(DateTime, nullable=True)
     plan = Column(String, default="Free")
     
+    # Verification & Security
+    is_verified = Column(Boolean, default=False)
+    otp_code = Column(String, nullable=True)
+    otp_expires_at = Column(DateTime, nullable=True)
+    otp_attempts = Column(Integer, default=0)
+
     # Preferences
     selected_theme = Column(String, default="dark")
     editor_settings = Column(JSON, default=dict)

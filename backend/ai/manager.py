@@ -5,17 +5,16 @@ from typing import Optional, List, Dict, Any, AsyncGenerator
 from .core.provider import ProviderInterface
 from .core.exceptions import ModelLoadError
 from .core.logger import logger
-from .providers.ollama import OllamaProvider
+from .providers.gemini import GeminiProvider
 
 class ModelManager:
     """
-    Manages the lifecycle of models, strictly enforcing the 1-model-in-VRAM limit.
-    Optimized for 6GB VRAM GPUs (e.g., RTX 3050).
-    Includes Response Caching.
+    Manages AI generation and streaming with Google Gemini as primary provider.
+    Includes thread-safe execution and response caching.
     """
     
     def __init__(self, provider: ProviderInterface = None):
-        self._provider = provider or OllamaProvider()
+        self._provider = provider or GeminiProvider()
         self._current_model: Optional[str] = None
         self._lock = asyncio.Lock()
         

@@ -36,13 +36,50 @@ async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
 
+async def _migrate_users_table(conn):
+    from sqlalchemy import text
+    try:
+        # Check existing columns in users table
+        is_sqlite = "sqlite" in str(conn.engine.url)
+        if is_sqlite:
+            res = await conn.execute(text("PRAGMA table_info(users)"))
+            existing_cols = {row[1] for row in res.fetchall()}
+            
+            if "is_verified" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT 0"))
+            if "otp_code" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN otp_code VARCHAR"))
+            if "otp_expires_at" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN otp_expires_at TIMESTAMP"))
+            if "otp_attempts" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN otp_attempts INTEGER DEFAULT 0"))
+        else:
+            # PostgreSQL column check
+            res = await conn.execute(text("SELECT column_name FROM information_schema.columns WHERE table_name='users'"))
+            existing_cols = {row[0] for row in res.fetchall()}
+            if "is_verified" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT FALSE"))
+            if "otp_code" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN otp_code VARCHAR"))
+            if "otp_expires_at" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN otp_expires_at TIMESTAMP"))
+            if "otp_attempts" not in existing_cols:
+                await conn.execute(text("ALTER TABLE users ADD COLUMN otp_attempts INTEGER DEFAULT 0"))
+
+        # Eliminate dummy demo account legally, and verify existing legitimate users
+        await conn.execute(text("DELETE FROM users WHERE email = 'dev@novadesk.io'"))
+        await conn.execute(text("UPDATE users SET is_verified = 1 WHERE email != 'dev@novadesk.io' AND is_verified IS NULL OR is_verified = 0"))
+    except Exception as e:
+        logger.warning(f"Schema migration warning: {e}")
+
 async def init_db():
     global engine, AsyncSessionLocal
     from . import models
     try:
         async with engine.begin() as conn:
             await conn.run_sync(models.Base.metadata.create_all)
-        logger.info("Database initialized successfully.")
+            await _migrate_users_table(conn)
+        logger.info("Database initialized successfully with security columns.")
     except Exception as e:
         logger.error(
             f"Failed to connect to primary database ({db_url}): {e}\n"
@@ -58,4 +95,5 @@ async def init_db():
             )
             async with engine.begin() as conn:
                 await conn.run_sync(models.Base.metadata.create_all)
+                await _migrate_users_table(conn)
             logger.info("Fallback SQLite database initialized successfully.")

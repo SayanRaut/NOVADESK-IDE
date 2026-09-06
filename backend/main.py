@@ -1,4 +1,6 @@
 import os
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
 from dotenv import load_dotenv
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
@@ -8,6 +10,8 @@ from contextlib import asynccontextmanager
 from database.database import init_db
 from api.routes import router as api_router
 from websocket.routes import router as ws_router
+from websocket.workspace_routes import router as ws_workspace_router
+from terminal.router import router as terminal_router
 from config.settings import settings
 
 @asynccontextmanager
@@ -20,11 +24,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,11 +36,13 @@ app.add_middleware(
 # Register routers
 app.include_router(api_router, prefix="/api")
 app.include_router(ws_router, prefix="/ws")
+app.include_router(ws_workspace_router, prefix="/ws")
+app.include_router(terminal_router, prefix="/ws")
 
 # Keep a root fallback
 @app.get("/")
 async def root():
-    return {"status": "online", "service": "NovaDesk IDE Backend modular"}
+    return {"status": "online", "service": "NovaDesk Cloud Web IDE Backend"}
 
 @app.get("/health")
 async def health():

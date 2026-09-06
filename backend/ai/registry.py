@@ -7,7 +7,7 @@ class ModelCapabilities:
     vision_support: bool = True
     reasoning_support: bool = True
     streaming_support: bool = True
-    context_length: int = 32768
+    context_length: int = 1048576
 
 @dataclass
 class ModelMetadata:
@@ -18,8 +18,9 @@ class ModelMetadata:
 
 class ModelRegistry:
     """
-    Central registry for all AI models.
-    In V2, we strictly use a single Unified Model to prevent VRAM swapping on low-end hardware.
+    Central registry for Google Gemini AI models.
+    NovaDesk now uses Google Gemini models for real-time full-stack coding,
+    reasoning, and Next.js project generation with zero local VRAM overhead.
     """
     
     def __init__(self):
@@ -27,17 +28,47 @@ class ModelRegistry:
         self._initialize_default_models()
 
     def _initialize_default_models(self):
-        # The Single Unified Model (qwen3.5:4b)
+        # 1. Gemini 2.5 Flash (Default Unified Fast Agent & Coding Model)
         self.register_model(
             ModelMetadata(
-                id="qwen3.5:4b",
-                name="Qwen3.5 (4B)",
-                provider="ollama",
+                id="gemini-2.5-flash",
+                name="Gemini 2.5 Flash",
+                provider="gemini",
                 capabilities=ModelCapabilities(
                     vision_support=True,
                     reasoning_support=True,
                     streaming_support=True,
-                    context_length=32768
+                    context_length=1048576
+                )
+            )
+        )
+
+        # 2. Gemini 2.5 Pro (Deep Architectural Reasoning & Complex Code)
+        self.register_model(
+            ModelMetadata(
+                id="gemini-2.5-pro",
+                name="Gemini 2.5 Pro",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
+                )
+            )
+        )
+
+        # 3. Gemini 2.0 Flash (High Throughput)
+        self.register_model(
+            ModelMetadata(
+                id="gemini-2.0-flash",
+                name="Gemini 2.0 Flash",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
                 )
             )
         )
@@ -47,17 +78,22 @@ class ModelRegistry:
         self._models[metadata.id] = metadata
 
     def get_unified_model(self) -> ModelMetadata:
-        """Returns the single unified model for the V2 Architecture."""
-        return self._models["qwen3.5:4b"]
+        """Returns the primary unified model: Gemini 2.5 Flash."""
+        return self._models["gemini-2.5-flash"]
         
     def get_model(self, model_id: str) -> ModelMetadata:
-        """Get model metadata by ID."""
-        if model_id not in self._models:
-            raise ModelNotFoundError(f"Model not found: {model_id}")
-        return self._models[model_id]
+        """Get model metadata by ID, aliasing legacy or variant names."""
+        clean_id = model_id.replace("models/", "").strip()
+        if clean_id in ("qwen3.5:4b", "default", "novadesk"):
+            clean_id = "gemini-2.5-flash"
+
+        if clean_id not in self._models:
+            # Fallback to default unified model
+            return self.get_unified_model()
+        return self._models[clean_id]
 
     def get_all_models(self) -> List[ModelMetadata]:
-        """List all registered models."""
+        """List all registered Gemini models."""
         return list(self._models.values())
 
 # Singleton instance

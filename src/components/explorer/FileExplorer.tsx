@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, createContext, useContext } from 'react';
-import { ChevronRight, ChevronDown, File, Folder, FileJson, FileCode, FileText, FilePlus2, FolderPlus, RefreshCw, Trash2, Edit2, Copy, ExternalLink, MessageSquare, Plus, ListTree } from 'lucide-react';
+import { ChevronRight, ChevronDown, File, Folder, FileJson, FileCode, FileText, FilePlus2, FolderPlus, RefreshCw, Trash2, Edit2, Copy, ExternalLink, MessageSquare, Plus, ListTree, Upload } from 'lucide-react';
 import { useEditor, type FileTree } from '../../contexts/EditorContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { usePanel } from '../../contexts/PanelContext';
@@ -391,9 +391,31 @@ export const FileExplorer = () => {
       <div className="flex flex-col h-full overflow-hidden relative" onClick={() => setSelectedPaths(new Set())}>
         <div className="flex items-center justify-between px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 select-none shrink-0 overflow-hidden">
           <span className="truncate flex-1 mr-2" title={workspaceName}>{workspaceName}</span>
-          <div className="flex items-center gap-1 text-slate-400 normal-case">
-            <button type="button" title="Collapse / Expand All" onClick={() => setCollapseVersion(v => v + 1)} className="rounded p-1 hover:bg-[var(--hover-bg)] hover:text-white"><ListTree size={14} /></button>
-            <button type="button" title="Refresh Explorer" onClick={refreshWorkspace} className="rounded p-1 hover:bg-[var(--hover-bg)] hover:text-white"><RefreshCw size={14} /></button>
+          <div className="flex items-center gap-0.5 text-slate-400 normal-case">
+            <button type="button" title="New File" onClick={() => triggerCreate('file', currentPath)} className="rounded p-1 hover:bg-white/10 hover:text-[#c4f042] transition cursor-pointer"><FilePlus2 size={14} /></button>
+            <button type="button" title="New Folder" onClick={() => triggerCreate('folder', currentPath)} className="rounded p-1 hover:bg-white/10 hover:text-[#c4f042] transition cursor-pointer"><FolderPlus size={14} /></button>
+            <label title="Upload File into Codespace" className="rounded p-1 hover:bg-white/10 hover:text-white transition cursor-pointer">
+              <Upload size={14} />
+              <input 
+                type="file" 
+                className="hidden" 
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('parentPath', currentPath);
+                  try {
+                    await fetch('/api/fs/upload', { method: 'POST', body: formData });
+                    refreshWorkspace();
+                  } catch (err) {
+                    console.error('Upload failed:', err);
+                  }
+                }} 
+              />
+            </label>
+            <button type="button" title="Collapse / Expand All" onClick={() => setCollapseVersion(v => v + 1)} className="rounded p-1 hover:bg-white/10 hover:text-white transition cursor-pointer"><ListTree size={14} /></button>
+            <button type="button" title="Refresh Explorer" onClick={refreshWorkspace} className="rounded p-1 hover:bg-white/10 hover:text-white transition cursor-pointer"><RefreshCw size={14} /></button>
           </div>
         </div>
         

@@ -12,9 +12,13 @@ import { DebugProvider } from '../contexts/DebugContext';
 import { ProblemsProvider } from '../contexts/ProblemsContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ExtensionProvider } from '../contexts/ExtensionContext';
+import { NavigationProvider, useNavigation } from '../contexts/NavigationContext';
 import { DesktopLayout } from '../layouts/DesktopLayout';
 import { LoadingScreen } from '../pages/LoadingScreen';
 import { LoginPage } from '../pages/LoginPage';
+import { HomePage } from '../pages/HomePage';
+import { CreateProjectPage } from '../pages/CreateProjectPage';
+import { PrototypeGenerationPage } from '../pages/PrototypeGenerationPage';
 import { initializeCommands } from '../services/command/initializeCommands';
 
 // Initialize the command registry, menus, and keybindings
@@ -22,9 +26,14 @@ initializeCommands();
 
 function AppRouter() {
   const { isInitializing, isAuthenticated } = useAuth();
+  const { page } = useNavigation();
 
   if (isInitializing) return <LoadingScreen />;
   if (!isAuthenticated) return <LoginPage />;
+  
+  if (page === 'home') return <HomePage />;
+  if (page === 'create') return <CreateProjectPage />;
+  if (page === 'generating') return <PrototypeGenerationPage />;
   
   return <DesktopLayout />;
 }
@@ -33,31 +42,33 @@ export function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <UIProvider>
-          <WindowProvider>
-            <LayoutProvider>
-              <SidebarProvider>
-                <ExtensionProvider>
-                  <PanelProvider>
-                    <NotificationProvider>
-                      <TerminalProvider>
-                        <DebugProvider>
-                          <ProblemsProvider>
-                            <EditorProvider>
-                              <AIProvider>
-                                <AppRouter />
-                              </AIProvider>
-                            </EditorProvider>
-                          </ProblemsProvider>
-                        </DebugProvider>
-                      </TerminalProvider>
-                    </NotificationProvider>
-                  </PanelProvider>
-                </ExtensionProvider>
-              </SidebarProvider>
-            </LayoutProvider>
-          </WindowProvider>
-        </UIProvider>
+        <NavigationProvider>
+          <UIProvider>
+            <WindowProvider>
+              <LayoutProvider>
+                <SidebarProvider>
+                  <ExtensionProvider>
+                    <PanelProvider>
+                      <NotificationProvider>
+                        <TerminalProvider>
+                          <DebugProvider>
+                            <ProblemsProvider>
+                              <EditorProvider>
+                                <AIProvider>
+                                  <AppRouter />
+                                </AIProvider>
+                              </EditorProvider>
+                            </ProblemsProvider>
+                          </DebugProvider>
+                        </TerminalProvider>
+                      </NotificationProvider>
+                    </PanelProvider>
+                  </ExtensionProvider>
+                </SidebarProvider>
+              </LayoutProvider>
+            </WindowProvider>
+          </UIProvider>
+        </NavigationProvider>
       </AuthProvider>
     </ThemeProvider>
   );
