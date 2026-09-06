@@ -61,14 +61,18 @@ interface ProjectPlannerModalProps {
 }
 
 export const ALL_GEMINI_MODELS = [
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Recommended, Fast)', badge: 'Fastest' },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Stable Standard)', badge: 'Stable' },
-  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Deep Reasoning 2M)', badge: 'Reasoning' },
-  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite (Lightweight)', badge: 'Lite' },
-  { id: 'gemini-2.0-pro-exp-02-05', name: 'Gemini 2.0 Pro Experimental', badge: 'Pro Exp' },
-  { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B (High Throughput)', badge: 'High Quota' },
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Preview)', badge: 'Preview' },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash (Recommended, High Speed)', badge: 'Recommended' },
+  { id: 'gemini-flash-latest', name: 'Gemini Flash Latest', badge: 'Latest' },
+  { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash (Hybrid Reasoning)', badge: 'Fastest' },
+  { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash (High Throughput)', badge: 'High Quota' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash (Production Standard)', badge: 'Stable' },
+  { id: 'gemini-pro-latest', name: 'Gemini Pro Latest (Deep Reasoning)', badge: 'Pro' },
+  { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro Preview (Deep Reasoning 2M)', badge: 'Reasoning' },
+  { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite (Ultra Low Latency)', badge: 'Lite' },
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Preview)', badge: 'Preview' },
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Legacy)', badge: 'Legacy' },
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Legacy)', badge: 'Legacy' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Legacy)', badge: 'Legacy' },
 ];
 
 export function ProjectPlannerModal({
@@ -83,7 +87,7 @@ export function ProjectPlannerModal({
   const [prompt, setPrompt] = useState(initialPrompt);
   const [template, setTemplate] = useState(initialTemplate);
   const [projectName, setProjectName] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gemini-2.0-flash');
+  const [selectedModel, setSelectedModel] = useState('gemini-3.6-flash');
   
   const [isPlanning, setIsPlanning] = useState(false);
   const [planningStage, setPlanningStage] = useState<'idle' | 'analyzing' | 'architecting' | 'validating'>('idle');

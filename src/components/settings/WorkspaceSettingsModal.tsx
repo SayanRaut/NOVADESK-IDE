@@ -75,7 +75,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, initialTab = 'account'
   // Gemini BYOK key state
   const { apiKey, hasKey, validateKey, saveKey } = useApiKey();
   const [geminiKeyInput, setGeminiKeyInput] = useState(apiKey);
-  const [selectedGeminiModel, setSelectedGeminiModel] = useState('gemini-2.0-flash');
+  const [selectedGeminiModel, setSelectedGeminiModel] = useState('gemini-3.6-flash');
   const [isVerifyingGemini, setIsVerifyingGemini] = useState(false);
   const [geminiFeedback, setGeminiFeedback] = useState<{ isSuccess: boolean; message: string } | null>(null);
 

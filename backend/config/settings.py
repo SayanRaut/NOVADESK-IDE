@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     
     # AI Providers - Google Gemini Primary
     GEMINI_API_KEY: Optional[str] = None
-    DEFAULT_MODEL: str = "gemini-2.5-flash"
-    GEMINI_MODELS: str = "gemini-2.5-flash,gemini-2.5-pro,gemini-2.0-flash"
+    DEFAULT_MODEL: str = "gemini-3.6-flash"
+    GEMINI_MODELS: str = "gemini-3.6-flash,gemini-flash-latest,gemini-3.7-flash,gemini-3.5-flash,gemini-pro-latest"
     OLLAMA_HOST: str = "http://localhost:11434"
     TEMPERATURE: float = 0.2
     MAX_TOKENS: int = 32768

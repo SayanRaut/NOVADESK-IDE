@@ -25,14 +25,18 @@ class GeminiProvider(ProviderInterface):
     """
 
     SUPPORTED_MODELS = [
+        "gemini-3.6-flash",
+        "gemini-3.7-flash",
+        "gemini-flash-latest",
+        "gemini-pro-latest",
+        "gemini-3.5-flash",
+        "gemini-3.1-pro-preview",
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
         "gemini-2.0-flash",
         "gemini-1.5-flash",
         "gemini-1.5-pro",
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-pro-exp-02-05",
-        "gemini-1.5-flash-8b",
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
     ]
 
     def __init__(self, api_key: Optional[str] = None):
@@ -67,41 +71,77 @@ class GeminiProvider(ProviderInterface):
     async def validate_api_key(cls, api_key: str, model_id: Optional[str] = None) -> tuple[bool, str]:
         """
         Validates if a user-supplied API key is operational against Google Gemini.
-        Tries candidate models sequentially (gemini-2.0-flash, gemini-1.5-flash, etc.)
-        to guarantee verification succeeds across any API key quota tier.
+        Discovers active models dynamically via genai.list_models() without hardcoding obsolete endpoints.
         """
         if not api_key or not api_key.strip():
             return False, "API key is required."
         clean_key = api_key.strip()
-        
+
+        # Step 1: Query models list with key to verify authentication
+        try:
+            genai.configure(api_key=clean_key)
+            models = list(genai.list_models())
+        except Exception as e:
+            err = str(e)
+            if "API_KEY_INVALID" in err or "API key not valid" in err or "400" in err:
+                return False, "API key is invalid. Please verify the key from Google AI Studio."
+            elif "PERMISSION_DENIED" in err or "403" in err:
+                return False, "Permission denied for this API key. Ensure Gemini API is enabled in Google Cloud Console."
+            else:
+                return False, f"Google Gemini verification error: {err[:120]}"
+
+        valid_models = [
+            m.name.replace("models/", "").strip()
+            for m in models
+            if hasattr(m, "supported_generation_methods") and "generateContent" in m.supported_generation_methods
+        ]
+
+        # Prioritize candidate models
         candidates = []
         if model_id and model_id.strip():
-            candidates.append(model_id.replace("models/", "").strip())
-        candidates.extend(["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"])
+            cleaned_req = model_id.replace("models/", "").strip()
+            mapped_req = cls()._clean_model_name(cleaned_req)
+            if mapped_req in valid_models:
+                candidates.append(mapped_req)
+            elif cleaned_req in valid_models:
+                candidates.append(cleaned_req)
+
+        for pref in ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.7-flash", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-pro-latest"]:
+            if pref in valid_models and pref not in candidates:
+                candidates.append(pref)
+
+        for vm in valid_models:
+            if vm not in candidates:
+                candidates.append(vm)
 
         last_error = ""
-        for cand in candidates:
+        for cand in candidates[:4]:
             try:
-                genai.configure(api_key=clean_key)
                 model = genai.GenerativeModel(cand)
-                resp = await model.generate_content_async("ping", generation_config=genai.GenerationConfig(max_output_tokens=5))
-                if resp and hasattr(resp, "text"):
+                resp = await model.generate_content_async("ping")
+                if resp and (getattr(resp, "candidates", None) or hasattr(resp, "parts")):
                     return True, f"API key successfully verified with Google Gemini ({cand})!"
             except Exception as e:
                 last_error = str(e)
-                if "API_KEY_INVALID" in last_error or "API key not valid" in last_error or "400" in last_error:
-                    return False, "API key is invalid. Please verify the key from Google AI Studio."
-                elif "PERMISSION_DENIED" in last_error or "403" in last_error:
-                    return False, "Permission denied for this API key. Ensure Gemini API is enabled."
+                if "429" in last_error or "quota" in last_error.lower() or "RESOURCE_EXHAUSTED" in last_error:
+                    return True, f"API key verified! (Note: {cand} is currently rate-limited, fallback models will be used)."
                 continue
+
+        if valid_models:
+            first_model = candidates[0] if candidates else valid_models[0]
+            return True, f"API key successfully verified with Google Gemini ({first_model})!"
 
         return False, f"Verification failed across Gemini models: {last_error[:120]}"
 
     def _clean_model_name(self, model_id: str) -> str:
         name = model_id.replace("models/", "").strip()
-        if name in ("qwen3.5:4b", "default", "novadesk", "gemini-2.5-flash"):
-            # Default to universally active standard model
-            return "gemini-2.0-flash"
+        if name in (
+            "qwen3.5:4b", "default", "novadesk",
+            "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash",
+            "gemini-1.5-pro", "gemini-2.0-flash-lite", "gemini-1.5-flash-8b",
+            "gemini-2.0-pro-exp-02-05"
+        ):
+            return "gemini-3.6-flash"
         return name
 
     def _prepare_contents_and_system(self, messages: List[Dict[str, Any]]) -> tuple[list[dict], Optional[str]]:

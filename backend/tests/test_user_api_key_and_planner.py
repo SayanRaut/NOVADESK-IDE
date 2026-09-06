@@ -70,7 +70,7 @@ async def test_list_models_endpoint():
         assert "models" in data
         assert len(data["models"]) >= 6
         model_ids = [m["id"] for m in data["models"]]
+        assert "gemini-3.6-flash" in model_ids
+        assert "gemini-flash-latest" in model_ids
         assert "gemini-2.0-flash" in model_ids
-        assert "gemini-1.5-flash" in model_ids
-        assert "gemini-1.5-pro" in model_ids
-        assert data["default"] == "gemini-2.0-flash"
+        assert data["default"] == "gemini-3.6-flash"

@@ -28,11 +28,11 @@ class ModelRegistry:
         self._initialize_default_models()
 
     def _initialize_default_models(self):
-        # 1. Gemini 2.0 Flash (Primary Unified High-Speed Multimodal & Coding Model)
+        # 1. Gemini 3.6 Flash (Primary Unified High-Speed Multimodal & Coding Model)
         self.register_model(
             ModelMetadata(
-                id="gemini-2.0-flash",
-                name="Gemini 2.0 Flash (Recommended)",
+                id="gemini-3.6-flash",
+                name="Gemini 3.6 Flash (Recommended)",
                 provider="gemini",
                 capabilities=ModelCapabilities(
                     vision_support=True,
@@ -43,11 +43,11 @@ class ModelRegistry:
             )
         )
 
-        # 2. Gemini 1.5 Flash (Production Standard High Quota)
+        # 2. Gemini Flash Latest
         self.register_model(
             ModelMetadata(
-                id="gemini-1.5-flash",
-                name="Gemini 1.5 Flash (Stable Standard)",
+                id="gemini-flash-latest",
+                name="Gemini Flash (Latest)",
                 provider="gemini",
                 capabilities=ModelCapabilities(
                     vision_support=True,
@@ -58,11 +58,56 @@ class ModelRegistry:
             )
         )
 
-        # 3. Gemini 1.5 Pro (Flagship 2M Context Window Reasoning)
+        # 3. Gemini 3.7 Flash (Next-Gen Hybrid Reasoning)
         self.register_model(
             ModelMetadata(
-                id="gemini-1.5-pro",
-                name="Gemini 1.5 Pro (Deep Architecture & Reasoning)",
+                id="gemini-3.7-flash",
+                name="Gemini 3.7 Flash (Hybrid Reasoning)",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
+                )
+            )
+        )
+
+        # 4. Gemini 3.8 Flash (High Throughput)
+        self.register_model(
+            ModelMetadata(
+                id="gemini-3.8-flash",
+                name="Gemini 3.8 Flash (High Throughput)",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
+                )
+            )
+        )
+
+        # 5. Gemini 3.5 Flash (Production Standard)
+        self.register_model(
+            ModelMetadata(
+                id="gemini-3.5-flash",
+                name="Gemini 3.5 Flash (Production Standard)",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
+                )
+            )
+        )
+
+        # 6. Gemini Pro Latest (Flagship Reasoning)
+        self.register_model(
+            ModelMetadata(
+                id="gemini-pro-latest",
+                name="Gemini Pro (Latest Flagship)",
                 provider="gemini",
                 capabilities=ModelCapabilities(
                     vision_support=True,
@@ -73,26 +118,11 @@ class ModelRegistry:
             )
         )
 
-        # 4. Gemini 2.0 Flash Lite (Ultra Low Latency)
+        # 7. Gemini 3.1 Pro Preview (Deep Architecture & Reasoning)
         self.register_model(
             ModelMetadata(
-                id="gemini-2.0-flash-lite",
-                name="Gemini 2.0 Flash Lite (Lightweight)",
-                provider="gemini",
-                capabilities=ModelCapabilities(
-                    vision_support=True,
-                    reasoning_support=True,
-                    streaming_support=True,
-                    context_length=1048576
-                )
-            )
-        )
-
-        # 5. Gemini 2.0 Pro Experimental
-        self.register_model(
-            ModelMetadata(
-                id="gemini-2.0-pro-exp-02-05",
-                name="Gemini 2.0 Pro (Experimental Reasoning)",
+                id="gemini-3.1-pro-preview",
+                name="Gemini 3.1 Pro Preview (Deep Reasoning)",
                 provider="gemini",
                 capabilities=ModelCapabilities(
                     vision_support=True,
@@ -103,11 +133,11 @@ class ModelRegistry:
             )
         )
 
-        # 6. Gemini 1.5 Flash-8B
+        # 8. Gemini 3.1 Flash Lite (Ultra Fast)
         self.register_model(
             ModelMetadata(
-                id="gemini-1.5-flash-8b",
-                name="Gemini 1.5 Flash-8B (High Throughput)",
+                id="gemini-3.1-flash-lite",
+                name="Gemini 3.1 Flash Lite (Ultra Fast)",
                 provider="gemini",
                 capabilities=ModelCapabilities(
                     vision_support=True,
@@ -118,22 +148,7 @@ class ModelRegistry:
             )
         )
 
-        # 7. Gemini 2.5 Flash (Preview)
-        self.register_model(
-            ModelMetadata(
-                id="gemini-2.5-flash",
-                name="Gemini 2.5 Flash (Preview)",
-                provider="gemini",
-                capabilities=ModelCapabilities(
-                    vision_support=True,
-                    reasoning_support=True,
-                    streaming_support=True,
-                    context_length=1048576
-                )
-            )
-        )
-
-        # 8. Gemini 2.5 Pro (Preview)
+        # 9. Gemini 2.5 Pro (Preview)
         self.register_model(
             ModelMetadata(
                 id="gemini-2.5-pro",
@@ -148,13 +163,56 @@ class ModelRegistry:
             )
         )
 
+        # Legacy aliases for backwards compatibility
+        self.register_model(
+            ModelMetadata(
+                id="gemini-2.0-flash",
+                name="Gemini 2.0 Flash (Legacy)",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
+                )
+            )
+        )
+
+        self.register_model(
+            ModelMetadata(
+                id="gemini-1.5-flash",
+                name="Gemini 1.5 Flash (Legacy)",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=1048576
+                )
+            )
+        )
+
+        self.register_model(
+            ModelMetadata(
+                id="gemini-1.5-pro",
+                name="Gemini 1.5 Pro (Legacy)",
+                provider="gemini",
+                capabilities=ModelCapabilities(
+                    vision_support=True,
+                    reasoning_support=True,
+                    streaming_support=True,
+                    context_length=2097152
+                )
+            )
+        )
+
     def register_model(self, metadata: ModelMetadata):
         """Register a new model."""
         self._models[metadata.id] = metadata
 
     def get_unified_model(self) -> ModelMetadata:
-        """Returns the primary unified model: Gemini 2.0 Flash."""
-        return self._models["gemini-2.0-flash"]
+        """Returns the primary unified model: Gemini 3.6 Flash."""
+        return self._models["gemini-3.6-flash"]
 
     def list_all_models(self) -> List[Dict[str, Any]]:
         """List all registered models formatted for API serialization."""
@@ -173,8 +231,13 @@ class ModelRegistry:
     def get_model(self, model_id: str) -> ModelMetadata:
         """Get model metadata by ID, aliasing legacy or variant names."""
         clean_id = model_id.replace("models/", "").strip()
-        if clean_id in ("qwen3.5:4b", "default", "novadesk"):
-            clean_id = "gemini-2.5-flash"
+        if clean_id in (
+            "qwen3.5:4b", "default", "novadesk",
+            "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash",
+            "gemini-1.5-pro", "gemini-2.0-flash-lite", "gemini-1.5-flash-8b",
+            "gemini-2.0-pro-exp-02-05"
+        ):
+            clean_id = "gemini-3.6-flash"
 
         if clean_id not in self._models:
             # Fallback to default unified model
