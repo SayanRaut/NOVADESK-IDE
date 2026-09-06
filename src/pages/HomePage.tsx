@@ -183,7 +183,7 @@ export function HomePage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [ownerFilter, setOwnerFilter] = useState<'all' | 'me' | 'shared'>('all');
   const [activeFilterDropdown, setActiveFilterDropdown] = useState<'sort' | 'visibility' | 'status' | 'owner' | null>(null);
-  const [starredProjects, setStarredProjects] = useState<string[]>(['patta-digit-hub']);
+  const [starredProjects, setStarredProjects] = useState<string[]>([]);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
   const [copiedProjectId, setCopiedProjectId] = useState<string | null>(null);
 
@@ -254,12 +254,22 @@ export function HomePage() {
     return SUGGESTIONS_CATALOG.filter(item => item.category === selectedCategory).slice(0, 4);
   }, [selectedCategory, displayedSuggestions]);
 
-  // Filtered codespaces based on search query
+  // Filtered codespaces based on search query and sort filter
   const filteredCodespaces = useMemo(() => {
-    if (!searchQuery.trim()) return codespaces;
-    const q = searchQuery.toLowerCase();
-    return codespaces.filter(c => c.name.toLowerCase().includes(q) || c.stack.toLowerCase().includes(q));
-  }, [codespaces, searchQuery]);
+    let list = [...codespaces];
+    const q = (projectSearch || searchQuery).trim().toLowerCase();
+    if (q) {
+      list = list.filter(c => c.name.toLowerCase().includes(q) || (c.stack && c.stack.toLowerCase().includes(q)));
+    }
+    if (sortFilter === 'name') {
+      list.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortFilter === 'created') {
+      list.sort((a, b) => (a.updatedAt || 0) - (b.updatedAt || 0));
+    } else {
+      list.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    }
+    return list;
+  }, [codespaces, searchQuery, projectSearch, sortFilter]);
 
   const handleCreateBlank = async (template = 'nextjs') => {
     setIsCreatingBlank(true);
@@ -856,7 +866,7 @@ export function HomePage() {
               <div className="flex items-center gap-3">
                 <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Projects</h2>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  {codespaces.length + 2}
+                  {filteredCodespaces.length}
                 </span>
                 <button
                   onClick={fetchCodespaces}
@@ -1141,469 +1151,254 @@ export function HomePage() {
               </span>
             </div>
 
-            {/* ─── CARDS VIEW (Matches Photo 1) ─── */}
+            {/* ─── CARDS VIEW (Matches Photo 1 Layout) ─── */}
             {viewMode === 'card' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* 1. "Your Financial Hub" Card (Photo 1) */}
-                {(!projectSearch || 'your financial hub bankflow'.includes(projectSearch.toLowerCase())) && (
-                  <div 
-                    onClick={() => openStudio('Your Financial Hub', 'projects/financial-hub')}
-                    className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
-                  >
-                    {/* Dark Preview Canvas */}
-                    <div className="h-56 bg-[#0a0d14] p-4 relative overflow-hidden flex flex-col justify-between border-b border-white/5 select-none">
-                      {/* Mini Navigation Bar */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-400">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                          <span className="font-bold text-white tracking-wide">BankFlow</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[10px] text-slate-400">
-                          <span className="text-white font-medium">Dashboard</span>
-                          <span>Accounts</span>
-                          <span>Analytics</span>
-                        </div>
-                        <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[9px] text-slate-300 font-bold">
-                          S
-                        </div>
-                      </div>
-
-                      {/* Main Financial Balance Block */}
-                      <div className="my-auto space-y-1">
-                        <p className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
-                          Total Net Worth
-                        </p>
-                        <div className="flex items-baseline gap-2.5">
-                          <span className="text-2xl font-black text-white tracking-tight font-mono">
-                            $128,420.50
-                          </span>
-                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                            +12.4% this month
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Mini Glass Account Cards & Bar Chart */}
-                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                          <p className="text-[9px] text-slate-400">Main Checking</p>
-                          <p className="text-xs font-bold text-white font-mono">$42,150.00</p>
-                        </div>
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/5">
-                          <p className="text-[9px] text-slate-400">High-Yield Savings</p>
-                          <p className="text-xs font-bold text-cyan-400 font-mono">$86,270.50</p>
-                        </div>
-                      </div>
-
-                      {/* Hover Overlay: Open in Lovable Studio */}
-                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
-                          <Laptop size={14} />
-                          <span>Open in Lovable Studio</span>
-                          <ArrowRight size={13} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Card Footer (Photo 1) */}
-                    <div className="p-3.5 px-4 flex items-center justify-between bg-white">
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
-                          S
-                        </div>
-                        <div className="truncate">
-                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
-                            Your Financial Hub
-                          </h4>
-                          <p className="text-[11px] text-slate-400">3 months ago</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(`${window.location.origin}/studio?project=Your%20Financial%20Hub`);
-                            setCopiedProjectId('financial-hub');
-                            setTimeout(() => setCopiedProjectId(null), 2000);
-                          }}
-                          title="Copy Link"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                        >
-                          {copiedProjectId === 'financial-hub' ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
-                        </button>
-                        
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveActionMenu(activeActionMenu === 'financial-hub' ? null : 'financial-hub');
-                            }}
-                            title="More actions"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                          >
-                            <MoreHorizontal size={14} />
-                          </button>
-
-                          {activeActionMenu === 'financial-hub' && (
-                            <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-40 animate-fade-in font-sans">
-                              <button
-                                onClick={() => {
-                                  setActiveActionMenu(null);
-                                  openStudio('Your Financial Hub', 'projects/financial-hub');
-                                }}
-                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
-                              >
-                                <Laptop size={13} />
-                                <span>Open in Studio</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setActiveActionMenu(null);
-                                  openCodespace('Your Financial Hub', 'projects/financial-hub');
-                                }}
-                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
-                              >
-                                <Code2 size={13} />
-                                <span>Open in IDE</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+              filteredCodespaces.length === 0 ? (
+                <div className="p-12 rounded-2xl border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                    <FolderCode size={22} />
                   </div>
-                )}
-
-                {/* 2. "patta-digit-hub" Card (Photo 1) */}
-                {(!projectSearch || 'patta-digit-hub blank app'.includes(projectSearch.toLowerCase())) && (
-                  <div 
-                    onClick={() => openStudio('patta-digit-hub', 'projects/patta-digit-hub')}
-                    className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
-                  >
-                    {/* Vivid Yellow Canvas (Photo 1) */}
-                    <div className="h-56 bg-[#f4c430] p-4 relative overflow-hidden flex flex-col justify-between border-b border-black/5 select-none">
-                      {/* Top Right Star Button */}
-                      <div className="flex justify-end">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setStarredProjects(prev =>
-                              prev.includes('patta-digit-hub')
-                                ? prev.filter(id => id !== 'patta-digit-hub')
-                                : [...prev, 'patta-digit-hub']
-                            );
-                          }}
-                          className="p-1 rounded-lg text-slate-900/80 hover:text-slate-950 transition cursor-pointer"
-                          title="Star Project"
-                        >
-                          <Star 
-                            size={18} 
-                            className={starredProjects.includes('patta-digit-hub') ? 'fill-slate-950 text-slate-950' : 'text-slate-800'} 
-                          />
-                        </button>
-                      </div>
-
-                      {/* Center Greeting from Photo 1 */}
-                      <div className="text-center my-auto space-y-1">
-                        <h3 className="text-xl font-extrabold text-slate-950 tracking-tight">
-                          Welcome to Your Blank App
-                        </h3>
-                        <p className="text-xs font-medium text-slate-800/80">
-                          Start building your dream application
-                        </p>
-                      </div>
-
-                      <div className="h-4" />
-
-                      {/* Hover Overlay: Open in Lovable Studio */}
-                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
-                          <Laptop size={14} />
-                          <span>Open in Lovable Studio</span>
-                          <ArrowRight size={13} />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Card Footer (Photo 1) */}
-                    <div className="p-3.5 px-4 flex items-center justify-between bg-white">
-                      <div className="flex items-center gap-2.5 overflow-hidden">
-                        <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
-                          S
-                        </div>
-                        <div className="truncate">
-                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
-                            patta-digit-hub
-                          </h4>
-                          <p className="text-[11px] text-slate-400">3 months ago</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigator.clipboard.writeText(`${window.location.origin}/studio?project=patta-digit-hub`);
-                            setCopiedProjectId('patta-digit-hub');
-                            setTimeout(() => setCopiedProjectId(null), 2000);
-                          }}
-                          title="Copy Link"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                        >
-                          {copiedProjectId === 'patta-digit-hub' ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
-                        </button>
-                        
-                        <div className="relative">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActiveActionMenu(activeActionMenu === 'patta-digit-hub' ? null : 'patta-digit-hub');
-                            }}
-                            title="More actions"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                          >
-                            <MoreHorizontal size={14} />
-                          </button>
-
-                          {activeActionMenu === 'patta-digit-hub' && (
-                            <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-40 animate-fade-in font-sans">
-                              <button
-                                onClick={() => {
-                                  setActiveActionMenu(null);
-                                  openStudio('patta-digit-hub', 'projects/patta-digit-hub');
-                                }}
-                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
-                              >
-                                <Laptop size={13} />
-                                <span>Open in Studio</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setActiveActionMenu(null);
-                                  openCodespace('patta-digit-hub', 'projects/patta-digit-hub');
-                                }}
-                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
-                              >
-                                <Code2 size={13} />
-                                <span>Open in IDE</span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      {projectSearch ? 'No matching projects found' : 'No projects created yet'}
+                    </h3>
+                    <p className="text-xs text-slate-500 max-w-sm mt-0.5">
+                      {projectSearch 
+                        ? 'Try searching for another keyword or clear the search filter.'
+                        : 'Generate your first full-stack application using the prompt generator above, or create a blank sandbox.'}
+                    </p>
                   </div>
-                )}
-
-                {/* Additional Dynamic Codespaces in Card Format */}
-                {filteredCodespaces.map((c) => {
-                  const isNext = c.stack?.toLowerCase().includes('next') || c.name.includes('next') || c.name.includes('web-app');
-                  return (
-                    <div
-                      key={c.name}
-                      onClick={() => openStudio(c.name, c.path)}
-                      className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+                  {!projectSearch && (
+                    <button
+                      onClick={() => handleCreateBlank('nextjs')}
+                      className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition cursor-pointer flex items-center gap-2"
                     >
-                      {/* Preview Canvas */}
-                      <div className="h-56 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4 relative overflow-hidden flex flex-col justify-between border-b border-white/5 select-none">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">
-                            {isNext ? 'Next.js App' : 'Full-Stack'}
-                          </span>
-                          <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                      <Plus size={14} />
+                      <span>Create Starter Project</span>
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredCodespaces.map((c) => {
+                    const isNext = c.stack?.toLowerCase().includes('next') || c.name.includes('next') || c.name.includes('web-app');
+                    const initial = c.name.charAt(0).toUpperCase();
+                    const isStarred = starredProjects.includes(c.name);
+
+                    return (
+                      <div
+                        key={c.name}
+                        onClick={() => openStudio(c.name, c.path)}
+                        className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+                      >
+                        {/* Preview Canvas */}
+                        <div className="h-56 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-4 relative overflow-hidden flex flex-col justify-between border-b border-white/5 select-none">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">
+                              {isNext ? 'Next.js App' : 'Full-Stack'}
+                            </span>
+                            
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setStarredProjects(prev =>
+                                  prev.includes(c.name)
+                                    ? prev.filter(id => id !== c.name)
+                                    : [...prev, c.name]
+                                );
+                              }}
+                              className="p-1 rounded-lg text-slate-400 hover:text-amber-400 transition cursor-pointer"
+                              title="Star Project"
+                            >
+                              <Star 
+                                size={16} 
+                                className={isStarred ? 'fill-amber-400 text-amber-400' : 'text-slate-400'} 
+                              />
+                            </button>
+                          </div>
+
+                          <div className="space-y-1">
+                            <h4 className="text-xl font-black text-white tracking-tight truncate">{c.name}</h4>
+                            <p className="text-xs text-slate-300 line-clamp-2">
+                              Interactive full-stack workspace with live code editing and preview.
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/10">
+                            <span>{c.fileCount || 0} source files</span>
+                            <span className="text-indigo-300 font-medium">Ready to build</span>
+                          </div>
+
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
+                              <Laptop size={14} />
+                              <span>Open in Lovable Studio</span>
+                              <ArrowRight size={13} />
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <h4 className="text-lg font-bold text-white truncate">{c.name}</h4>
-                          <p className="text-xs text-slate-300 line-clamp-2">
-                            Interactive full-stack workspace with live code editing and preview.
-                          </p>
-                        </div>
+                        {/* Footer (Matches Photo 1) */}
+                        <div className="p-3.5 px-4 flex items-center justify-between bg-white">
+                          <div className="flex items-center gap-2.5 overflow-hidden">
+                            <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
+                              {initial}
+                            </div>
+                            <div className="truncate">
+                              <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                                {c.name}
+                              </h4>
+                              <p className="text-[11px] text-slate-400">Recently edited</p>
+                            </div>
+                          </div>
 
-                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/10">
-                          <span>{c.fileCount || 0} source files</span>
-                          <span className="text-indigo-300">Ready to build</span>
-                        </div>
+                          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(`${window.location.origin}/studio?project=${encodeURIComponent(c.name)}`);
+                                setCopiedProjectId(c.name);
+                                setTimeout(() => setCopiedProjectId(null), 2000);
+                              }}
+                              title="Copy Link"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                            >
+                              {copiedProjectId === c.name ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
+                            </button>
+                            
+                            <div className="relative">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveActionMenu(activeActionMenu === c.name ? null : c.name);
+                                }}
+                                title="More actions"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                              >
+                                <MoreHorizontal size={14} />
+                              </button>
 
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
-                            <Laptop size={14} />
-                            <span>Open in Studio</span>
-                            <ArrowRight size={13} />
+                              {activeActionMenu === c.name && (
+                                <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-40 animate-fade-in font-sans">
+                                  <button
+                                    onClick={() => {
+                                      setActiveActionMenu(null);
+                                      openStudio(c.name, c.path);
+                                    }}
+                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Laptop size={13} />
+                                    <span>Open in Studio</span>
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setActiveActionMenu(null);
+                                      openCodespace(c.name, c.path);
+                                    }}
+                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Code2 size={13} />
+                                    <span>Open in IDE</span>
+                                  </button>
+                                  <div className="my-1 border-t border-slate-100" />
+                                  <button
+                                    onClick={(e) => {
+                                      setActiveActionMenu(null);
+                                      handleDelete(e, c.name);
+                                    }}
+                                    className="w-full text-left px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                                  >
+                                    <Trash2 size={13} />
+                                    <span>Delete Project</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Footer */}
-                      <div className="p-3.5 px-4 flex items-center justify-between bg-white">
-                        <div className="flex items-center gap-2.5 overflow-hidden">
-                          <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
-                            S
-                          </div>
-                          <div className="truncate">
-                            <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
-                              {c.name}
-                            </h4>
-                            <p className="text-[11px] text-slate-400">Recently edited</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigator.clipboard.writeText(`${window.location.origin}/studio?project=${encodeURIComponent(c.name)}`);
-                              setCopiedProjectId(c.name);
-                              setTimeout(() => setCopiedProjectId(null), 2000);
-                            }}
-                            title="Copy Link"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                          >
-                            {copiedProjectId === c.name ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
-                          </button>
-                          
-                          <button
-                            onClick={(e) => handleDelete(e, c.name)}
-                            title="Delete Project"
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )
             )}
 
             {/* ─── COMPACT GRID VIEW ─── */}
             {viewMode === 'grid' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Showcase 1 */}
-                <div 
-                  onClick={() => openStudio('Your Financial Hub', 'projects/financial-hub')}
-                  className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 border border-cyan-200">
-                      BankFlow
-                    </span>
-                    <span className="text-[11px] text-slate-400">3mo ago</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600">Your Financial Hub</h4>
-                  <p className="text-xs text-slate-500 mt-1">Modern dark fintech banking dashboard</p>
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
-                    <span>Open in Studio</span>
-                    <ArrowRight size={13} />
-                  </div>
+              filteredCodespaces.length === 0 ? (
+                <div className="p-8 rounded-2xl border border-dashed border-slate-300 bg-white text-center text-xs text-slate-500">
+                  No projects available. Create one to get started.
                 </div>
-
-                {/* Showcase 2 */}
-                <div 
-                  onClick={() => openStudio('patta-digit-hub', 'projects/patta-digit-hub')}
-                  className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
-                      Blank App
-                    </span>
-                    <span className="text-[11px] text-slate-400">3mo ago</span>
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600">patta-digit-hub</h4>
-                  <p className="text-xs text-slate-500 mt-1">Clean starter canvas application</p>
-                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
-                    <span>Open in Studio</span>
-                    <ArrowRight size={13} />
-                  </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredCodespaces.map(c => (
+                    <div 
+                      key={c.name}
+                      onClick={() => openCodespace(c.name, c.path)}
+                      className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                          {c.stack || 'Next.js'}
+                        </span>
+                        <span className="text-[11px] text-slate-400">{c.fileCount || 0} files</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 truncate">{c.name}</h4>
+                      <p className="text-xs text-slate-400 font-mono mt-1 truncate">{c.path}</p>
+                      <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+                        <span>Open Workspace</span>
+                        <ArrowRight size={13} />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-
-                {/* Codespaces */}
-                {filteredCodespaces.map(c => (
-                  <div 
-                    key={c.name}
-                    onClick={() => openCodespace(c.name, c.path)}
-                    className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                        {c.stack || 'Next.js'}
-                      </span>
-                      <span className="text-[11px] text-slate-400">{c.fileCount || 0} files</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 truncate">{c.name}</h4>
-                    <p className="text-xs text-slate-400 font-mono mt-1 truncate">{c.path}</p>
-                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
-                      <span>Open Workspace</span>
-                      <ArrowRight size={13} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              )
             )}
 
             {/* ─── LIST VIEW ─── */}
             {viewMode === 'list' && (
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200">
-                    <tr>
-                      <th className="px-4 py-3">Project</th>
-                      <th className="px-4 py-3">Visibility</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3">Last Edited</th>
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
-                    <tr 
-                      onClick={() => openStudio('Your Financial Hub', 'projects/financial-hub')}
-                      className="hover:bg-slate-50/80 cursor-pointer transition"
-                    >
-                      <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
-                        <div className="w-6 h-6 rounded-full bg-[#2e7d32] text-white font-bold text-[10px] flex items-center justify-center">S</div>
-                        <span>Your Financial Hub</span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500">Public</td>
-                      <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">Inactive</span></td>
-                      <td className="px-4 py-3 text-slate-400">3 months ago</td>
-                      <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open Studio</td>
-                    </tr>
-                    <tr 
-                      onClick={() => openStudio('patta-digit-hub', 'projects/patta-digit-hub')}
-                      className="hover:bg-slate-50/80 cursor-pointer transition"
-                    >
-                      <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
-                        <div className="w-6 h-6 rounded-full bg-[#2e7d32] text-white font-bold text-[10px] flex items-center justify-center">S</div>
-                        <span>patta-digit-hub</span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-500">Public</td>
-                      <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">Inactive</span></td>
-                      <td className="px-4 py-3 text-slate-400">3 months ago</td>
-                      <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open Studio</td>
-                    </tr>
-                    {filteredCodespaces.map(c => (
-                      <tr 
-                        key={c.name}
-                        onClick={() => openCodespace(c.name, c.path)}
-                        className="hover:bg-slate-50/80 cursor-pointer transition"
-                      >
-                        <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
-                          <div className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-[10px] flex items-center justify-center">N</div>
-                          <span>{c.name}</span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">Private</td>
-                        <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Active</span></td>
-                        <td className="px-4 py-3 text-slate-400">Recently</td>
-                        <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open IDE</td>
+              filteredCodespaces.length === 0 ? (
+                <div className="p-8 rounded-2xl border border-dashed border-slate-300 bg-white text-center text-xs text-slate-500">
+                  No projects available. Create one to get started.
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200">
+                      <tr>
+                        <th className="px-4 py-3">Project</th>
+                        <th className="px-4 py-3">Visibility</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3">Last Edited</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-700">
+                      {filteredCodespaces.map(c => (
+                        <tr 
+                          key={c.name}
+                          onClick={() => openCodespace(c.name, c.path)}
+                          className="hover:bg-slate-50/80 cursor-pointer transition"
+                        >
+                          <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
+                            <div className="w-6 h-6 rounded-full bg-[#2e7d32] text-white font-bold text-[10px] flex items-center justify-center">
+                              {c.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span>{c.name}</span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-500">Private</td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Active</span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-400">Recently</td>
+                          <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open IDE</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
             )}
           </section>
 
