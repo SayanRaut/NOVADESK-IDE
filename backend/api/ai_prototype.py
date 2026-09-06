@@ -1,7 +1,7 @@
 import os
 import re
 from pathlib import Path
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from fs.router import SERVER_STORAGE_DIR, set_workspace, SetWorkspaceRequest
@@ -16,6 +16,8 @@ class GeneratePrototypeRequest(BaseModel):
     name: str
     template: Optional[str] = "react"
     prompt: str
+    api_key: Optional[str] = None
+    plan: Optional[Dict[str, Any]] = None
 
 def generate_fallback_prototype(name: str, template: str, prompt: str, target_dir: Path) -> List[str]:
     """Generates a rich, working prototype tailored to the user's prompt."""
@@ -655,17 +657,26 @@ async def generate_prototype(req: GeneratePrototypeRequest):
     ai_succeeded = False
     try:
         target_model = model_registry.get_unified_model()
+        plan_context = ""
+        if req.plan:
+            tasks_summary = ", ".join([f"{t.get('id')}: {t.get('title')}" for t in req.plan.get("tasks", [])])
+            plan_context = f"\nExecution Plan Blueprint:\nTasks: {tasks_summary}\nArchitecture: {req.plan.get('architecture', {})}\n"
+
         system_prompt = (
             f"You are an expert fullstack software architect. "
             f"Generate a working, complete prototype for a {req.template} project called '{clean_name}'. "
-            f"User request: {req.prompt}\n\n"
+            f"User request: {req.prompt}\n{plan_context}\n"
             f"For every file you generate, output: `### File: relative/path/to/file.ext` followed by a markdown code block with the full file code.\n"
             f"Generate all necessary files including package.json/requirements.txt, entrypoint, components, styling, and README.md."
         )
         messages = [{"role": "user", "content": system_prompt}]
         
         full_text = []
-        async for chunk in model_manager.stream(messages, target_model.id):
+        call_kwargs = {}
+        if req.api_key and req.api_key.strip():
+            call_kwargs["api_key"] = req.api_key.strip()
+
+        async for chunk in model_manager.stream(messages, target_model.id, **call_kwargs):
             full_text.append(chunk)
 
         combined = "".join(full_text)

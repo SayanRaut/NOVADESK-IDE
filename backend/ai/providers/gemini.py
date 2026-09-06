@@ -36,6 +36,38 @@ class GeminiProvider(ProviderInterface):
         else:
             logger.warning("Gemini API key not found. Set GEMINI_API_KEY in .env or system environment.")
 
+    def set_api_key(self, api_key: str):
+        """Dynamically configure Gemini API key."""
+        if api_key and api_key.strip():
+            self.api_key = api_key.strip()
+            self.has_key = True
+            try:
+                genai.configure(api_key=self.api_key)
+                logger.info("Google Gemini Provider updated with dynamic API key.")
+            except Exception as e:
+                logger.warning(f"Error updating Gemini API key: {e}")
+
+    @classmethod
+    async def validate_api_key(cls, api_key: str) -> tuple[bool, str]:
+        """Validates if a user-supplied API key is operational against Google Gemini."""
+        if not api_key or not api_key.strip():
+            return False, "API key is required."
+        clean_key = api_key.strip()
+        try:
+            genai.configure(api_key=clean_key)
+            model = genai.GenerativeModel("gemini-2.5-flash")
+            resp = await model.generate_content_async("ping", generation_config=genai.GenerationConfig(max_output_tokens=5))
+            if resp and hasattr(resp, "text"):
+                return True, "API key successfully verified with Google Gemini!"
+            return False, "No response received from Gemini API."
+        except Exception as e:
+            err_msg = str(e)
+            if "API_KEY_INVALID" in err_msg or "API key not valid" in err_msg or "400" in err_msg:
+                return False, "API key is invalid. Please verify the key from Google AI Studio."
+            elif "PERMISSION_DENIED" in err_msg or "403" in err_msg:
+                return False, "Permission denied for this API key. Ensure Gemini API is enabled."
+            return False, f"Verification failed: {err_msg[:120]}"
+
     def _clean_model_name(self, model_id: str) -> str:
         name = model_id.replace("models/", "").strip()
         # Ensure standard model names
@@ -77,7 +109,11 @@ class GeminiProvider(ProviderInterface):
         gemini_contents, system_prompt = self._prepare_contents_and_system(messages)
         is_json = kwargs.get("format") == "json" or kwargs.get("response_mime_type") == "application/json"
 
-        if not self.has_key:
+        # User-supplied API key takes precedence
+        call_key = kwargs.get("api_key") or self.api_key
+        has_active_key = bool(call_key and call_key.strip())
+
+        if not has_active_key:
             logger.warning(f"GEMINI_API_KEY missing. Providing structured fallback response for {clean_model}.")
             if is_json:
                 return json.dumps({
@@ -87,9 +123,10 @@ class GeminiProvider(ProviderInterface):
                         {"id": "task-2", "title": "Implement UI Components", "agent": "coding", "dependencies": ["task-1"], "description": "Create responsive pages with Tailwind CSS"}
                     ]
                 })
-            return f"[Gemini 2.5 Flash Mock] Ready to build. Please set your GEMINI_API_KEY in .env to activate live Google Gemini models."
+            return f"[Gemini 2.5 Flash Mock] Ready to build. Please provide your Google Gemini API Key to activate live code synthesis."
 
         try:
+            genai.configure(api_key=call_key.strip())
             generation_config = genai.GenerationConfig(
                 temperature=kwargs.get("temperature", 0.2),
                 max_output_tokens=kwargs.get("max_tokens", 8192),
@@ -107,7 +144,7 @@ class GeminiProvider(ProviderInterface):
             return response.text or ""
         except Exception as e:
             logger.error(f"Gemini generate failed ({clean_model}): {str(e)}")
-            # Fallback to gemini-2.0-flash or gemini-1.5-flash if 2.5 is not accessible in account tier
+            # Fallback to gemini-2.0-flash if 2.5 is not accessible
             if "2.5" in clean_model:
                 try:
                     logger.info("Falling back to gemini-2.0-flash...")
@@ -126,12 +163,15 @@ class GeminiProvider(ProviderInterface):
         clean_model = self._clean_model_name(model_id)
         gemini_contents, system_prompt = self._prepare_contents_and_system(messages)
 
-        if not self.has_key:
+        # User-supplied API key takes precedence
+        call_key = kwargs.get("api_key") or self.api_key
+        has_active_key = bool(call_key and call_key.strip())
+
+        if not has_active_key:
             demo_msg = (
                 f"### Gemini 2.5 Flash Online\n\n"
-                f"Your request has been received. To enable live streaming with Google Gemini, "
-                f"please configure `GEMINI_API_KEY` in `.env`.\n\n"
-                f"```bash\nGEMINI_API_KEY=\"AIzaSy...\"\n```"
+                f"Your request has been received. Please supply your Google Gemini API Key in the prompt or settings "
+                f"to stream real-time code synthesis."
             )
             for word in demo_msg.split(" "):
                 yield word + " "
@@ -139,6 +179,7 @@ class GeminiProvider(ProviderInterface):
             return
 
         try:
+            genai.configure(api_key=call_key.strip())
             generation_config = genai.GenerationConfig(
                 temperature=kwargs.get("temperature", 0.2),
                 max_output_tokens=kwargs.get("max_tokens", 8192)

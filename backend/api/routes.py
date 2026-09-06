@@ -5,6 +5,7 @@ from projects.router import router as projects_router
 from conversation.router import router as conversation_router
 from api.ai import router as ai_router
 from api.ai_prototype import router as ai_prototype_router
+from api.ai_planner import router as ai_planner_router
 from users.router import router as users_router
 from fs.router import router as fs_router
 from git_service.router import router as git_router
@@ -21,6 +22,7 @@ router.include_router(projects_router, prefix="/projects")
 router.include_router(conversation_router, prefix="/conversations")
 router.include_router(ai_router, prefix="/ai")
 router.include_router(ai_prototype_router, prefix="")
+router.include_router(ai_planner_router, prefix="")
 router.include_router(users_router, prefix="/users")
 
 router.include_router(fs_router, prefix="")

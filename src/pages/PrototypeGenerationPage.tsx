@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigation } from '../contexts/NavigationContext';
+import { useApiKey } from '../contexts/ApiKeyContext';
 import { getApiBaseUrl } from '../config/api';
 import BackgroundParticles from '../components/animations/BackgroundParticles';
 import { 
@@ -19,6 +20,7 @@ interface Stage {
 
 export function PrototypeGenerationPage() {
   const { prototypeReq, navigateTo, openCodespace } = useNavigation();
+  const { apiKey } = useApiKey();
 
   const [stages, setStages] = useState<Stage[]>([
     { title: 'Analyzing Prompt & Requirements', desc: 'Parsing components, styling, and data needs', status: 'active' },
@@ -43,7 +45,10 @@ export function PrototypeGenerationPage() {
 
     const runGeneration = async () => {
       try {
-        setStreamLog((prev) => prev + `[Planner] Project: ${prototypeReq.name}\n[Planner] Stack: ${prototypeReq.template}\n[Planner] Prompt: "${prototypeReq.prompt.slice(0, 80)}..."\n\n`);
+        const planNote = prototypeReq.plan 
+          ? `[Planner] Execution DAG attached (${prototypeReq.plan.tasks?.length || 0} tasks planned)\n` 
+          : '';
+        setStreamLog((prev) => prev + `[Planner] Project: ${prototypeReq.name}\n[Planner] Stack: ${prototypeReq.template}\n${planNote}[Planner] Prompt: "${prototypeReq.prompt.slice(0, 80)}..."\n\n`);
 
         // Advance to stage 2
         setTimeout(() => {
@@ -71,10 +76,18 @@ export function PrototypeGenerationPage() {
 
         // Call backend prototype generation endpoint
         const apiBase = getApiBaseUrl();
+        const payload = {
+          name: prototypeReq.name,
+          template: prototypeReq.template,
+          prompt: prototypeReq.prompt,
+          api_key: prototypeReq.apiKey || apiKey || undefined,
+          plan: prototypeReq.plan || undefined,
+        };
+
         const res = await fetch(`${apiBase}/api/ai/prototype`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(prototypeReq),
+          body: JSON.stringify(payload),
         });
 
         if (!res.ok) {

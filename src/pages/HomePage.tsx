@@ -23,9 +23,13 @@ import {
   CheckCircle2,
   Code2,
   BookOpen,
-  Settings
+  Settings,
+  BrainCircuit,
+  Key
 } from 'lucide-react';
 import { WorkspaceSettingsModal, type SettingsTab } from '../components/settings/WorkspaceSettingsModal';
+import { ProjectPlannerModal } from '../components/planner/ProjectPlannerModal';
+import { useApiKey } from '../contexts/ApiKeyContext';
 
 interface CodespaceItem {
   name: string;
@@ -164,6 +168,10 @@ export function HomePage() {
     setSettingsTab(tab);
     setIsSettingsOpen(true);
   };
+
+  // Bring-Your-Own-Key & AI Planner Modal
+  const { hasKey, maskedKey } = useApiKey();
+  const [isPlannerOpen, setIsPlannerOpen] = useState(false);
 
   // Prompt Generator State
   const [promptInput, setPromptInput] = useState('');
@@ -453,6 +461,22 @@ export function HomePage() {
             {!sidebarCollapsed && <span>AI Blueprints</span>}
           </button>
 
+          <button
+            onClick={() => setIsPlannerOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer text-slate-600 hover:bg-blue-50 hover:text-blue-900"
+            title="AI Autonomous Project Planner"
+          >
+            <BrainCircuit size={18} className="text-blue-600 shrink-0" />
+            {!sidebarCollapsed && (
+              <div className="flex items-center justify-between w-full">
+                <span>AI Planner</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                  DAG
+                </span>
+              </div>
+            )}
+          </button>
+
           <div className="pt-4 mt-2 border-t border-slate-100">
             {!sidebarCollapsed && (
               <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -542,10 +566,28 @@ export function HomePage() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-full font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Cloud Ready</span>
-            </div>
+            {/* Gemini Key Status Pill */}
+            <button
+              onClick={() => openSettings('secrets')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer shadow-2xs ${
+                hasKey
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+              }`}
+              title="Configure Google Gemini API Key"
+            >
+              <Key size={12} />
+              <span>{hasKey ? `Gemini Key: ${maskedKey}` : 'Set Gemini Key'}</span>
+            </button>
+
+            <button
+              onClick={() => setIsPlannerOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
+              title="Launch AI Project Planner Agent"
+            >
+              <BrainCircuit size={14} className="text-blue-600" />
+              <span className="hidden sm:inline">AI Planner</span>
+            </button>
 
             <button
               onClick={() => openSettings('workspace')}
@@ -626,6 +668,16 @@ export function HomePage() {
                   >
                     <Sparkles size={13} className={isEnhancing ? 'animate-spin text-indigo-500' : 'text-slate-400'} />
                     <span>{isEnhancing ? 'Enhancing...' : 'Enhance'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPlannerOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition cursor-pointer"
+                    title="Generate an autonomous DAG task breakdown plan before generating"
+                  >
+                    <BrainCircuit size={13} className="text-blue-600" />
+                    <span>Plan Project</span>
                   </button>
                 </div>
 
@@ -886,6 +938,14 @@ export function HomePage() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         initialTab={settingsTab}
+      />
+
+      {/* ─── AI PROJECT PLANNER AGENT MODAL ─── */}
+      <ProjectPlannerModal
+        isOpen={isPlannerOpen}
+        onClose={() => setIsPlannerOpen(false)}
+        initialPrompt={promptInput}
+        initialTemplate="nextjs"
       />
     </div>
   );

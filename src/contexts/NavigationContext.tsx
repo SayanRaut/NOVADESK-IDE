@@ -6,6 +6,8 @@ export interface PrototypeRequest {
   name: string;
   template: string;
   prompt: string;
+  apiKey?: string;
+  plan?: any;
 }
 
 interface NavigationContextType {

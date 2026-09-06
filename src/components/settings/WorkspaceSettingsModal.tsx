@@ -24,9 +24,11 @@ import {
   EyeOff, 
   Plus, 
   Database, 
-  Cpu
+  Cpu,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useApiKey } from '../../contexts/ApiKeyContext';
 import { getApiBaseUrl } from '../../config/api';
 
 export type SettingsTab = 
@@ -68,6 +70,35 @@ export function WorkspaceSettingsModal({ isOpen, onClose, initialTab = 'account'
   const [newSecretKey, setNewSecretKey] = useState('');
   const [newSecretVal, setNewSecretVal] = useState('');
   const [showAddSecret, setShowAddSecret] = useState(false);
+
+  // Gemini BYOK key state
+  const { apiKey, hasKey, validateKey, saveKey } = useApiKey();
+  const [geminiKeyInput, setGeminiKeyInput] = useState(apiKey);
+  const [isVerifyingGemini, setIsVerifyingGemini] = useState(false);
+  const [geminiFeedback, setGeminiFeedback] = useState<{ isSuccess: boolean; message: string } | null>(null);
+
+  const handleVerifyAndSaveGeminiKey = async () => {
+    if (!geminiKeyInput.trim()) return;
+    setIsVerifyingGemini(true);
+    setGeminiFeedback(null);
+    try {
+      const res = await validateKey(geminiKeyInput.trim());
+      setGeminiFeedback({
+        isSuccess: res.valid,
+        message: res.message,
+      });
+      if (res.valid) {
+        await saveKey(geminiKeyInput.trim());
+      }
+    } catch {
+      setGeminiFeedback({
+        isSuccess: false,
+        message: 'Failed to connect to verification server.',
+      });
+    } finally {
+      setIsVerifyingGemini(false);
+    }
+  };
 
   // Navigation Items matching the screenshot structure
   const navGroups = useMemo(() => [
@@ -567,11 +598,69 @@ export function WorkspaceSettingsModal({ isOpen, onClose, initialTab = 'account'
                 </div>
                 <button
                   onClick={() => setShowAddSecret(!showAddSecret)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow transition"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow transition cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Add Secret</span>
                 </button>
+              </div>
+
+              {/* Dedicated Google Gemini Key Management (BYOK) */}
+              <div className="p-5 rounded-xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-purple-950/40 border border-blue-500/30 space-y-3 shadow-md">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                      <Sparkles size={18} />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                        <span>Google Gemini API Key</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
+                          hasKey 
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                            : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        }`}>
+                          {hasKey ? 'Active Key' : 'No Key Configured'}
+                        </span>
+                      </h4>
+                      <p className="text-xs text-slate-400">
+                        Power the autonomous Planner Agent and real-time code synthesis with your own Google Gemini API quota.
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 shrink-0"
+                  >
+                    <span>Get Free Key</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <input
+                    type="password"
+                    placeholder="Paste your Gemini API key (AIzaSy...)"
+                    value={geminiKeyInput}
+                    onChange={(e) => setGeminiKeyInput(e.target.value)}
+                    className="flex-1 px-3.5 py-2 rounded-xl bg-black/50 border border-white/10 text-xs text-white outline-none focus:border-blue-500 font-mono"
+                  />
+                  <button
+                    onClick={handleVerifyAndSaveGeminiKey}
+                    disabled={isVerifyingGemini || !geminiKeyInput.trim()}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                  >
+                    {isVerifyingGemini ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+                    <span>Test & Save</span>
+                  </button>
+                </div>
+                {geminiFeedback && (
+                  <p className={`text-xs font-medium ${geminiFeedback.isSuccess ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {geminiFeedback.message}
+                  </p>
+                )}
               </div>
 
               {showAddSecret && (

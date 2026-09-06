@@ -13,6 +13,7 @@ import { ProblemsProvider } from '../contexts/ProblemsContext';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ExtensionProvider } from '../contexts/ExtensionContext';
 import { NavigationProvider, useNavigation } from '../contexts/NavigationContext';
+import { ApiKeyProvider } from '../contexts/ApiKeyContext';
 import { DesktopLayout } from '../layouts/DesktopLayout';
 import { LoadingScreen } from '../pages/LoadingScreen';
 import { LoginPage } from '../pages/LoginPage';
@@ -42,33 +43,35 @@ export function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <NavigationProvider>
-          <UIProvider>
-            <WindowProvider>
-              <LayoutProvider>
-                <SidebarProvider>
-                  <ExtensionProvider>
-                    <PanelProvider>
-                      <NotificationProvider>
-                        <TerminalProvider>
-                          <DebugProvider>
-                            <ProblemsProvider>
-                              <EditorProvider>
-                                <AIProvider>
-                                  <AppRouter />
-                                </AIProvider>
-                              </EditorProvider>
-                            </ProblemsProvider>
-                          </DebugProvider>
-                        </TerminalProvider>
-                      </NotificationProvider>
-                    </PanelProvider>
-                  </ExtensionProvider>
-                </SidebarProvider>
-              </LayoutProvider>
-            </WindowProvider>
-          </UIProvider>
-        </NavigationProvider>
+        <ApiKeyProvider>
+          <NavigationProvider>
+            <UIProvider>
+              <WindowProvider>
+                <LayoutProvider>
+                  <SidebarProvider>
+                    <ExtensionProvider>
+                      <PanelProvider>
+                        <NotificationProvider>
+                          <TerminalProvider>
+                            <DebugProvider>
+                              <ProblemsProvider>
+                                <EditorProvider>
+                                  <AIProvider>
+                                    <AppRouter />
+                                  </AIProvider>
+                                </EditorProvider>
+                              </ProblemsProvider>
+                            </DebugProvider>
+                          </TerminalProvider>
+                        </NotificationProvider>
+                      </PanelProvider>
+                    </ExtensionProvider>
+                  </SidebarProvider>
+                </LayoutProvider>
+              </WindowProvider>
+            </UIProvider>
+          </NavigationProvider>
+        </ApiKeyProvider>
       </AuthProvider>
     </ThemeProvider>
   );
