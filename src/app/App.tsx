@@ -20,6 +20,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { HomePage } from '../pages/HomePage';
 import { CreateProjectPage } from '../pages/CreateProjectPage';
 import { PrototypeGenerationPage } from '../pages/PrototypeGenerationPage';
+import { LovableStudioLayout } from '../components/studio/LovableStudioLayout';
 import { initializeCommands } from '../services/command/initializeCommands';
 
 // Initialize the command registry, menus, and keybindings
@@ -27,7 +28,7 @@ initializeCommands();
 
 function AppRouter() {
   const { isInitializing, isAuthenticated } = useAuth();
-  const { page } = useNavigation();
+  const { page, activeCodespaceName, navigateTo } = useNavigation();
 
   if (isInitializing) return <LoadingScreen />;
   if (!isAuthenticated) return <LoginPage />;
@@ -35,6 +36,7 @@ function AppRouter() {
   if (page === 'home') return <HomePage />;
   if (page === 'create') return <CreateProjectPage />;
   if (page === 'generating') return <PrototypeGenerationPage />;
+  if (page === 'studio') return <LovableStudioLayout projectName={activeCodespaceName || 'Your Financial Hub'} onBack={() => navigateTo('home')} />;
   
   return <DesktopLayout />;
 }

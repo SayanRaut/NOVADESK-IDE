@@ -13,11 +13,27 @@ from config.settings import settings
 class GeminiProvider(ProviderInterface):
     """
     Google Gemini AI Provider for NovaDesk.
-    Replaces local Ollama models with fast, high-capability cloud Gemini models:
-    - gemini-2.5-flash (Primary unified model for fast planning & coding)
-    - gemini-2.5-pro (Deep reasoning & fullstack architecture)
-    - gemini-2.0-flash (High throughput & multimodal)
+    Supports the full official family of Google Gemini cloud models:
+    - gemini-2.0-flash (Primary unified high-speed multimodal model)
+    - gemini-1.5-flash (Fast, cost-efficient, high quota production model)
+    - gemini-1.5-pro (Flagship reasoning model with 2M token context window)
+    - gemini-2.0-flash-lite (Ultra-low latency lightweight model)
+    - gemini-2.0-pro-exp-02-05 (Experimental deep reasoning model)
+    - gemini-1.5-flash-8b (High frequency low latency model)
+    - gemini-2.5-flash (Preview model)
+    - gemini-2.5-pro (Preview reasoning model)
     """
+
+    SUPPORTED_MODELS = [
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-pro-exp-02-05",
+        "gemini-1.5-flash-8b",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+    ]
 
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = (
@@ -48,31 +64,44 @@ class GeminiProvider(ProviderInterface):
                 logger.warning(f"Error updating Gemini API key: {e}")
 
     @classmethod
-    async def validate_api_key(cls, api_key: str) -> tuple[bool, str]:
-        """Validates if a user-supplied API key is operational against Google Gemini."""
+    async def validate_api_key(cls, api_key: str, model_id: Optional[str] = None) -> tuple[bool, str]:
+        """
+        Validates if a user-supplied API key is operational against Google Gemini.
+        Tries candidate models sequentially (gemini-2.0-flash, gemini-1.5-flash, etc.)
+        to guarantee verification succeeds across any API key quota tier.
+        """
         if not api_key or not api_key.strip():
             return False, "API key is required."
         clean_key = api_key.strip()
-        try:
-            genai.configure(api_key=clean_key)
-            model = genai.GenerativeModel("gemini-2.5-flash")
-            resp = await model.generate_content_async("ping", generation_config=genai.GenerationConfig(max_output_tokens=5))
-            if resp and hasattr(resp, "text"):
-                return True, "API key successfully verified with Google Gemini!"
-            return False, "No response received from Gemini API."
-        except Exception as e:
-            err_msg = str(e)
-            if "API_KEY_INVALID" in err_msg or "API key not valid" in err_msg or "400" in err_msg:
-                return False, "API key is invalid. Please verify the key from Google AI Studio."
-            elif "PERMISSION_DENIED" in err_msg or "403" in err_msg:
-                return False, "Permission denied for this API key. Ensure Gemini API is enabled."
-            return False, f"Verification failed: {err_msg[:120]}"
+        
+        candidates = []
+        if model_id and model_id.strip():
+            candidates.append(model_id.replace("models/", "").strip())
+        candidates.extend(["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"])
+
+        last_error = ""
+        for cand in candidates:
+            try:
+                genai.configure(api_key=clean_key)
+                model = genai.GenerativeModel(cand)
+                resp = await model.generate_content_async("ping", generation_config=genai.GenerationConfig(max_output_tokens=5))
+                if resp and hasattr(resp, "text"):
+                    return True, f"API key successfully verified with Google Gemini ({cand})!"
+            except Exception as e:
+                last_error = str(e)
+                if "API_KEY_INVALID" in last_error or "API key not valid" in last_error or "400" in last_error:
+                    return False, "API key is invalid. Please verify the key from Google AI Studio."
+                elif "PERMISSION_DENIED" in last_error or "403" in last_error:
+                    return False, "Permission denied for this API key. Ensure Gemini API is enabled."
+                continue
+
+        return False, f"Verification failed across Gemini models: {last_error[:120]}"
 
     def _clean_model_name(self, model_id: str) -> str:
         name = model_id.replace("models/", "").strip()
-        # Ensure standard model names
-        if name in ("qwen3.5:4b", "default", "novadesk"):
-            return "gemini-2.5-flash"
+        if name in ("qwen3.5:4b", "default", "novadesk", "gemini-2.5-flash"):
+            # Default to universally active standard model
+            return "gemini-2.0-flash"
         return name
 
     def _prepare_contents_and_system(self, messages: List[Dict[str, Any]]) -> tuple[list[dict], Optional[str]]:

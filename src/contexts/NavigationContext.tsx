@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type AppPage = 'home' | 'create' | 'generating' | 'ide';
+export type AppPage = 'home' | 'create' | 'generating' | 'ide' | 'studio';
 
 export interface PrototypeRequest {
   name: string;
@@ -17,6 +17,7 @@ interface NavigationContextType {
   startPrototypeGeneration: (req: PrototypeRequest) => void;
   activeCodespaceName: string | null;
   openCodespace: (name: string, path: string) => void;
+  openStudio: (name: string, path?: string) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -53,6 +54,14 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     setPage('ide');
   };
 
+  const openStudio = (name: string, path: string = '') => {
+    setActiveCodespaceName(name);
+    if (path) {
+      localStorage.setItem('novadesk:currentWorkspace', path);
+    }
+    setPage('studio');
+  };
+
   useEffect(() => {
     const handleNavHome = () => setPage('home');
     window.addEventListener('ide:navigateHome', handleNavHome);
@@ -68,6 +77,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
         startPrototypeGeneration,
         activeCodespaceName,
         openCodespace,
+        openStudio,
       }}
     >
       {children}

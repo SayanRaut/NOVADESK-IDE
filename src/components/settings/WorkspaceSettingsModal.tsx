@@ -30,6 +30,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { useApiKey } from '../../contexts/ApiKeyContext';
 import { getApiBaseUrl } from '../../config/api';
+import { ALL_GEMINI_MODELS } from '../planner/ProjectPlannerModal';
 
 export type SettingsTab = 
   | 'account'
@@ -74,6 +75,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, initialTab = 'account'
   // Gemini BYOK key state
   const { apiKey, hasKey, validateKey, saveKey } = useApiKey();
   const [geminiKeyInput, setGeminiKeyInput] = useState(apiKey);
+  const [selectedGeminiModel, setSelectedGeminiModel] = useState('gemini-2.0-flash');
   const [isVerifyingGemini, setIsVerifyingGemini] = useState(false);
   const [geminiFeedback, setGeminiFeedback] = useState<{ isSuccess: boolean; message: string } | null>(null);
 
@@ -639,7 +641,19 @@ export function WorkspaceSettingsModal({ isOpen, onClose, initialTab = 'account'
                   </a>
                 </div>
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                  <select
+                    value={selectedGeminiModel}
+                    onChange={(e) => setSelectedGeminiModel(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-black/50 border border-white/10 text-xs text-white outline-none focus:border-blue-500 font-medium"
+                  >
+                    {ALL_GEMINI_MODELS.map((m) => (
+                      <option key={m.id} value={m.id} className="bg-slate-900 text-slate-100">
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+
                   <input
                     type="password"
                     placeholder="Paste your Gemini API key (AIzaSy...)"
@@ -650,7 +664,7 @@ export function WorkspaceSettingsModal({ isOpen, onClose, initialTab = 'account'
                   <button
                     onClick={handleVerifyAndSaveGeminiKey}
                     disabled={isVerifyingGemini || !geminiKeyInput.trim()}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
                   >
                     {isVerifyingGemini ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
                     <span>Test & Save</span>

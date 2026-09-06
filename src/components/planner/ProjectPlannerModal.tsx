@@ -60,6 +60,17 @@ interface ProjectPlannerModalProps {
   initialTemplate?: string;
 }
 
+export const ALL_GEMINI_MODELS = [
+  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Recommended, Fast)', badge: 'Fastest' },
+  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Stable Standard)', badge: 'Stable' },
+  { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Deep Reasoning 2M)', badge: 'Reasoning' },
+  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash Lite (Lightweight)', badge: 'Lite' },
+  { id: 'gemini-2.0-pro-exp-02-05', name: 'Gemini 2.0 Pro Experimental', badge: 'Pro Exp' },
+  { id: 'gemini-1.5-flash-8b', name: 'Gemini 1.5 Flash-8B (High Throughput)', badge: 'High Quota' },
+  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Preview)', badge: 'Preview' },
+  { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Preview)', badge: 'Preview' },
+];
+
 export function ProjectPlannerModal({
   isOpen,
   onClose,
@@ -72,6 +83,7 @@ export function ProjectPlannerModal({
   const [prompt, setPrompt] = useState(initialPrompt);
   const [template, setTemplate] = useState(initialTemplate);
   const [projectName, setProjectName] = useState('');
+  const [selectedModel, setSelectedModel] = useState('gemini-2.0-flash');
   
   const [isPlanning, setIsPlanning] = useState(false);
   const [planningStage, setPlanningStage] = useState<'idle' | 'analyzing' | 'architecting' | 'validating'>('idle');
@@ -135,6 +147,7 @@ export function ProjectPlannerModal({
         template,
         project_name: projectName.trim() || undefined,
         api_key: apiKey.trim() || undefined,
+        model_id: selectedModel,
       });
 
       clearTimeout(timer1);
@@ -231,9 +244,17 @@ export function ProjectPlannerModal({
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-bold tracking-tight">AI Project Planner Agent</h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                  Google Gemini 2.5
-                </span>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => setSelectedModel(e.target.value)}
+                  className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 outline-none cursor-pointer"
+                >
+                  {ALL_GEMINI_MODELS.map((m) => (
+                    <option key={m.id} value={m.id} className="bg-slate-900 text-slate-100">
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Autonomous architectural planning, task graph decomposition & specialist delegation
@@ -331,6 +352,23 @@ export function ProjectPlannerModal({
               </div>
 
               <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Gemini AI Model
+                  </label>
+                  <select
+                    value={selectedModel}
+                    onChange={(e) => setSelectedModel(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl outline-none focus:border-blue-500 font-medium"
+                  >
+                    {ALL_GEMINI_MODELS.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Technology Stack

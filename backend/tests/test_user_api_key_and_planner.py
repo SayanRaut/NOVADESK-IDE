@@ -59,3 +59,18 @@ async def test_gemini_provider_key_override():
     provider = GeminiProvider()
     assert hasattr(provider, "set_api_key")
     assert hasattr(provider, "validate_api_key")
+
+@pytest.mark.asyncio
+async def test_list_models_endpoint():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        resp = await ac.get("/api/ai/models")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "models" in data
+        assert len(data["models"]) >= 6
+        model_ids = [m["id"] for m in data["models"]]
+        assert "gemini-2.0-flash" in model_ids
+        assert "gemini-1.5-flash" in model_ids
+        assert "gemini-1.5-pro" in model_ids
+        assert data["default"] == "gemini-2.0-flash"

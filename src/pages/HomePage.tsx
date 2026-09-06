@@ -14,8 +14,6 @@ import {
   Boxes, 
   Wand2, 
   Shuffle, 
-  LogOut, 
-  Clock, 
   ChevronRight, 
   ShieldCheck, 
   ChevronLeft,
@@ -25,10 +23,22 @@ import {
   BookOpen,
   Settings,
   BrainCircuit,
-  Key
+  Key,
+  SlidersHorizontal,
+  LayoutGrid,
+  List,
+  Star,
+  MoreHorizontal,
+  Link as LinkIcon,
+  ChevronDown,
+  Check,
+  ExternalLink,
+  Laptop
 } from 'lucide-react';
 import { WorkspaceSettingsModal, type SettingsTab } from '../components/settings/WorkspaceSettingsModal';
 import { ProjectPlannerModal } from '../components/planner/ProjectPlannerModal';
+import { WorkspaceDropdown } from '../components/navigation/WorkspaceDropdown';
+import { UserProfileDropdown } from '../components/navigation/UserProfileDropdown';
 import { useApiKey } from '../contexts/ApiKeyContext';
 
 interface CodespaceItem {
@@ -150,7 +160,7 @@ const SUGGESTIONS_CATALOG: SuggestionItem[] = [
 ];
 
 export function HomePage() {
-  const { openCodespace, startPrototypeGeneration, navigateTo } = useNavigation();
+  const { openCodespace, openStudio, startPrototypeGeneration, navigateTo } = useNavigation();
   const { user, logout } = useAuth();
   
   const [codespaces, setCodespaces] = useState<CodespaceItem[]>([]);
@@ -159,6 +169,23 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'templates'>('dashboard');
+
+  // Sidebar Popovers (Photo 2 & Photo 3)
+  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const [isUserProfileDropdownOpen, setIsUserProfileDropdownOpen] = useState(false);
+
+  // Photo 1 Projects Header & Filter States
+  const [isCreateDropdownOpen, setIsCreateDropdownOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'grid' | 'list'>('card');
+  const [projectSearch, setProjectSearch] = useState('');
+  const [sortFilter, setSortFilter] = useState<'edited' | 'created' | 'name'>('edited');
+  const [visibilityFilter, setVisibilityFilter] = useState<'all' | 'public' | 'private'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [ownerFilter, setOwnerFilter] = useState<'all' | 'me' | 'shared'>('all');
+  const [activeFilterDropdown, setActiveFilterDropdown] = useState<'sort' | 'visibility' | 'status' | 'owner' | null>(null);
+  const [starredProjects, setStarredProjects] = useState<string[]>(['patta-digit-hub']);
+  const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
+  const [copiedProjectId, setCopiedProjectId] = useState<string | null>(null);
 
   // Workspace Settings Modal State (Lovable-style settings)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -383,31 +410,54 @@ export function HomePage() {
           </button>
         </div>
 
-        {/* Workspace Quick Pill (Matches Lovable Screenshot) */}
-        <div className="px-3 pb-2">
+        {/* Workspace Quick Pill (Matches Lovable Photo 3) */}
+        <div className="relative px-3 pb-2">
           <button
-            onClick={() => openSettings('workspace')}
+            onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
             className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition cursor-pointer hover:bg-slate-100/80 bg-slate-50 border border-slate-200/80 ${
               sidebarCollapsed ? 'justify-center p-1.5' : ''
             }`}
-            title="Open Workspace & Project Settings"
+            title="Workspace Menu"
           >
             <div className="flex items-center gap-2.5 truncate">
               <div className="w-6 h-6 rounded-lg bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
-                S
+                {user?.display_name?.charAt(0).toUpperCase() || 'S'}
               </div>
               {!sidebarCollapsed && (
                 <span className="truncate text-slate-800 font-bold">
-                  {user?.display_name?.split(' ')[0] || 'Sayan'}'s Studio
+                  {user?.display_name?.split(' ')[0] || 'Sayan'}'s Lovable
                 </span>
               )}
             </div>
             {!sidebarCollapsed && (
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">
-                Settings
-              </span>
+              <ChevronDown size={14} className={`text-slate-400 transition-transform ${isWorkspaceDropdownOpen ? 'rotate-180' : ''}`} />
             )}
           </button>
+
+          <WorkspaceDropdown
+            isOpen={isWorkspaceDropdownOpen}
+            onClose={() => setIsWorkspaceDropdownOpen(false)}
+            workspaceName={`${user?.display_name?.split(' ')[0] || 'Sayan'}'s Lovable`}
+            planName="Free Plan"
+            memberCount={3}
+            creditsLeft={5}
+            onOpenSettings={() => {
+              setIsWorkspaceDropdownOpen(false);
+              openSettings('workspace');
+            }}
+            onInviteMembers={() => {
+              setIsWorkspaceDropdownOpen(false);
+              openSettings('workspace');
+            }}
+            onNewWorkspace={() => {
+              setIsWorkspaceDropdownOpen(false);
+              handleCreateBlank('nextjs');
+            }}
+            onUpgrade={() => {
+              setIsWorkspaceDropdownOpen(false);
+              openSettings('account');
+            }}
+          />
         </div>
 
         {/* Navigation Items */}
@@ -512,38 +562,54 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* Sidebar Footer / User Profile */}
-        <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+        {/* Sidebar Footer / User Profile (Matches Lovable Photo 2) */}
+        <div className="relative p-3 border-t border-slate-100 bg-slate-50/50">
           <div className={`flex items-center justify-between ${sidebarCollapsed ? 'flex-col gap-2' : ''}`}>
             <div 
-              onClick={() => openSettings('account')}
-              className="flex items-center gap-2.5 overflow-hidden cursor-pointer hover:opacity-80 transition"
-              title="Click to view Account Settings"
+              onClick={() => setIsUserProfileDropdownOpen(!isUserProfileDropdownOpen)}
+              className="flex items-center gap-2.5 overflow-hidden cursor-pointer hover:opacity-80 transition flex-1"
+              title="Click to view User Profile & Account Menu"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
-                {user?.display_name ? user.display_name.charAt(0).toUpperCase() : 'U'}
+              <div className="w-8 h-8 rounded-full bg-[#2e7d32] text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
+                {user?.display_name ? user.display_name.charAt(0).toUpperCase() : 'S'}
               </div>
               {!sidebarCollapsed && (
                 <div className="truncate">
                   <div className="flex items-center gap-1">
                     <p className="text-xs font-bold text-slate-900 truncate">
-                      {user?.display_name || 'Developer'}
+                      {user?.display_name || 'Sayan'}
                     </p>
                     <ShieldCheck size={12} className="text-emerald-500 shrink-0" />
                   </div>
-                  <p className="text-[10px] text-slate-500 truncate">{user?.email || 'Cloud Account'}</p>
+                  <p className="text-[10px] text-slate-500 truncate">{user?.email || 'sayanraut2005@gmail.com'}</p>
                 </div>
               )}
             </div>
 
             <button
-              onClick={logout}
-              title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+              onClick={() => setIsUserProfileDropdownOpen(!isUserProfileDropdownOpen)}
+              title="User Menu"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
             >
-              <LogOut size={16} />
+              <MoreHorizontal size={16} />
             </button>
           </div>
+
+          <UserProfileDropdown
+            isOpen={isUserProfileDropdownOpen}
+            onClose={() => setIsUserProfileDropdownOpen(false)}
+            email={user?.email || 'sayanraut2005@gmail.com'}
+            displayName={user?.display_name || 'Sayan'}
+            onOpenSettings={() => {
+              setIsUserProfileDropdownOpen(false);
+              openSettings('account');
+            }}
+            onSignOut={logout}
+            onNavigateHome={() => {
+              setIsUserProfileDropdownOpen(false);
+              setActiveTab('dashboard');
+            }}
+          />
         </div>
       </aside>
 
@@ -782,135 +848,761 @@ export function HomePage() {
             </div>
           </section>
 
-          {/* ─── MY PROJECTS / CODESPACES SECTION ─── */}
+          {/* ─── MY PROJECTS / PHOTO 1 LAYOUT ─── */}
           <section ref={projectsSectionRef} className="space-y-4 pt-2">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
-              <div className="flex items-center gap-2.5">
-                <FolderCode size={20} className="text-indigo-600" />
-                <h2 className="text-lg font-bold text-slate-900">My Projects & Workspaces</h2>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  {filteredCodespaces.length}
+            
+            {/* Header: Title + Create Dropdown */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Projects</h2>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  {codespaces.length + 2}
                 </span>
-              </div>
-
-              <div className="flex items-center gap-2">
                 <button
                   onClick={fetchCodespaces}
                   title="Reload Projects"
-                  className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-900 hover:border-slate-300 transition cursor-pointer"
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
                 >
-                  <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+                  <RefreshCw size={13} className={isLoading ? 'animate-spin text-indigo-600' : ''} />
                 </button>
+              </div>
 
+              <div className="relative">
                 <button
-                  onClick={() => handleCreateBlank('nextjs')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
+                  onClick={() => setIsCreateDropdownOpen(!isCreateDropdownOpen)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
                 >
                   <Plus size={14} />
-                  <span>New Workspace</span>
+                  <span>Create</span>
+                  <ChevronDown size={14} className={`transition-transform ${isCreateDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isCreateDropdownOpen && (
+                  <div 
+                    className="absolute right-0 mt-2 w-52 bg-white rounded-2xl border border-slate-200 shadow-xl py-1.5 z-40 animate-fade-in font-sans"
+                    onClick={() => setIsCreateDropdownOpen(false)}
+                  >
+                    <button
+                      onClick={() => handleCreateBlank('nextjs')}
+                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <Plus size={14} className="text-slate-400" />
+                      <span>New Blank Sandbox</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        promptTextareaRef.current?.focus();
+                        promptTextareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <Sparkles size={14} className="text-indigo-500" />
+                      <span>Generate with AI</span>
+                    </button>
+                    <button
+                      onClick={() => setIsPlannerOpen(true)}
+                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <BrainCircuit size={14} className="text-blue-500" />
+                      <span>Autonomous AI Planner</span>
+                    </button>
+                    <div className="my-1 border-t border-slate-100" />
+                    <button
+                      onClick={() => openSettings('git')}
+                      className="w-full text-left px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <ExternalLink size={14} className="text-slate-400" />
+                      <span>Import from GitHub</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Filter Toolbar (Matches Photo 1: Search, Filter Dropdowns, View Switchers) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 py-1">
+              
+              {/* Left Side: Search + Dropdown Filters */}
+              <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
+                
+                {/* Search projects... */}
+                <div className="relative w-48 sm:w-56">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={projectSearch}
+                    onChange={(e) => setProjectSearch(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 bg-white text-xs text-slate-900 placeholder-slate-400 rounded-xl border border-slate-200 hover:border-slate-300 focus:border-indigo-500 outline-none shadow-2xs transition"
+                  />
+                </div>
+
+                {/* Filter: Last edited ▾ */}
+                <div className="relative">
+                  <button
+                    onClick={() => setActiveFilterDropdown(activeFilterDropdown === 'sort' ? null : 'sort')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 text-xs font-medium shadow-2xs transition cursor-pointer"
+                  >
+                    <span>
+                      {sortFilter === 'edited' ? 'Last edited' : sortFilter === 'created' ? 'Created date' : 'Name A-Z'}
+                    </span>
+                    <ChevronDown size={13} className="text-slate-400" />
+                  </button>
+                  {activeFilterDropdown === 'sort' && (
+                    <div className="absolute left-0 mt-1.5 w-36 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-30 animate-fade-in">
+                      {[
+                        { id: 'edited', label: 'Last edited' },
+                        { id: 'created', label: 'Created date' },
+                        { id: 'name', label: 'Name A-Z' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => {
+                            setSortFilter(opt.id as any);
+                            setActiveFilterDropdown(null);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 text-xs font-medium flex items-center justify-between cursor-pointer ${
+                            sortFilter === opt.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {sortFilter === opt.id && <Check size={12} className="text-indigo-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter: Any visibility ▾ */}
+                <div className="relative">
+                  <button
+                    onClick={() => setActiveFilterDropdown(activeFilterDropdown === 'visibility' ? null : 'visibility')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 text-xs font-medium shadow-2xs transition cursor-pointer"
+                  >
+                    <span>
+                      {visibilityFilter === 'all' ? 'Any visibility' : visibilityFilter === 'public' ? 'Public' : 'Private'}
+                    </span>
+                    <ChevronDown size={13} className="text-slate-400" />
+                  </button>
+                  {activeFilterDropdown === 'visibility' && (
+                    <div className="absolute left-0 mt-1.5 w-36 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-30 animate-fade-in">
+                      {[
+                        { id: 'all', label: 'Any visibility' },
+                        { id: 'public', label: 'Public' },
+                        { id: 'private', label: 'Private' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => {
+                            setVisibilityFilter(opt.id as any);
+                            setActiveFilterDropdown(null);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 text-xs font-medium flex items-center justify-between cursor-pointer ${
+                            visibilityFilter === opt.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {visibilityFilter === opt.id && <Check size={12} className="text-indigo-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter: Any status ▾ */}
+                <div className="relative">
+                  <button
+                    onClick={() => setActiveFilterDropdown(activeFilterDropdown === 'status' ? null : 'status')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 text-xs font-medium shadow-2xs transition cursor-pointer"
+                  >
+                    <span>
+                      {statusFilter === 'all' ? 'Any status' : statusFilter === 'active' ? 'Active' : 'Inactive'}
+                    </span>
+                    <ChevronDown size={13} className="text-slate-400" />
+                  </button>
+                  {activeFilterDropdown === 'status' && (
+                    <div className="absolute left-0 mt-1.5 w-36 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-30 animate-fade-in">
+                      {[
+                        { id: 'all', label: 'Any status' },
+                        { id: 'active', label: 'Active' },
+                        { id: 'inactive', label: 'Inactive' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => {
+                            setStatusFilter(opt.id as any);
+                            setActiveFilterDropdown(null);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 text-xs font-medium flex items-center justify-between cursor-pointer ${
+                            statusFilter === opt.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {statusFilter === opt.id && <Check size={12} className="text-indigo-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Filter: All owners ▾ */}
+                <div className="relative">
+                  <button
+                    onClick={() => setActiveFilterDropdown(activeFilterDropdown === 'owner' ? null : 'owner')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 rounded-xl border border-slate-200 text-xs font-medium shadow-2xs transition cursor-pointer"
+                  >
+                    <span>
+                      {ownerFilter === 'all' ? 'All owners' : ownerFilter === 'me' ? 'Owned by me' : 'Shared'}
+                    </span>
+                    <ChevronDown size={13} className="text-slate-400" />
+                  </button>
+                  {activeFilterDropdown === 'owner' && (
+                    <div className="absolute left-0 mt-1.5 w-36 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-30 animate-fade-in">
+                      {[
+                        { id: 'all', label: 'All owners' },
+                        { id: 'me', label: 'Owned by me' },
+                        { id: 'shared', label: 'Shared' },
+                      ].map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => {
+                            setOwnerFilter(opt.id as any);
+                            setActiveFilterDropdown(null);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 text-xs font-medium flex items-center justify-between cursor-pointer ${
+                            ownerFilter === opt.id ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          <span>{opt.label}</span>
+                          {ownerFilter === opt.id && <Check size={12} className="text-indigo-600" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Side: View Switcher (Filter, Card, Grid, List) */}
+              <div className="flex items-center gap-1 bg-white p-1 border border-slate-200 rounded-xl shadow-2xs">
+                <button
+                  onClick={() => {
+                    setSortFilter('edited');
+                    setVisibilityFilter('all');
+                    setStatusFilter('all');
+                    setOwnerFilter('all');
+                    setProjectSearch('');
+                  }}
+                  title="Reset Filters"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                >
+                  <SlidersHorizontal size={14} />
+                </button>
+                <div className="w-px h-4 bg-slate-200" />
+                <button
+                  onClick={() => setViewMode('card')}
+                  title="Card View (Photo 1)"
+                  className={`p-1.5 rounded-lg transition cursor-pointer ${
+                    viewMode === 'card'
+                      ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <LayoutGrid size={14} />
+                </button>
+                <button
+                  onClick={() => setViewMode('grid')}
+                  title="Compact Grid"
+                  className={`p-1.5 rounded-lg transition cursor-pointer ${
+                    viewMode === 'grid'
+                      ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <Boxes size={14} />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  title="List View"
+                  className={`p-1.5 rounded-lg transition cursor-pointer ${
+                    viewMode === 'list'
+                      ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs'
+                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <List size={14} />
                 </button>
               </div>
             </div>
 
-            {/* Grid of Project Cards */}
-            {isLoading && codespaces.length === 0 ? (
-              <div className="p-12 rounded-2xl border border-slate-200 bg-white flex items-center justify-center gap-3 text-slate-500 text-xs font-medium">
-                <RefreshCw size={16} className="animate-spin text-indigo-600" />
-                <span>Loading your workspaces...</span>
-              </div>
-            ) : filteredCodespaces.length === 0 ? (
-              <div className="p-12 rounded-2xl border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center text-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-                  <FolderCode size={22} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900">
-                    {searchQuery ? 'No matching projects found' : 'No projects created yet'}
-                  </h3>
-                  <p className="text-xs text-slate-500 max-w-sm mt-0.5">
-                    {searchQuery 
-                      ? `Try searching for another keyword or clear the search input.`
-                      : 'Generate your first full-stack application using the prompt generator above, or create a blank sandbox.'}
-                  </p>
-                </div>
-                {!searchQuery && (
-                  <button
-                    onClick={() => handleCreateBlank('nextjs')}
-                    className="mt-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-sm transition cursor-pointer"
+            {/* Subtitle / Section Status (Matches Photo 1: Inactive 60+ days) */}
+            <div className="pt-2">
+              <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                Inactive 60+ days
+              </span>
+            </div>
+
+            {/* ─── CARDS VIEW (Matches Photo 1) ─── */}
+            {viewMode === 'card' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* 1. "Your Financial Hub" Card (Photo 1) */}
+                {(!projectSearch || 'your financial hub bankflow'.includes(projectSearch.toLowerCase())) && (
+                  <div 
+                    onClick={() => openStudio('Your Financial Hub', 'projects/financial-hub')}
+                    className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
                   >
-                    Create Starter Project
-                  </button>
+                    {/* Dark Preview Canvas */}
+                    <div className="h-56 bg-[#0a0d14] p-4 relative overflow-hidden flex flex-col justify-between border-b border-white/5 select-none">
+                      {/* Mini Navigation Bar */}
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                          <span className="font-bold text-white tracking-wide">BankFlow</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                          <span className="text-white font-medium">Dashboard</span>
+                          <span>Accounts</span>
+                          <span>Analytics</span>
+                        </div>
+                        <div className="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[9px] text-slate-300 font-bold">
+                          S
+                        </div>
+                      </div>
+
+                      {/* Main Financial Balance Block */}
+                      <div className="my-auto space-y-1">
+                        <p className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
+                          Total Net Worth
+                        </p>
+                        <div className="flex items-baseline gap-2.5">
+                          <span className="text-2xl font-black text-white tracking-tight font-mono">
+                            $128,420.50
+                          </span>
+                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                            +12.4% this month
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Mini Glass Account Cards & Bar Chart */}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/5">
+                          <p className="text-[9px] text-slate-400">Main Checking</p>
+                          <p className="text-xs font-bold text-white font-mono">$42,150.00</p>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/5">
+                          <p className="text-[9px] text-slate-400">High-Yield Savings</p>
+                          <p className="text-xs font-bold text-cyan-400 font-mono">$86,270.50</p>
+                        </div>
+                      </div>
+
+                      {/* Hover Overlay: Open in Lovable Studio */}
+                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
+                          <Laptop size={14} />
+                          <span>Open in Lovable Studio</span>
+                          <ArrowRight size={13} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Footer (Photo 1) */}
+                    <div className="p-3.5 px-4 flex items-center justify-between bg-white">
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
+                          S
+                        </div>
+                        <div className="truncate">
+                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                            Your Financial Hub
+                          </h4>
+                          <p className="text-[11px] text-slate-400">3 months ago</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(`${window.location.origin}/studio?project=Your%20Financial%20Hub`);
+                            setCopiedProjectId('financial-hub');
+                            setTimeout(() => setCopiedProjectId(null), 2000);
+                          }}
+                          title="Copy Link"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          {copiedProjectId === 'financial-hub' ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
+                        </button>
+                        
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveActionMenu(activeActionMenu === 'financial-hub' ? null : 'financial-hub');
+                            }}
+                            title="More actions"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            <MoreHorizontal size={14} />
+                          </button>
+
+                          {activeActionMenu === 'financial-hub' && (
+                            <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-40 animate-fade-in font-sans">
+                              <button
+                                onClick={() => {
+                                  setActiveActionMenu(null);
+                                  openStudio('Your Financial Hub', 'projects/financial-hub');
+                                }}
+                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Laptop size={13} />
+                                <span>Open in Studio</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActiveActionMenu(null);
+                                  openCodespace('Your Financial Hub', 'projects/financial-hub');
+                                }}
+                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Code2 size={13} />
+                                <span>Open in IDE</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                {/* 2. "patta-digit-hub" Card (Photo 1) */}
+                {(!projectSearch || 'patta-digit-hub blank app'.includes(projectSearch.toLowerCase())) && (
+                  <div 
+                    onClick={() => openStudio('patta-digit-hub', 'projects/patta-digit-hub')}
+                    className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+                  >
+                    {/* Vivid Yellow Canvas (Photo 1) */}
+                    <div className="h-56 bg-[#f4c430] p-4 relative overflow-hidden flex flex-col justify-between border-b border-black/5 select-none">
+                      {/* Top Right Star Button */}
+                      <div className="flex justify-end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setStarredProjects(prev =>
+                              prev.includes('patta-digit-hub')
+                                ? prev.filter(id => id !== 'patta-digit-hub')
+                                : [...prev, 'patta-digit-hub']
+                            );
+                          }}
+                          className="p-1 rounded-lg text-slate-900/80 hover:text-slate-950 transition cursor-pointer"
+                          title="Star Project"
+                        >
+                          <Star 
+                            size={18} 
+                            className={starredProjects.includes('patta-digit-hub') ? 'fill-slate-950 text-slate-950' : 'text-slate-800'} 
+                          />
+                        </button>
+                      </div>
+
+                      {/* Center Greeting from Photo 1 */}
+                      <div className="text-center my-auto space-y-1">
+                        <h3 className="text-xl font-extrabold text-slate-950 tracking-tight">
+                          Welcome to Your Blank App
+                        </h3>
+                        <p className="text-xs font-medium text-slate-800/80">
+                          Start building your dream application
+                        </p>
+                      </div>
+
+                      <div className="h-4" />
+
+                      {/* Hover Overlay: Open in Lovable Studio */}
+                      <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
+                          <Laptop size={14} />
+                          <span>Open in Lovable Studio</span>
+                          <ArrowRight size={13} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Footer (Photo 1) */}
+                    <div className="p-3.5 px-4 flex items-center justify-between bg-white">
+                      <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
+                          S
+                        </div>
+                        <div className="truncate">
+                          <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                            patta-digit-hub
+                          </h4>
+                          <p className="text-[11px] text-slate-400">3 months ago</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(`${window.location.origin}/studio?project=patta-digit-hub`);
+                            setCopiedProjectId('patta-digit-hub');
+                            setTimeout(() => setCopiedProjectId(null), 2000);
+                          }}
+                          title="Copy Link"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          {copiedProjectId === 'patta-digit-hub' ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
+                        </button>
+                        
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveActionMenu(activeActionMenu === 'patta-digit-hub' ? null : 'patta-digit-hub');
+                            }}
+                            title="More actions"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            <MoreHorizontal size={14} />
+                          </button>
+
+                          {activeActionMenu === 'patta-digit-hub' && (
+                            <div className="absolute right-0 bottom-full mb-1 w-44 bg-white rounded-xl border border-slate-200 shadow-xl py-1 z-40 animate-fade-in font-sans">
+                              <button
+                                onClick={() => {
+                                  setActiveActionMenu(null);
+                                  openStudio('patta-digit-hub', 'projects/patta-digit-hub');
+                                }}
+                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Laptop size={13} />
+                                <span>Open in Studio</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActiveActionMenu(null);
+                                  openCodespace('patta-digit-hub', 'projects/patta-digit-hub');
+                                }}
+                                className="w-full text-left px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Code2 size={13} />
+                                <span>Open in IDE</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Dynamic Codespaces in Card Format */}
                 {filteredCodespaces.map((c) => {
                   const isNext = c.stack?.toLowerCase().includes('next') || c.name.includes('next') || c.name.includes('web-app');
-                  const isPython = c.stack?.toLowerCase().includes('python');
-
                   return (
                     <div
                       key={c.name}
-                      onClick={() => openCodespace(c.name, c.path)}
-                      className="group bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition-all duration-200 cursor-pointer flex flex-col justify-between"
+                      onClick={() => openStudio(c.name, c.path)}
+                      className="group bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
-                            isNext 
-                              ? 'bg-indigo-50 text-indigo-700 border-indigo-200' 
-                              : isPython
-                              ? 'bg-amber-50 text-amber-700 border-amber-200'
-                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          }`}>
-                            {isNext ? 'Full-Stack' : isPython ? 'FastAPI' : 'React'}
+                      {/* Preview Canvas */}
+                      <div className="h-56 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-4 relative overflow-hidden flex flex-col justify-between border-b border-white/5 select-none">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-white border border-white/10">
+                            {isNext ? 'Next.js App' : 'Full-Stack'}
                           </span>
+                          <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                        </div>
 
+                        <div className="space-y-1">
+                          <h4 className="text-lg font-bold text-white truncate">{c.name}</h4>
+                          <p className="text-xs text-slate-300 line-clamp-2">
+                            Interactive full-stack workspace with live code editing and preview.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-white/10">
+                          <span>{c.fileCount || 0} source files</span>
+                          <span className="text-indigo-300">Ready to build</span>
+                        </div>
+
+                        {/* Hover Overlay */}
+                        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <div className="px-4 py-2 rounded-xl bg-white text-slate-900 text-xs font-bold shadow-lg flex items-center gap-2">
+                            <Laptop size={14} />
+                            <span>Open in Studio</span>
+                            <ArrowRight size={13} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Footer */}
+                      <div className="p-3.5 px-4 flex items-center justify-between bg-white">
+                        <div className="flex items-center gap-2.5 overflow-hidden">
+                          <div className="w-7 h-7 rounded-full bg-[#2e7d32] text-white text-xs font-bold flex items-center justify-center shrink-0 shadow-xs">
+                            S
+                          </div>
+                          <div className="truncate">
+                            <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">
+                              {c.name}
+                            </h4>
+                            <p className="text-[11px] text-slate-400">Recently edited</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(`${window.location.origin}/studio?project=${encodeURIComponent(c.name)}`);
+                              setCopiedProjectId(c.name);
+                              setTimeout(() => setCopiedProjectId(null), 2000);
+                            }}
+                            title="Copy Link"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            {copiedProjectId === c.name ? <Check size={14} className="text-emerald-600" /> : <LinkIcon size={14} />}
+                          </button>
+                          
                           <button
                             onClick={(e) => handleDelete(e, c.name)}
                             title="Delete Project"
-                            className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition opacity-0 group-hover:opacity-100"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                           >
                             <Trash2 size={14} />
                           </button>
                         </div>
-
-                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-                          {c.name}
-                        </h3>
-                        <p className="text-[11px] font-mono text-slate-400 mt-1 truncate">
-                          {c.path}
-                        </p>
-                      </div>
-
-                      <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span className="text-slate-400 text-[11px] flex items-center gap-1.5">
-                          <Clock size={12} />
-                          <span>{c.fileCount || 0} files</span>
-                        </span>
-
-                        <span className="font-semibold text-indigo-600 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                          <span>Open IDE</span>
-                          <ChevronRight size={14} />
-                        </span>
                       </div>
                     </div>
                   );
                 })}
+              </div>
+            )}
 
-                {/* Quick Add Sandbox Card */}
-                <div
-                  onClick={() => handleCreateBlank('nextjs')}
-                  className="group bg-white/60 hover:bg-white p-5 rounded-2xl border border-dashed border-slate-300 hover:border-indigo-400 transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-2 min-h-[150px]"
+            {/* ─── COMPACT GRID VIEW ─── */}
+            {viewMode === 'grid' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Showcase 1 */}
+                <div 
+                  onClick={() => openStudio('Your Financial Hub', 'projects/financial-hub')}
+                  className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-105 transition-transform">
-                    <Plus size={18} />
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 border border-cyan-200">
+                      BankFlow
+                    </span>
+                    <span className="text-[11px] text-slate-400">3mo ago</span>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900">Create Blank Sandbox</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">Start fresh from an empty template</p>
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600">Your Financial Hub</h4>
+                  <p className="text-xs text-slate-500 mt-1">Modern dark fintech banking dashboard</p>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+                    <span>Open in Studio</span>
+                    <ArrowRight size={13} />
                   </div>
                 </div>
+
+                {/* Showcase 2 */}
+                <div 
+                  onClick={() => openStudio('patta-digit-hub', 'projects/patta-digit-hub')}
+                  className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                      Blank App
+                    </span>
+                    <span className="text-[11px] text-slate-400">3mo ago</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600">patta-digit-hub</h4>
+                  <p className="text-xs text-slate-500 mt-1">Clean starter canvas application</p>
+                  <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+                    <span>Open in Studio</span>
+                    <ArrowRight size={13} />
+                  </div>
+                </div>
+
+                {/* Codespaces */}
+                {filteredCodespaces.map(c => (
+                  <div 
+                    key={c.name}
+                    onClick={() => openCodespace(c.name, c.path)}
+                    className="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-400 hover:shadow-md transition cursor-pointer flex flex-col justify-between"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                        {c.stack || 'Next.js'}
+                      </span>
+                      <span className="text-[11px] text-slate-400">{c.fileCount || 0} files</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 truncate">{c.name}</h4>
+                    <p className="text-xs text-slate-400 font-mono mt-1 truncate">{c.path}</p>
+                    <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+                      <span>Open Workspace</span>
+                      <ArrowRight size={13} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* ─── LIST VIEW ─── */}
+            {viewMode === 'list' && (
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Project</th>
+                      <th className="px-4 py-3">Visibility</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3">Last Edited</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                    <tr 
+                      onClick={() => openStudio('Your Financial Hub', 'projects/financial-hub')}
+                      className="hover:bg-slate-50/80 cursor-pointer transition"
+                    >
+                      <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-[#2e7d32] text-white font-bold text-[10px] flex items-center justify-center">S</div>
+                        <span>Your Financial Hub</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">Public</td>
+                      <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">Inactive</span></td>
+                      <td className="px-4 py-3 text-slate-400">3 months ago</td>
+                      <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open Studio</td>
+                    </tr>
+                    <tr 
+                      onClick={() => openStudio('patta-digit-hub', 'projects/patta-digit-hub')}
+                      className="hover:bg-slate-50/80 cursor-pointer transition"
+                    >
+                      <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-full bg-[#2e7d32] text-white font-bold text-[10px] flex items-center justify-center">S</div>
+                        <span>patta-digit-hub</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">Public</td>
+                      <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-semibold">Inactive</span></td>
+                      <td className="px-4 py-3 text-slate-400">3 months ago</td>
+                      <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open Studio</td>
+                    </tr>
+                    {filteredCodespaces.map(c => (
+                      <tr 
+                        key={c.name}
+                        onClick={() => openCodespace(c.name, c.path)}
+                        className="hover:bg-slate-50/80 cursor-pointer transition"
+                      >
+                        <td className="px-4 py-3 font-semibold text-slate-900 flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-[10px] flex items-center justify-center">N</div>
+                          <span>{c.name}</span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">Private</td>
+                        <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold">Active</span></td>
+                        <td className="px-4 py-3 text-slate-400">Recently</td>
+                        <td className="px-4 py-3 text-right font-semibold text-indigo-600">Open IDE</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </section>
