@@ -22,8 +22,10 @@ import {
   ChevronRight as ChevronRightIcon,
   CheckCircle2,
   Code2,
-  BookOpen
+  BookOpen,
+  Settings
 } from 'lucide-react';
+import { WorkspaceSettingsModal, type SettingsTab } from '../components/settings/WorkspaceSettingsModal';
 
 interface CodespaceItem {
   name: string;
@@ -153,6 +155,15 @@ export function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'projects' | 'templates'>('dashboard');
+
+  // Workspace Settings Modal State (Lovable-style settings)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('workspace');
+
+  const openSettings = (tab: SettingsTab = 'workspace') => {
+    setSettingsTab(tab);
+    setIsSettingsOpen(true);
+  };
 
   // Prompt Generator State
   const [promptInput, setPromptInput] = useState('');
@@ -350,7 +361,7 @@ export function HomePage() {
         </div>
 
         {/* Quick Action: New Project CTA */}
-        <div className="p-3">
+        <div className="p-3 pb-1">
           <button
             onClick={() => handleCreateBlank('nextjs')}
             disabled={isCreatingBlank}
@@ -361,6 +372,33 @@ export function HomePage() {
           >
             <Plus size={16} className="shrink-0" />
             {!sidebarCollapsed && <span>{isCreatingBlank ? 'Creating...' : 'New Project'}</span>}
+          </button>
+        </div>
+
+        {/* Workspace Quick Pill (Matches Lovable Screenshot) */}
+        <div className="px-3 pb-2">
+          <button
+            onClick={() => openSettings('workspace')}
+            className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition cursor-pointer hover:bg-slate-100/80 bg-slate-50 border border-slate-200/80 ${
+              sidebarCollapsed ? 'justify-center p-1.5' : ''
+            }`}
+            title="Open Workspace & Project Settings"
+          >
+            <div className="flex items-center gap-2.5 truncate">
+              <div className="w-6 h-6 rounded-lg bg-blue-600 text-white font-black text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+                S
+              </div>
+              {!sidebarCollapsed && (
+                <span className="truncate text-slate-800 font-bold">
+                  {user?.display_name?.split(' ')[0] || 'Sayan'}'s Studio
+                </span>
+              )}
+            </div>
+            {!sidebarCollapsed && (
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">
+                Settings
+              </span>
+            )}
           </button>
         </div>
 
@@ -423,6 +461,14 @@ export function HomePage() {
             )}
 
             <button
+              onClick={() => openSettings('git')}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
+            >
+              <Settings size={18} className="text-slate-400" />
+              {!sidebarCollapsed && <span>Project Settings</span>}
+            </button>
+
+            <button
               onClick={() => navigateTo('create')}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition cursor-pointer"
             >
@@ -445,7 +491,11 @@ export function HomePage() {
         {/* Sidebar Footer / User Profile */}
         <div className="p-3 border-t border-slate-100 bg-slate-50/50">
           <div className={`flex items-center justify-between ${sidebarCollapsed ? 'flex-col gap-2' : ''}`}>
-            <div className="flex items-center gap-2.5 overflow-hidden">
+            <div 
+              onClick={() => openSettings('account')}
+              className="flex items-center gap-2.5 overflow-hidden cursor-pointer hover:opacity-80 transition"
+              title="Click to view Account Settings"
+            >
               <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-500 text-white font-bold text-xs flex items-center justify-center shadow-sm shrink-0">
                 {user?.display_name ? user.display_name.charAt(0).toUpperCase() : 'U'}
               </div>
@@ -491,11 +541,20 @@ export function HomePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2.5 py-1 rounded-full font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Cloud Ready</span>
             </div>
+
+            <button
+              onClick={() => openSettings('workspace')}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
+              title="Open Workspace & Project Settings"
+            >
+              <Settings size={14} className="text-slate-500" />
+              <span className="hidden sm:inline">Settings</span>
+            </button>
 
             <button
               onClick={() => handleCreateBlank('nextjs')}
@@ -821,6 +880,13 @@ export function HomePage() {
 
         </div>
       </main>
+
+      {/* ─── WORKSPACE & PROJECT SETTINGS MODAL (Lovable / Windsurf Style) ─── */}
+      <WorkspaceSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        initialTab={settingsTab}
+      />
     </div>
   );
 }
