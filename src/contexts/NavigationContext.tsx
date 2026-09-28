@@ -23,11 +23,7 @@ interface NavigationContextType {
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
-  const [page, setPage] = useState<AppPage>(() => {
-    // If a workspace was already open, default to ide, otherwise home
-    const saved = localStorage.getItem('novadesk:currentWorkspace');
-    return saved ? 'ide' : 'home';
-  });
+  const [page, setPage] = useState<AppPage>('home');
 
   const [prototypeReq, setPrototypeReq] = useState<PrototypeRequest | null>(null);
   const [activeCodespaceName, setActiveCodespaceName] = useState<string | null>(() => {

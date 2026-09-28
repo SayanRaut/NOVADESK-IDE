@@ -14,13 +14,11 @@ import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { ExtensionProvider } from '../contexts/ExtensionContext';
 import { NavigationProvider, useNavigation } from '../contexts/NavigationContext';
 import { ApiKeyProvider } from '../contexts/ApiKeyContext';
-import { DesktopLayout } from '../layouts/DesktopLayout';
 import { LoadingScreen } from '../pages/LoadingScreen';
 import { LoginPage } from '../pages/LoginPage';
-import { HomePage } from '../pages/HomePage';
 import { CreateProjectPage } from '../pages/CreateProjectPage';
 import { PrototypeGenerationPage } from '../pages/PrototypeGenerationPage';
-import { LovableStudioLayout } from '../components/studio/LovableStudioLayout';
+import { NovaDeskHub } from '../components/hub/NovaDeskHub';
 import { initializeCommands } from '../services/command/initializeCommands';
 
 // Initialize the command registry, menus, and keybindings
@@ -28,17 +26,15 @@ initializeCommands();
 
 function AppRouter() {
   const { isInitializing, isAuthenticated } = useAuth();
-  const { page, activeCodespaceName, navigateTo } = useNavigation();
+  const { page } = useNavigation();
 
   if (isInitializing) return <LoadingScreen />;
   if (!isAuthenticated) return <LoginPage />;
   
-  if (page === 'home') return <HomePage />;
   if (page === 'create') return <CreateProjectPage />;
   if (page === 'generating') return <PrototypeGenerationPage />;
-  if (page === 'studio') return <LovableStudioLayout projectName={activeCodespaceName || 'Your Financial Hub'} onBack={() => navigateTo('home')} />;
   
-  return <DesktopLayout />;
+  return <NovaDeskHub />;
 }
 
 export function App() {
