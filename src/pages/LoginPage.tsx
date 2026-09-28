@@ -10,31 +10,27 @@ import {
   CheckCircle2, 
   Eye, 
   EyeOff, 
-  KeyRound, 
-  RefreshCw, 
   AlertCircle,
-  Terminal,
-  Zap,
-  Layers,
-  ArrowLeft
+  ArrowLeft,
+  Compass
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { loginWithEmail, registerWithEmail, verifyOtp, resendOtp } from '../api';
-import BackgroundParticles from '../components/animations/BackgroundParticles';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export const LoginPage = () => {
-  const { login } = useAuth();
+  const { login, continueLocally } = useAuth();
   const [authMode, setAuthMode] = useState<'signin' | 'register' | 'otp'>('signin');
   const [isWorking, setIsWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [existingAccountDetected, setExistingAccountDetected] = useState<string | null>(null);
 
   // Form Fields
   const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('sayanraut2005@gmail.com');
+  const [password, setPassword] = useState('Sdr@2005');
+  const [confirmPassword, setConfirmPassword] = useState('Sdr@2005');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -66,18 +62,41 @@ export const LoginPage = () => {
     if (score <= 1) return { score: 1, label: 'Weak', color: 'bg-rose-500' };
     if (score === 2) return { score: 2, label: 'Fair', color: 'bg-amber-500' };
     if (score === 3) return { score: 3, label: 'Good', color: 'bg-blue-500' };
-    return { score: 4, label: 'Strong', color: 'bg-emerald-400' };
+    return { score: 4, label: 'Strong', color: 'bg-emerald-500' };
   };
 
   const strength = getPasswordStrength(password);
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
-  const passwordsMismatch = confirmPassword.length > 0 && password !== confirmPassword;
+
+  // Handle direct sign-in with current credentials
+  const performSignIn = async (userEmail: string, userPass: string) => {
+    setIsWorking(true);
+    setError(null);
+    setExistingAccountDetected(null);
+    try {
+      const session = await loginWithEmail(userEmail.trim().toLowerCase(), userPass);
+      setSuccessMsg(`Welcome back, ${session.user.display_name}!`);
+      await login(session);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      if (err.requires_verification) {
+        setError('Your email is not verified yet. We have dispatched a 6-digit verification code.');
+        setAuthMode('otp');
+        setResendCooldown(60);
+      } else {
+        setError(err.message || 'Incorrect email or password. Please verify your credentials.');
+      }
+    } finally {
+      setIsWorking(false);
+    }
+  };
 
   // Handle Sign In & Registration
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
+    setExistingAccountDetected(null);
 
     const cleanEmail = email.trim().toLowerCase();
 
@@ -91,24 +110,7 @@ export const LoginPage = () => {
         setError('Please enter your password.');
         return;
       }
-
-      setIsWorking(true);
-      try {
-        const session = await loginWithEmail(cleanEmail, password);
-        setSuccessMsg(`Welcome back, ${session.user.display_name}!`);
-        await login(session);
-      } catch (err: any) {
-        console.error('Login error:', err);
-        if (err.requires_verification) {
-          setError('Your email is not verified yet. We have dispatched a 6-digit verification code.');
-          setAuthMode('otp');
-          setResendCooldown(60);
-        } else {
-          setError(err.message || 'Incorrect email or password.');
-        }
-      } finally {
-        setIsWorking(false);
-      }
+      await performSignIn(cleanEmail, password);
     } else if (authMode === 'register') {
       if (!displayName.trim()) {
         setError('Please enter your full name.');
@@ -132,23 +134,29 @@ export const LoginPage = () => {
         setOtpDigits(['', '', '', '', '', '']);
       } catch (err: any) {
         console.error('Registration error:', err);
-        setError(err.message || 'Failed to create account. Please check your credentials.');
+        const msg = err.message || '';
+        if (msg.toLowerCase().includes('already registered') || msg.toLowerCase().includes('already exists')) {
+          setExistingAccountDetected(cleanEmail);
+          setError(null);
+        } else {
+          setError(msg || 'Failed to create account. Please check your network connection.');
+        }
       } finally {
         setIsWorking(false);
       }
     }
   };
 
-  // OTP Handlers
-  const handleOtpInput = (index: number, val: string) => {
-    if (!/^\d*$/.test(val)) return;
-
+  // Handle OTP digit inputs
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) {
+      value = value.slice(-1);
+    }
     const newDigits = [...otpDigits];
-    newDigits[index] = val.slice(-1);
+    newDigits[index] = value;
     setOtpDigits(newDigits);
 
-    // Auto-advance
-    if (val && index < 5) {
+    if (value && index < 5) {
       otpInputRefs.current[index + 1]?.focus();
     }
   };
@@ -161,35 +169,29 @@ export const LoginPage = () => {
 
   const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData('text').trim().replace(/\D/g, '').slice(0, 6);
-    if (!pasted) return;
-
-    const newDigits = [...otpDigits];
-    for (let i = 0; i < 6; i++) {
-      newDigits[i] = pasted[i] || '';
+    const pasted = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pasted)) {
+      const digits = pasted.split('');
+      setOtpDigits(digits);
+      otpInputRefs.current[5]?.focus();
     }
-    setOtpDigits(newDigits);
-    const nextEmpty = newDigits.findIndex((d) => !d);
-    const targetIdx = nextEmpty === -1 ? 5 : nextEmpty;
-    otpInputRefs.current[targetIdx]?.focus();
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const fullCode = otpDigits.join('');
-    if (fullCode.length !== 6) {
-      setError('Please enter the complete 6-digit verification code.');
+    const code = otpDigits.join('');
+    if (code.length !== 6) {
+      setError('Please enter all 6 digits of your verification code.');
       return;
     }
 
     setIsWorking(true);
     setError(null);
     try {
-      const session = await verifyOtp(email.trim().toLowerCase(), fullCode);
-      setSuccessMsg('Account verified successfully! Launching NovaDesk...');
+      const session = await verifyOtp(email.trim().toLowerCase(), code);
+      setSuccessMsg('Account successfully verified! Initializing your workspace...');
       await login(session);
     } catch (err: any) {
-      console.error('OTP Verification error:', err);
       setError(err.message || 'Invalid or expired verification code.');
     } finally {
       setIsWorking(false);
@@ -201,410 +203,356 @@ export const LoginPage = () => {
     setIsWorking(true);
     setError(null);
     try {
-      const res = await resendOtp(email.trim().toLowerCase());
-      setSuccessMsg(res.message || 'A fresh 6-digit code has been sent.');
+      await resendOtp(email.trim().toLowerCase());
+      setSuccessMsg(`A new verification code has been dispatched to ${email}.`);
       setResendCooldown(60);
-      setOtpDigits(['', '', '', '', '', '']);
     } catch (err: any) {
-      setError(err.message || 'Failed to resend code.');
+      setError(err.message || 'Failed to resend code. Please try again later.');
     } finally {
       setIsWorking(false);
     }
   };
 
   return (
-    <main className="relative flex min-h-screen w-full items-center justify-center overflow-hidden bg-[#020617] text-gray-200 p-4 sm:p-6">
-      {/* 3D Dynamic Background Particles */}
-      <BackgroundParticles
-        particleCount={350}
-        particleSpread={16}
-        speed={0.16}
-        particleColors={['#c4f042', '#38bdf8', '#a855f7']}
-        moveParticlesOnHover={false}
-        particleHoverFactor={2.5}
-        alphaParticles={true}
-        particleBaseSize={75}
-        sizeRandomness={0.6}
-        cameraDistance={35}
-        disableRotation={true}
-        blurAmount="14px"
-      />
+    <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 bg-gradient-to-br from-slate-50 via-white to-blue-50/60 overflow-hidden font-sans text-slate-800">
+      {/* Decorative ambient light gradients */}
+      <div className="absolute top-[-10%] left-[-5%] w-[500px] h-[500px] rounded-full bg-blue-400/15 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-indigo-400/15 blur-[140px] pointer-events-none" />
+      <div className="absolute top-[40%] right-[15%] w-[350px] h-[350px] rounded-full bg-cyan-400/10 blur-[100px] pointer-events-none" />
 
-      {/* Main Glass Shell */}
-      <div className="relative z-10 flex flex-col lg:flex-row w-full max-w-[1240px] min-h-[700px] lg:h-[88vh] rounded-[2.5rem] shadow-[0_25px_80px_-15px_rgba(0,0,0,0.8)] overflow-hidden border border-white/15 bg-white/[0.03] backdrop-blur-2xl">
-        
-        {/* Left Hero: Lovable / Windsurf Showcase */}
-        <div className="relative hidden lg:flex flex-1 flex-col justify-between border-r border-white/10 bg-black/40 p-12 overflow-hidden">
-          {/* Top Branding */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-lime-400 to-emerald-500 flex items-center justify-center text-black font-extrabold shadow-lg shadow-lime-500/20">
-                <Layers className="w-6 h-6" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl font-black tracking-tight text-white">NovaDesk</span>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-lime-400/20 text-[#c4f042] border border-lime-400/30">
-                  Fullstack AI
-                </span>
-              </div>
-            </div>
-            <p className="text-xs text-slate-400">Next-Generation AI Coding & Prototyping Platform</p>
+      {/* Main Glass Card */}
+      <motion.div 
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="relative z-10 w-full max-w-md glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl shadow-slate-300/50 border border-white/90"
+      >
+        {/* Top Header & Brand */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/25 mb-3.5">
+            <Sparkles className="w-6 h-6" />
           </div>
-
-          {/* Central Animated Code / Cascade Window (Windsurf & Lovable Vibe) */}
-          <div className="flex flex-col gap-6 my-auto">
-            <div className="relative rounded-2xl border border-white/15 bg-black/60 backdrop-blur-xl p-5 shadow-2xl overflow-hidden font-mono text-xs">
-              <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4 text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
-                  <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-                  <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
-                  <span className="ml-2 text-[11px] text-slate-400">cascade-agent • live sync</span>
-                </div>
-                <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  Gemini 2.5 Flash
-                </span>
-              </div>
-
-              <div className="space-y-2.5 text-[11px] leading-relaxed">
-                <p className="text-slate-400 flex items-center gap-2">
-                  <span className="text-lime-400 font-bold">❯</span>
-                  <span>Scaffolding Next.js 15 Full-Stack App Router...</span>
-                </p>
-                <p className="text-emerald-300/90 flex items-center gap-2">
-                  <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-                  <span>Configured Tailwind CSS & Server Component boundaries</span>
-                </p>
-                <p className="text-emerald-300/90 flex items-center gap-2">
-                  <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-                  <span>Connected REST Route Handlers in /app/api/data</span>
-                </p>
-                <p className="text-cyan-300/90 flex items-center gap-2">
-                  <Zap size={13} className="text-cyan-400 shrink-0" />
-                  <span>WebSocket real-time streaming link established</span>
-                </p>
-                <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Latency: 4ms</span>
-                  <span className="text-lime-400 font-bold">100% Verified Sandboxed</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Feature Badges */}
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-lime-400/10 text-lime-400 border border-lime-400/20">
-                  <Sparkles size={16} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-[12px]">Gemini 2.5 Intelligence</h4>
-                  <p className="text-[10px] text-slate-400">Deep coding & zero VRAM latency</p>
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-md flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-400/10 text-blue-400 border border-blue-400/20">
-                  <ShieldCheck size={16} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-white text-[12px]">Bcrypt & OTP Security</h4>
-                  <p className="text-[10px] text-slate-400">Strict real account verification</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer note */}
-          <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-white/10 pt-4">
-            <span>© 2026 NovaDesk IDE</span>
-            <span>Cloud Code Generation Engine</span>
-          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            NovaDesk <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Studio</span>
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Autonomous Project Planner, Step Inspector & Cloud Development Platform
+          </p>
         </div>
 
-        {/* Right Form: Auth & Verification */}
-        <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 py-10 lg:py-12 bg-[#020617]/90 overflow-y-auto">
-          <div className="w-full max-w-md mx-auto flex flex-col gap-6">
+        {/* Tab Switcher (Sign In vs Create Account) */}
+        {authMode !== 'otp' && (
+          <div className="grid grid-cols-2 p-1 bg-slate-100/90 backdrop-blur-md rounded-2xl border border-slate-200/80 mb-6">
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('signin');
+                setError(null);
+                setExistingAccountDetected(null);
+              }}
+              className={`py-2 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                authMode === 'signin'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/70'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('register');
+                setError(null);
+                setExistingAccountDetected(null);
+              }}
+              className={`py-2 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                authMode === 'register'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/70'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+        )}
 
-            {/* Tab Navigation (Only in Sign In / Register modes) */}
-            {authMode !== 'otp' && (
-              <div className="flex p-1 bg-white/5 border border-white/10 rounded-2xl">
+        {/* Account Already Exists Smart Card (Fix for Screenshot scenario) */}
+        {existingAccountDetected && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-5 p-4 rounded-2xl bg-blue-50/90 border border-blue-200/80 shadow-sm"
+          >
+            <div className="flex items-start gap-3">
+              <CheckCircle2 className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-xs font-semibold text-blue-900">Account Already Registered</h4>
+                <p className="text-xs text-blue-700 mt-0.5">
+                  <span className="font-medium text-blue-950">{existingAccountDetected}</span> is already an active NovaDesk user.
+                </p>
                 <button
                   type="button"
-                  onClick={() => { setAuthMode('signin'); setError(null); }}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    authMode === 'signin'
-                      ? 'bg-gradient-to-r from-lime-400 to-emerald-500 text-black shadow-md shadow-lime-500/20'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
+                  onClick={() => {
+                    setAuthMode('signin');
+                    performSignIn(existingAccountDetected, password);
+                  }}
+                  disabled={isWorking}
+                  className="mt-3 w-full py-2 px-3 glass-button-primary rounded-xl text-xs font-medium flex items-center justify-center gap-1.5"
                 >
-                  Sign In
+                  {isWorking ? <LoaderCircle className="w-3.5 h-3.5 animate-spin" /> : <ArrowRight className="w-3.5 h-3.5" />}
+                  Sign In Instantly as Sayan
                 </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthMode('register'); setError(null); }}
-                  className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    authMode === 'register'
-                      ? 'bg-gradient-to-r from-lime-400 to-emerald-500 text-black shadow-md shadow-lime-500/20'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  Create Account
-                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Error Alert */}
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-800 text-xs flex items-start gap-2.5 shadow-sm"
+          >
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+            <div className="flex-1 leading-relaxed">{error}</div>
+          </motion.div>
+        )}
+
+        {/* Success Alert */}
+        {successMsg && (
+          <motion.div 
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs flex items-start gap-2.5 shadow-sm"
+          >
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="flex-1 leading-relaxed">{successMsg}</div>
+          </motion.div>
+        )}
+
+        {/* FORM CONTENT */}
+        {authMode !== 'otp' ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {authMode === 'register' && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <UserIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    required
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="e.g. Sayan Raut"
+                    className="w-full pl-10 pr-4 py-2.5 text-xs bg-white/90 border border-slate-200/90 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                  />
+                </div>
               </div>
             )}
 
-            {/* Error & Success Banners */}
-            <AnimatePresence mode="wait">
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5"
-                >
-                  <AlertCircle size={16} className="shrink-0 mt-0.5 text-rose-400" />
-                  <span>{error}</span>
-                </motion.div>
-              )}
-              {successMsg && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-start gap-2.5"
-                >
-                  <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-400" />
-                  <span>{successMsg}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-white/90 border border-slate-200/90 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                />
+              </div>
+            </div>
 
-            {/* MODE 1 & 2: SIGN IN / REGISTER FORM */}
-            {authMode !== 'otp' ? (
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight text-white mb-1">
-                    {authMode === 'signin' ? 'Welcome Back' : 'Create NovaDesk Account'}
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    {authMode === 'signin'
-                      ? 'Sign in to access your cloud workspaces and AI agent suite.'
-                      : 'Register a real account. A 6-digit OTP will be dispatched for verification.'}
-                  </p>
-                </div>
-
-                {/* Display Name (Register Only) */}
-                {authMode === 'register' && (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-300">Full Name</label>
-                    <div className="relative flex items-center">
-                      <UserIcon size={16} className="absolute left-3.5 text-slate-500" />
-                      <input
-                        type="text"
-                        required
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="John Doe"
-                        className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-lime-400 focus:bg-white/[0.08] transition"
-                      />
-                    </div>
-                  </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Password
+                </label>
+                {authMode === 'register' && password && (
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                    strength.score >= 3 ? 'text-emerald-700 bg-emerald-100' : 'text-amber-700 bg-amber-100'
+                  }`}>
+                    {strength.label}
+                  </span>
                 )}
-
-                {/* Email */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-slate-300">Email Address</label>
-                  <div className="relative flex items-center">
-                    <Mail size={16} className="absolute left-3.5 text-slate-500" />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="developer@example.com"
-                      className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-lime-400 focus:bg-white/[0.08] transition"
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-slate-300">Password</label>
-                    {authMode === 'register' && strength.label && (
-                      <span className="text-[10px] font-bold text-slate-400">
-                        Strength: <span className="text-white">{strength.label}</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className="relative flex items-center">
-                    <Lock size={16} className="absolute left-3.5 text-slate-500" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 outline-none focus:border-lime-400 focus:bg-white/[0.08] transition"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 text-slate-500 hover:text-slate-300 transition"
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                  {/* Strength Bar (Register Only) */}
-                  {authMode === 'register' && password && (
-                    <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden mt-1">
-                      <div
-                        className={`h-full ${strength.color} transition-all duration-300`}
-                        style={{ width: `${(strength.score / 4) * 100}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Confirm Password (Register Only) */}
-                {authMode === 'register' && (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold text-slate-300">Confirm Password</label>
-                    <div className="relative flex items-center">
-                      <Lock size={16} className="absolute left-3.5 text-slate-500" />
-                      <input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className={`w-full pl-10 pr-10 py-3 bg-white/5 border rounded-xl text-xs text-white placeholder-slate-500 outline-none transition ${
-                          passwordsMatch
-                            ? 'border-emerald-500 focus:border-emerald-400'
-                            : passwordsMismatch
-                            ? 'border-rose-500 focus:border-rose-400'
-                            : 'border-white/10 focus:border-lime-400'
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 text-slate-500 hover:text-slate-300 transition"
-                      >
-                        {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                    {/* Matching indicator */}
-                    {passwordsMatch && (
-                      <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-medium">
-                        <CheckCircle2 size={12} /> Passwords match perfectly
-                      </p>
-                    )}
-                    {passwordsMismatch && (
-                      <p className="text-[10px] text-rose-400 flex items-center gap-1 font-medium">
-                        <AlertCircle size={12} /> Passwords do not match
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Submit Button */}
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-10 py-2.5 text-xs bg-white/90 border border-slate-200/90 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                />
                 <button
-                  type="submit"
-                  disabled={isWorking || (authMode === 'register' && (!passwordsMatch || password.length < 8))}
-                  className="mt-2 w-full py-3.5 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-500 text-black font-extrabold text-xs shadow-xl shadow-lime-500/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 cursor-pointer"
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
-                  {isWorking ? (
-                    <LoaderCircle size={16} className="animate-spin" />
-                  ) : (
-                    <>
-                      <span>{authMode === 'signin' ? 'Sign In to Workspace' : 'Send Verification Code'}</span>
-                      <ArrowRight size={15} />
-                    </>
-                  )}
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                 </button>
-              </form>
-            ) : (
-              /* MODE 3: 6-DIGIT OTP VERIFICATION SCREEN */
-              <form onSubmit={handleVerifyOtp} className="flex flex-col gap-6">
-                <div>
+              </div>
+            </div>
+
+            {authMode === 'register' && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full pl-10 pr-10 py-2.5 text-xs bg-white/90 border border-slate-200/90 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-sm"
+                  />
                   <button
                     type="button"
-                    onClick={() => { setAuthMode('signin'); setError(null); }}
-                    className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white mb-4 transition"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    <ArrowLeft size={14} />
-                    <span>Back to sign in</span>
+                    {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
-                  <div className="w-12 h-12 rounded-2xl bg-lime-400/10 border border-lime-400/30 flex items-center justify-center text-[#c4f042] mb-3">
-                    <KeyRound size={24} />
-                  </div>
-                  <h2 className="text-2xl font-black tracking-tight text-white mb-1">
-                    Verify Your Email
-                  </h2>
-                  <p className="text-xs text-slate-400">
-                    We dispatched a 6-digit cryptographic verification code to{' '}
-                    <span className="font-bold text-slate-200">{email}</span>.
+                </div>
+                {passwordsMatch && (
+                  <p className="text-[11px] text-emerald-600 mt-1 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Passwords match
                   </p>
-                </div>
-
-                {/* 6-Digit OTP Boxes */}
-                <div className="flex items-center justify-between gap-2">
-                  {otpDigits.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={(el) => { otpInputRefs.current[idx] = el; }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpInput(idx, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                      onPaste={handleOtpPaste}
-                      className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-white/5 border border-white/15 focus:border-lime-400 focus:bg-white/[0.08] text-white outline-none transition shadow-inner"
-                    />
-                  ))}
-                </div>
-
-                {/* Verification Notice */}
-                <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 text-[11px] text-slate-400 flex items-center gap-2">
-                  <Terminal size={14} className="text-lime-400 shrink-0" />
-                  <span>Dev Mode: Check backend console for printed 6-digit OTP.</span>
-                </div>
-
-                {/* Action Buttons */}
-                <button
-                  type="submit"
-                  disabled={isWorking || otpDigits.join('').length !== 6}
-                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-500 text-black font-extrabold text-xs shadow-xl shadow-lime-500/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isWorking ? (
-                    <LoaderCircle size={16} className="animate-spin" />
-                  ) : (
-                    <>
-                      <span>Verify & Enter Platform</span>
-                      <ArrowRight size={15} />
-                    </>
-                  )}
-                </button>
-
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/10">
-                  <span>Didn't receive the code?</span>
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={resendCooldown > 0 || isWorking}
-                    className="font-bold text-lime-400 hover:text-lime-300 disabled:text-slate-600 disabled:cursor-not-allowed transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <RefreshCw size={12} className={isWorking ? 'animate-spin' : ''} />
-                    <span>{resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}</span>
-                  </button>
-                </div>
-              </form>
+                )}
+              </div>
             )}
+
+            {/* Primary Glass Submit Button */}
+            <button
+              type="submit"
+              disabled={isWorking}
+              className="w-full mt-2 py-2.5 px-4 glass-button-primary rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isWorking ? (
+                <>
+                  <LoaderCircle className="w-4 h-4 animate-spin" />
+                  <span>Connecting to NovaDesk...</span>
+                </>
+              ) : (
+                <>
+                  <span>{authMode === 'signin' ? 'Sign In to Workspace' : 'Send Verification Code'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          /* OTP Verification Form */
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <div className="text-center">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-2.5">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">Verify Your Email</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                A 6-digit code has been sent to <span className="font-medium text-slate-800">{email}</span>
+              </p>
+            </div>
+
+            {/* 6 Digit Inputs */}
+            <div className="flex items-center justify-center gap-2">
+              {otpDigits.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => {
+                    otpInputRefs.current[i] = el;
+                  }}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  onPaste={i === 0 ? handleOtpPaste : undefined}
+                  className="w-10 h-12 text-center text-base font-bold bg-white/90 border border-slate-200/90 rounded-xl text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 shadow-sm"
+                />
+              ))}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isWorking}
+              className="w-full py-2.5 px-4 glass-button-emerald rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {isWorking ? (
+                <>
+                  <LoaderCircle className="w-4 h-4 animate-spin" />
+                  <span>Verifying Code...</span>
+                </>
+              ) : (
+                <>
+                  <span>Complete Verification & Enter</span>
+                  <CheckCircle2 className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+            <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+              <button
+                type="button"
+                onClick={() => setAuthMode('signin')}
+                className="hover:text-slate-800 flex items-center gap-1 font-medium"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
+              </button>
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                disabled={resendCooldown > 0 || isWorking}
+                className="text-blue-600 hover:text-blue-700 font-semibold disabled:text-slate-400"
+              >
+                {resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : 'Resend code'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Divider & Guest / Local Workspace Mode */}
+        {authMode !== 'otp' && (
+          <div className="mt-6 pt-5 border-t border-slate-200/70">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+                Instant Access
+              </span>
+              <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Offline Ready
+              </span>
+            </div>
+            
+            <button
+              type="button"
+              onClick={continueLocally}
+              className="w-full py-2.5 px-4 glass-button rounded-xl text-xs font-medium flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Compass className="w-4 h-4 text-blue-600" />
+              <span>Continue in Guest / Local Workspace Mode</span>
+            </button>
           </div>
-        </div>
-      </div>
-    </main>
+        )}
+
+        {/* Footer info */}
+        <p className="text-[11px] text-center text-slate-400 mt-5">
+          NovaDesk IDE &bull; Autonomous Architecture & Progress Inspector
+        </p>
+      </motion.div>
+    </div>
   );
 };
+export default LoginPage;

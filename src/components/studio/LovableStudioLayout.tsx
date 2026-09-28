@@ -25,9 +25,11 @@ import {
   TrendingDown, 
   Wallet, 
   Bell, 
-  ArrowLeft
+  ArrowLeft,
+  Compass
 } from 'lucide-react';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { ProjectProgressMonitor } from '../monitor/ProjectProgressMonitor';
 
 interface LovableStudioLayoutProps {
   projectName?: string;
@@ -46,6 +48,7 @@ export function LovableStudioLayout({
   const [isThinkingOpen, setIsThinkingOpen] = useState(true);
   const [showHelpTip, setShowHelpTip] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState('Dashboard');
+  const [showMonitor, setShowMonitor] = useState(false);
 
   return (
     <div className="flex flex-col h-screen w-screen bg-[#121316] text-slate-100 font-sans overflow-hidden select-none">
@@ -128,6 +131,15 @@ export function LovableStudioLayout({
               <RotateCw size={14} />
             </button>
           </div>
+
+          <button 
+            onClick={() => setShowMonitor(true)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-xs font-bold text-emerald-300 border border-emerald-500/30 shadow-sm transition cursor-pointer"
+            title="Open Autonomous Step Progress Inspector"
+          >
+            <Compass size={13} className="text-emerald-400 animate-spin-slow" />
+            <span>Progress Monitor</span>
+          </button>
 
           <button 
             className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 border border-white/5 transition cursor-pointer"
@@ -652,6 +664,13 @@ export function LovableStudioLayout({
         </div>
 
       </div>
+
+      <ProjectProgressMonitor
+        isOpen={showMonitor}
+        onClose={() => setShowMonitor(false)}
+        projectName={projectName}
+        defaultMode="extension"
+      />
     </div>
   );
 }

@@ -33,10 +33,12 @@ import {
   ChevronDown,
   Check,
   ExternalLink,
-  Laptop
+  Laptop,
+  Compass
 } from 'lucide-react';
 import { WorkspaceSettingsModal, type SettingsTab } from '../components/settings/WorkspaceSettingsModal';
 import { ProjectPlannerModal } from '../components/planner/ProjectPlannerModal';
+import { ProjectProgressMonitor } from '../components/monitor/ProjectProgressMonitor';
 import { WorkspaceDropdown } from '../components/navigation/WorkspaceDropdown';
 import { UserProfileDropdown } from '../components/navigation/UserProfileDropdown';
 import { useApiKey } from '../contexts/ApiKeyContext';
@@ -199,6 +201,8 @@ export function HomePage() {
   // Bring-Your-Own-Key & AI Planner Modal
   const { hasKey, maskedKey } = useApiKey();
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
+  const [showMonitorModal, setShowMonitorModal] = useState(false);
+  const [monitorMode, setMonitorMode] = useState<'extension' | 'dashboard'>('extension');
 
   // Prompt Generator State
   const [promptInput, setPromptInput] = useState('');
@@ -537,6 +541,25 @@ export function HomePage() {
             )}
           </button>
 
+          <button
+            onClick={() => {
+              setMonitorMode('extension');
+              setShowMonitorModal(true);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition cursor-pointer text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
+            title="Autonomous Project Progress Monitor"
+          >
+            <Compass size={18} className="text-emerald-600 shrink-0" />
+            {!sidebarCollapsed && (
+              <div className="flex items-center justify-between w-full">
+                <span>Progress Monitor</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                  Live
+                </span>
+              </div>
+            )}
+          </button>
+
           <div className="pt-4 mt-2 border-t border-slate-100">
             {!sidebarCollapsed && (
               <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
@@ -663,6 +686,20 @@ export function HomePage() {
             >
               <BrainCircuit size={14} className="text-blue-600" />
               <span className="hidden sm:inline">AI Planner</span>
+            </button>
+
+            {/* Autonomous Progress Monitor Glass Button */}
+            <button
+              onClick={() => {
+                setMonitorMode('extension');
+                setShowMonitorModal(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 glass-button-primary rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer"
+              title="Launch Autonomous Project Progress Monitor"
+            >
+              <Compass size={14} className="text-white animate-spin-slow" />
+              <span className="hidden sm:inline">Progress Monitor</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse ml-0.5" />
             </button>
 
             <button
@@ -1433,6 +1470,14 @@ export function HomePage() {
         onClose={() => setIsPlannerOpen(false)}
         initialPrompt={promptInput}
         initialTemplate="nextjs"
+      />
+
+      {/* ─── AUTONOMOUS PROJECT PROGRESS MONITOR (Web Extension / Dashboard) ─── */}
+      <ProjectProgressMonitor
+        isOpen={showMonitorModal}
+        onClose={() => setShowMonitorModal(false)}
+        projectName={codespaces[0]?.name || 'default-project'}
+        defaultMode={monitorMode}
       />
     </div>
   );

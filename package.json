@@ -4,13 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n web,api -c \"cyan,magenta\" \"vite\" \"python -m uvicorn backend.main:app --reload --port 8000\"",
+    "dev": "concurrently -k -n web,api -c \"cyan,magenta\" \"vite\" \"py -3.11 -m uvicorn backend.main:app --reload --port 8000\"",
     "dev:web": "vite",
-    "dev:server": "python -m uvicorn backend.main:app --reload --port 8000",
+    "dev:server": "py -3.11 -m uvicorn backend.main:app --reload --port 8000",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "server": "python -m uvicorn backend.main:app --reload --port 8000",
-    "start": "concurrently -k -n web,api -c \"cyan,magenta\" \"vite\" \"python -m uvicorn backend.main:app --reload --port 8000\"",
+    "server": "py -3.11 -m uvicorn backend.main:app --reload --port 8000",
+    "start": "concurrently -k -n web,api -c \"cyan,magenta\" \"vite\" \"py -3.11 -m uvicorn backend.main:app --reload --port 8000\"",
     "lint": "oxlint"
   },
   "dependencies": {

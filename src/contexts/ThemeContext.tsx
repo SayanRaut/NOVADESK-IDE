@@ -22,7 +22,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('novadesk:theme') as Theme) || 'dark');
+  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('novadesk:theme') as Theme) || 'light');
   const [actualTheme, setActualTheme] = useState<'dark' | 'light'>('dark');
   const [customBackground, setCustomBackground] = useState<string | null>(() => localStorage.getItem('novadesk:customBackground'));
   const [backgroundBlur, setBackgroundBlur] = useState<number>(() => {

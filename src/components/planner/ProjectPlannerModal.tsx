@@ -14,11 +14,13 @@ import {
   RefreshCw, 
   AlertCircle, 
   FileCode,
-  ExternalLink
+  ExternalLink,
+  Compass
 } from 'lucide-react';
 import { http } from '../../services/http';
 import { useApiKey } from '../../contexts/ApiKeyContext';
 import { useNavigation } from '../../contexts/NavigationContext';
+import { ProjectProgressMonitor } from '../monitor/ProjectProgressMonitor';
 
 interface TaskItem {
   id: string;
@@ -95,6 +97,7 @@ export function ProjectPlannerModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'visualizer' | 'markdown'>('visualizer');
+  const [showProgressMonitor, setShowProgressMonitor] = useState(false);
 
   // Key inline edit state
   const [showKeyInput, setShowKeyInput] = useState(false);
@@ -617,16 +620,37 @@ export function ProjectPlannerModal({
             </button>
 
             {planResult && (
-              <button
-                onClick={handleExecutePlan}
-                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <span>Execute Plan & Build Project</span>
-                <ArrowRight size={14} />
-              </button>
+              <>
+                <button
+                  onClick={() => setShowProgressMonitor(true)}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold text-white glass-button-primary shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  title="Launch Autonomous Step-by-Step Progress Inspector"
+                >
+                  <Compass size={14} className="text-white animate-spin-slow" />
+                  <span>Monitor Step Progress ⚡</span>
+                </button>
+
+                <button
+                  onClick={handleExecutePlan}
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <span>Build Prototype</span>
+                  <ArrowRight size={14} />
+                </button>
+              </>
             )}
           </div>
         </div>
+
+        {planResult && (
+          <ProjectProgressMonitor
+            isOpen={showProgressMonitor}
+            onClose={() => setShowProgressMonitor(false)}
+            projectName={planResult.project_name || projectName || 'default-project'}
+            initialTasks={planResult.tasks}
+            defaultMode="extension"
+          />
+        )}
       </div>
     </div>
   );

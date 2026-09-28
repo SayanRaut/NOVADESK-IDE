@@ -74,3 +74,49 @@ async def test_list_models_endpoint():
         assert "gemini-flash-latest" in model_ids
         assert "gemini-2.0-flash" in model_ids
         assert data["default"] == "gemini-3.6-flash"
+
+@pytest.mark.asyncio
+async def test_monitor_verify_step_and_all():
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        # 1. Verify single step
+        step_payload = {
+            "project_name": "default-project",
+            "step_id": "t1",
+            "title": "Scaffolding Verification",
+            "target_files": ["README.md"]
+        }
+        resp = await ac.post("/api/ai/monitor/verify-step", json=step_payload)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ok"] is True
+        assert "step" in data
+        assert data["step"]["step_id"] == "t1"
+        assert len(data["step"]["criteria"]) > 0
+
+        # 2. Verify all tasks
+        all_payload = {
+            "project_name": "default-project",
+            "tasks": [
+                {
+                    "id": "t1",
+                    "title": "Initial Scaffolding",
+                    "target_files": ["README.md"],
+                    "agent": "architect"
+                },
+                {
+                    "id": "t2",
+                    "title": "Missing Component",
+                    "target_files": ["src/MissingFile.jsx"],
+                    "agent": "coder"
+                }
+            ]
+        }
+        resp2 = await ac.post("/api/ai/monitor/verify-all", json=all_payload)
+        assert resp2.status_code == 200
+        data2 = resp2.json()
+        assert data2["ok"] is True
+        assert len(data2["step_results"]) == 2
+        assert "summary" in data2
+        assert data2["summary"]["total_steps"] == 2
+
